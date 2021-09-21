@@ -152,7 +152,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 				console.log(`    Informing the user and deleting the message`);
 				await Promise.all([
 					(game.config.chatChannel ?? game.channel).send({
-						content: `${message.member}, you just tried to post an image ${game.config.chatChannel ? `in ${game.config.chatChannel} ` : ""}${otherAuthors.size ? `along with ${toList(otherAuthors)} ` : ""}but ${toList(commonAuthors)} were ${commonAuthors.size === 1 ? "an author" : "authors"} of the current tag. We're waiting on someone else to match it.`,
+						content: `${message.member}, you just tried to post an image ${game.config.chatChannel ? `in ${game.config.chatChannel} ` : ""}${otherAuthors.size ? `along with ${toList(otherAuthors)} ` : ""}but ${toList(commonAuthors)} ${commonAuthors.size === 1 && commonAuthors.has("you") ? "were an author" : commonAuthors.size === 1 ? "was an author" : "were authors"} of the current tag. We're waiting on someone else to match it.`,
 					}),
 					deleteMessage(message),
 				]);
