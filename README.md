@@ -166,6 +166,10 @@ Technical stuff
 
 `npm ci`
 
+### Run tests
+
+`npm test` or `npm test -- --watch`
+
 ### Configure the bot
 
 Copy the file `.env.example` to `.env`
