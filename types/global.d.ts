@@ -35,7 +35,7 @@ declare global {
 		/**
 		 * The message tracking the game status.
 		 */
-		statusMessage: Message;
+		statusMessage: Message | null;
 	};
 
 	/**
