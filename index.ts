@@ -9,7 +9,8 @@ import appState, { loadFromDisk, persistToDisk } from './lib/state';
 import { channelIsTextChannel, getGameOfChannel } from './lib/channel';
 import { handleMessage, recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from './lib/scoring';
 import { updateGameState } from './lib/game-state';
-import { messageHasImage } from './lib/message';
+import { messageHasImage, getMessageUsers } from './lib/message';
+import { setsEqual } from './lib/set';
 
 const x = setTimeout(() => "whatever", 100);
 
@@ -123,8 +124,15 @@ client.on('ready', async () => {
 		// Do nothing if the game is archived
 		if (game.state.status === 'archived') return;
 
+		// Do nothing if the author and tagged users didn't change
+		// *and also* the presence of an image didn't change
+		if (
+			setsEqual(getMessageUsers(oldMessage), getMessageUsers(newMessage))
+			&& messageHasImage(oldMessage) === messageHasImage(newMessage)
+		) return;
+
 		// Trigger a full recount and update the game state
-		console.log(`A message from ${newMessage.author} which contains or contained an image was edited; recounting...`);
+		console.log(`A message from ${newMessage.author} was edited in such a way that image presence or mentions changed; recounting...`);
 		const oldScores = game.state.scores;
 		const newState = await recount(game);
 		const changedScores = getChangedScores(oldScores, newState.scores);

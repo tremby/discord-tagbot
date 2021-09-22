@@ -17,7 +17,7 @@ export function messageHasImage(message: Message | PartialMessage): boolean {
  *
  * That is, the user who posted it, plus anyone mentioned.
  */
-export function getMessageUsers(message: Message): Set<User> {
+export function getMessageUsers(message: Message | PartialMessage): Set<User> {
 	const users = new Set<User>([message.author]);
 	for (const [username, user] of message.mentions.users) {
 		users.add(user);
