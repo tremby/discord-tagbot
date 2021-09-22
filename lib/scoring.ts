@@ -126,7 +126,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 
 	if (gameStateIsAwaitingMatch(game.state)) {
 		// Get users who posted the tag
-		const excluded = getMessageUsers(game.state.tag);
+		const tagAuthors = getMessageUsers(game.state.tag);
 
 		// Ensure image is present
 		if (!messageHasImage(message)) {
@@ -140,14 +140,14 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		// Get intersection of authors of the match with authors of the tag
 		const commonAuthors = new Set<User | string>();
 		authors.forEach((author) => {
-			if (excluded.has(author)) commonAuthors.add(author === message.author ? "you" : author);
+			if (tagAuthors.has(author)) commonAuthors.add(author === message.author ? "you" : author);
 		});
 
 		// Complain if any of the tag authors were involved with this match
 		if (commonAuthors.size) {
 			console.log(`  Message involved a user who was one of those who posted the tag we're matching`);
 			if (mode === 'live') {
-				const otherAuthors = new Set(excluded);
+				const otherAuthors = new Set(authors);
 				otherAuthors.delete(message.author);
 				console.log(`    Informing the user and deleting the message`);
 				await Promise.all([
