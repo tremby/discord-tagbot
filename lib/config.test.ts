@@ -20,7 +20,7 @@ describe('getDefaultConfig', () => {
 describe('serializeConfig', () => {
 	describe("next tag time limit", () => {
 		it("keeps null as null", () => {
-			const config = {
+			const config: Config = {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
@@ -29,7 +29,7 @@ describe('serializeConfig', () => {
 		});
 
 		it("doesn't mess with a number", () => {
-			const config = {
+			const config: Config = {
 				nextTagTimeLimit: 42,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
@@ -40,7 +40,7 @@ describe('serializeConfig', () => {
 
 	describe("judge roles", () => {
 		it("outputs an empty array if there are none", () => {
-			const config = {
+			const config: Config = {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
@@ -52,7 +52,7 @@ describe('serializeConfig', () => {
 			const guild = getGuild();
 			const role1 = getRole(guild, 'role1');
 			const role2 = getRole(guild, 'role2');
-			const config = {
+			const config: Config = {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set([role1, role2]),
 				chatChannel: null,
@@ -64,7 +64,7 @@ describe('serializeConfig', () => {
 
 	describe("chat channel", () => {
 		it("keeps null as null", () => {
-			const config = {
+			const config: Config = {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
@@ -73,7 +73,7 @@ describe('serializeConfig', () => {
 		});
 
 		it("converts to ID", () => {
-			const config = {
+			const config: Config = {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: getTextChannel(getGuild(), "channel-1"),
