@@ -17,7 +17,6 @@
     "discord-api-types": "^0.23.1",
     "discord.js": "^13.2.0-dev.1632269094.92f6471",
     "dotenv": "^10.0.0",
-    "erlpack": "github:discord/erlpack",
     "typescript": "^4.4.3",
     "utf-8-validate": "^5.0.5",
     "zlib-sync": "^0.1.7"
