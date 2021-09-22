@@ -24,44 +24,38 @@ export function getGameOfChannel(channel: TextChannel): Game | null {
 }
 
 /**
- * Get all messages in the channel in chronological order.
+ * Get an iterator for all messages in the channel in chronological order.
  *
  * @param {TextChannel} channel
  * @param {boolean} force - Force a cache skip. Default is false.
  */
-export async function getAllMessages(channel: TextChannel, force: boolean = false): Promise<Message[]> {
+export async function* getAllMessages(channel: TextChannel, force: boolean = false): AsyncGenerator<Message> {
 	let justFetched: Collection<string, Message> = null;
-	let allMessages: Message[] = [];
-
-	// Messages come in reverse-chronological order,
-	// so to get more messages we need to make the next page query for messages
-	// "before" (chronologically) the "last" (retrieved, i.e. chronologically earliest)
-	// message just retrieved.
+	const allMessages: Message[] = [];
 
 	while (true) {
 		console.log("Fetching a page of messages");
 
 		// Fetch a page of results
+		// Note that even with `after` they come in reverse chronological order
+		// so we need to fetch items "after" (chronologically) the "first"
+		// of the just-received batch (which is the chronologically last).
 		justFetched = await channel.messages.fetch({
 			limit: DISCORD_FETCH_MESSAGES_MAX,
-			before: justFetched == null ? undefined : justFetched.last().id,
+			after: justFetched == null ? "0" : justFetched.first().id,
 		}, { force });
 
-		// Concatenate to our list of all messages
-		allMessages.push(...justFetched.values());
+		// Yield the messages in chronological order
+		for (const message of [...justFetched.values()].reverse()) {
+			yield message;
+		}
 
-		// If we have less than the number we asked for, that's the end
-		// (or the maximum page size has changed)
+		// If we just fetched less than the number we asked for,
+		// that's the end (or Discord has decreased its maximum page size)
 		if (justFetched.size < DISCORD_FETCH_MESSAGES_MAX) {
-			// That's the last of them
 			break;
 		}
 	}
-
-	// Reverse to be in chronological order
-	allMessages = allMessages.reverse();
-
-	return allMessages;
 };
 
 /**

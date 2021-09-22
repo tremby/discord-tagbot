@@ -278,7 +278,7 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
 	}
 
 	// Step through all messages
-	for (const message of await getAllMessages(game.channel, true)) {
+	for await (const message of getAllMessages(game.channel, true)) {
 		const newState = await handleMessage({ ...game, state }, message, 'recount');
 		if (newState == null) continue;
 		state = newState;
