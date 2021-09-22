@@ -179,7 +179,7 @@ Alternatively, set the bot's login token as `DISCORD_TOKEN` in your environment.
 
 ### Build the application
 
-`npm run build`
+`npm run build` or `npm run build -- --watch`
 
 ### Run the bot
 
