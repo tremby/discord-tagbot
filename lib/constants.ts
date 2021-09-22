@@ -1,1 +1,0 @@
-export const DISCORD_FETCH_MESSAGES_MAX = 100;

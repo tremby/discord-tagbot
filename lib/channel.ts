@@ -2,7 +2,12 @@ import type { Collection, User, Message, TextChannel } from 'discord.js';
 
 import appState from '../lib/state';
 
-import { DISCORD_FETCH_MESSAGES_MAX } from './constants';
+/**
+ * Maximum number of messages we can fetch at a time.
+ *
+ * https://discord.com/developers/docs/resources/channel#get-channel-messages
+ */
+const DISCORD_FETCH_MESSAGES_MAX = 100;
 
 export function channelIsTextChannel(channel: object): channel is TextChannel {
 	return ('type' in channel) && (channel as TextChannel).type === 'GUILD_TEXT';
