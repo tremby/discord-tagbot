@@ -8,7 +8,7 @@ insert_final_newline = true
 charset = utf-8
 trim_trailing_whitespace = true
 
-[*.{ts,d.ts}]
+[*.{ts,d.ts,js}]
 indent_style = tab
 indent_size = 4
 
