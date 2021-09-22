@@ -20,7 +20,7 @@ export function serializeConfig(config: Config): SerializedConfig {
 	return {
 		nextTagTimeLimit: config.nextTagTimeLimit,
 		tagJudgeRoleIds: [...config.tagJudgeRoles].map((role) => role.id),
-		chatChannelId: config.chatChannel?.id,
+		chatChannelId: config.chatChannel?.id ?? null,
 	};
 }
 
