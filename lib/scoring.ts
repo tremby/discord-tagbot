@@ -5,6 +5,7 @@ import { messageHasImage, getMessageUsers, deleteMessage } from './message';
 import { pluralize, msToHumanReadable, toList } from './string';
 import { getAllMessages } from './channel';
 import { getFormattedDeadline } from './deadline';
+import { setIntersection } from './set';
 
 /**
  * Given a game's configuration and current state and an incoming message,
@@ -138,10 +139,11 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		const authors = getMessageUsers(message);
 
 		// Get intersection of authors of the match with authors of the tag
-		const commonAuthors = new Set<User | string>();
-		authors.forEach((author) => {
-			if (tagAuthors.has(author)) commonAuthors.add(author === message.author ? "you" : author);
-		});
+		const commonAuthors = setIntersection<User | string>(authors, tagAuthors);
+		if (commonAuthors.has(message.author)) {
+			commonAuthors.delete(message.author);
+			commonAuthors.add("you");
+		}
 
 		// Complain if any of the tag authors were involved with this match
 		if (commonAuthors.size) {
