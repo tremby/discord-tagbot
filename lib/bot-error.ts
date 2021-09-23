@@ -3,4 +3,8 @@ export class BotError extends Error {
 		super(message);
 		Object.setPrototypeOf(this, new.target.prototype);
 	}
+
+	get name() {
+		return this.constructor.name;
+	}
 }
