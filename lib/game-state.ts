@@ -8,6 +8,9 @@ import { toList } from './string';
 import { clearTimers, setTimers } from './timers';
 import { getFormattedDeadline } from './deadline';
 
+// To ease tests
+import * as thisModule from './game-state';
+
 /**
  * Game state discriminators.
  */
@@ -28,13 +31,13 @@ export function gameStateIsArchived(gameState: GameState): gameState is GameStat
  * Format a game status string.
  */
 export function formatGameStatus(game: Game): string {
-	if (gameStateIsArchived(game.state))
+	if (thisModule.gameStateIsArchived(game.state))
 		return "Archived.";
-	if (gameStateIsAwaitingMatch(game.state))
+	if (thisModule.gameStateIsAwaitingMatch(game.state))
 		return `Awaiting tag match from anyone but ${toList(getMessageUsers(game.state.tag), "or")}.`;
-	if (gameStateIsAwaitingNext(game.state))
+	if (thisModule.gameStateIsAwaitingNext(game.state))
 		return `Awaiting next tag from ${toList(getMessageUsers(game.state.match), "or")}, deadline ${getFormattedDeadline(game, 'R')}.`;
-	if (gameStateIsFree(game.state))
+	if (thisModule.gameStateIsFree(game.state))
 		return "Awaiting first tag.";
 	throw new Error(`Unexpected game status string ${game.state.status}`);
 }
@@ -45,7 +48,7 @@ export function formatGameStatus(game: Game): string {
 export function getStatusEmbedField(game: Game): EmbedFieldData {
 	return {
 		name: "Status",
-		value: formatGameStatus(game),
+		value: thisModule.formatGameStatus(game),
 	};
 }
 
@@ -57,7 +60,7 @@ export function formatGameStatusMessage(game: Game): MessageOptions {
 		embeds: [{
 			title: "Tag game status",
 			fields: [
-				getStatusEmbedField(game),
+				thisModule.getStatusEmbedField(game),
 				getScoresEmbedField(game, 'full'),
 			],
 		}],
@@ -67,12 +70,12 @@ export function formatGameStatusMessage(game: Game): MessageOptions {
 /**
  * Update the game status message.
  *
- * This searches for the message if it is not know yet,
+ * This searches for the message if it is not known yet,
  * updates it it found,
  * or posts and pins a new message otherwise.
  */
 export async function updateGameStatusMessage(game: Game): Promise<void> {
-	const statusMessage = formatGameStatusMessage(game);
+	const statusMessage = thisModule.formatGameStatusMessage(game);
 
 	// If we don't know of a status message, try to find it
 	if (game.statusMessage == null) {
@@ -117,5 +120,5 @@ export async function updateGameState(game: Game, newState: GameState): Promise<
 	game.state = newState;
 
 	// Update status message
-	await updateGameStatusMessage(game);
+	await thisModule.updateGameStatusMessage(game);
 }
