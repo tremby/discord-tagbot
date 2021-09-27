@@ -1,6 +1,5 @@
 import type { Client, TextChannel } from 'discord.js';
 import { writeFile, readFile } from 'fs/promises';
-import * as path from 'path';
 
 import { serializeConfig } from './config';
 import { getStatusMessage } from './channel';
