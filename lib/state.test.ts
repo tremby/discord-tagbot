@@ -1,0 +1,406 @@
+import state, * as m from './state';
+import { getClient, getGuild, getTextChannel, getUser, getRole, getMessage } from '../test/fixtures';
+
+import { mocked } from 'ts-jest/utils';
+
+jest.mock('./config');
+import { serializeConfig } from './config';
+const mockSerializeConfig = mocked(serializeConfig);
+
+jest.mock('fs/promises');
+import { writeFile, readFile } from 'fs/promises';
+const mockWriteFile = mocked(writeFile);
+const mockReadFile = mocked(readFile);
+
+jest.mock('./channel');
+import { getStatusMessage } from './channel';
+const mockGetStatusMessage = mocked(getStatusMessage);
+
+jest.mock('./scoring');
+import { recount } from './scoring';
+const mockRecount = mocked(recount);
+
+jest.mock('./timers');
+import { setTimers } from './timers';
+const mockSetTimers = mocked(recount);
+
+const guild = getGuild();
+const channel1 = getTextChannel(guild);
+const channel2 = getTextChannel(guild);
+const channel3 = getTextChannel(guild);
+const role1 = getRole(guild, 'role-1');
+const role2 = getRole(guild, 'role-2');
+const botUser = getUser('bot-user');
+const statusMessage = getMessage(channel1, botUser, [], false, true, new Date('2020Z'), "status");
+
+const game1: Game = {
+	channel: channel1,
+	config: {
+		nextTagTimeLimit: null,
+		tagJudgeRoles: new Set(),
+		chatChannel: null,
+	},
+	statusMessage: null,
+	state: {
+		status: 'awaiting-next',
+		scores: new Map(),
+		match: getMessage(channel1, getUser('user-1'), [getUser('user-2')], true, false, new Date('2020Z'), "tag match"),
+		reminderTimer: null,
+		timeUpTimer: null,
+	} as GameStateAwaitingNext,
+};
+const game2: Game = {
+	channel: channel2,
+	config: {
+		nextTagTimeLimit: 3600e3,
+		tagJudgeRoles: new Set(),
+		chatChannel: null,
+	},
+	statusMessage: null,
+	state: {
+		status: 'awaiting-match',
+		scores: new Map(),
+		tag: getMessage(channel2, getUser('user-1'), [getUser('user-2')], true, false, new Date('2020Z'), "tag"),
+	} as GameStateAwaitingMatch,
+};
+
+describe("serializeGame", () => {
+	it("includes the channel ID", () => {
+		const serialized = m.serializeGame(game1);
+		expect(serialized).toHaveProperty('channelId', channel1.id);
+	});
+
+	it("includes the status", () => {
+		const serialized = m.serializeGame(game1);
+		expect(serialized).toHaveProperty('status', 'awaiting-next');
+	});
+
+	it("includes the configuration", () => {
+		mockSerializeConfig.mockReturnValue({ foo: 'mocked-config' } as unknown as SerializedConfig);
+		const serialized = m.serializeGame(game1);
+		expect(mockSerializeConfig).toHaveBeenCalledWith(game1.config);
+		expect(serialized).toHaveProperty('config', { foo: 'mocked-config' });
+	});
+});
+
+describe("persistToDisk", () => {
+	beforeEach(() => {
+		state.games = new Set([game1, game2]);
+		state.deletedMessageIds = new Set();
+	});
+
+	afterAll(() => {
+		state.games = new Set();
+		state.deletedMessageIds = new Set();
+	});
+
+	it("writes the result of serializeGame for each game to disk", async () => {
+		jest.spyOn(m, 'serializeGame').mockImplementation((game) => `game ${game.state.status}` as unknown as SerializedGame);
+		await m.persistToDisk();
+		expect(mockWriteFile).toHaveBeenCalledTimes(1);
+		expect(mockWriteFile).toHaveBeenCalledWith(expect.anything(), expect.any(String));
+		const serialized = mockWriteFile.mock.calls[0][1] as string;
+		const obj = JSON.parse(serialized);
+		expect(obj).toHaveProperty('games', expect.arrayContaining(['game awaiting-next', 'game awaiting-match']));
+		expect(obj.games).toHaveLength(2);
+	});
+});
+
+describe("loadFromDisk", () => {
+	const client = getClient();
+
+	beforeEach(() => {
+		state.games = new Set();
+		state.deletedMessageIds = new Set();
+
+		jest.spyOn(console, 'log').mockImplementation();
+		jest.spyOn(client.channels, 'fetch').mockImplementation(async (id) => id === 'channel-1' ? channel1 : id === 'channel-2' ? channel2 : channel3);
+		// @ts-ignore: bug in types? this method is certainly allowed to return single roles
+		jest.spyOn(guild.roles, 'fetch').mockImplementation(async (id) => id === 'role-1' ? role1 : role2);
+	});
+
+	afterAll(() => {
+		state.games = new Set();
+		state.deletedMessageIds = new Set();
+	});
+
+	it("restores a game for each entry in the file", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+				{
+					channelId: 'channel-2',
+					status: 'awaiting-match',
+					config: {
+						nextTagTimeLimit: 1800e3,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(state.games.size).toBe(2);
+	});
+
+	it("restores channels", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(client.channels.fetch).toHaveBeenCalledWith('channel-1');
+		expect([...state.games][0]).toHaveProperty('channel', channel1);
+	});
+
+	it("restores time limit", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect([...state.games][0]).toHaveProperty('config.nextTagTimeLimit', 3600e3);
+	});
+
+	it("restores a lack of time limit", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect([...state.games][0]).toHaveProperty('config.nextTagTimeLimit', null);
+	});
+
+	it("restores judge roles", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(guild.roles.fetch).toHaveBeenCalledWith('role-1');
+		expect(guild.roles.fetch).toHaveBeenCalledWith('role-2');
+		expect([...state.games][0].config.tagJudgeRoles.has(role1)).toBe(true);
+		expect([...state.games][0].config.tagJudgeRoles.has(role2)).toBe(true);
+		expect([...state.games][0].config.tagJudgeRoles.size).toBe(2);
+	});
+
+	it("restores a lack of judge roles", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect([...state.games][0].config.tagJudgeRoles.size).toBe(0);
+	});
+
+	it("restores chat channel", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(client.channels.fetch).toHaveBeenCalledWith('channel-3');
+		expect([...state.games][0].config.chatChannel).toBe(channel3);
+	});
+
+	it("restores lack of chat channel", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect([...state.games][0]).toHaveProperty('config.chatChannel', null);
+	});
+
+	it("doesn't cause a recount if the status was archived", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'archived',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(mockRecount).not.toHaveBeenCalled();
+	});
+
+	it("causes a recount for non-archived statuses", async () => {
+		for (const st of ['free', 'awaiting-next', 'awaiting-match']) {
+			mockReadFile.mockResolvedValue(JSON.stringify({
+				games: [
+					{
+						channelId: 'channel-1',
+						status: st,
+						config: {
+							nextTagTimeLimit: null,
+							tagJudgeRoleIds: [],
+							chatChannelId: null,
+						},
+					},
+				],
+			}));
+			await m.loadFromDisk(client);
+		}
+		expect(mockRecount).toHaveBeenCalledTimes(3);
+	});
+
+	it("correctly sets the status for archived games", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'archived',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect([...state.games][0]).toHaveProperty('state', { status: 'archived' });
+	});
+
+	it("uses the recount's conclusion as state for non-archived games", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		const stateAwaitingNext = {
+			status: 'awaiting-next',
+			scores: new Map(),
+			match: getMessage(channel1, getUser('user-1'), [getUser('user-2')], true, false, new Date('2020Z'), "tag match"),
+			reminderTimer: null,
+			timeUpTimer: null,
+		} as GameStateAwaitingNext;
+		mockRecount.mockResolvedValue(stateAwaitingNext);
+		await m.loadFromDisk(client);
+		expect([...state.games][0]).toHaveProperty('state', stateAwaitingNext);
+	});
+
+	it("attempts to find the pinned status message", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		mockGetStatusMessage.mockResolvedValue(statusMessage);
+		await m.loadFromDisk(client);
+		expect(mockGetStatusMessage).toHaveBeenCalledTimes(1);
+		expect(mockGetStatusMessage).toHaveBeenCalledWith(channel1);
+		expect([...state.games][0]).toHaveProperty('statusMessage', statusMessage);
+	});
+
+	it("starts timers if appropriate", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(mockSetTimers).toHaveBeenCalledTimes(1);
+	});
+});

@@ -1,3 +1,5 @@
+import * as thisModule from './state';
+
 import type { Client, TextChannel } from 'discord.js';
 import { writeFile, readFile } from 'fs/promises';
 
@@ -39,7 +41,7 @@ export function serializeGame(game: Game): SerializedGame {
  */
 export async function persistToDisk(): Promise<void> {
 	await writeFile(STATE_FILE, JSON.stringify({
-		games: [...state.games].map((game) => serializeGame(game)),
+		games: [...state.games].map((game) => thisModule.serializeGame(game)),
 	}, null, 2));
 }
 
