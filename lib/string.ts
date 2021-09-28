@@ -1,3 +1,5 @@
+import * as thisModule from './string';
+
 export function pluralize(word: string, num: number, pluralSuffix: string = "s", singularSuffix: string = ""): string {
 	return `${word}${num === 1 ? singularSuffix : pluralSuffix}`;
 }
@@ -9,10 +11,10 @@ export function msToHumanReadable(ms: number): string {
 	const h = Math.floor(ms / 1e3 / 60 / 60 % 24);
 	const d = Math.floor(ms / 1e3 / 60 / 60 / 24);
 	const parts = [];
-	if (d > 0) parts.push(`${d} ${pluralize("day", d)}`);
-	if (h > 0) parts.push(`${h} ${pluralize("hour", h)}`);
-	if (m > 0) parts.push(`${m} ${pluralize("minute", m)}`);
-	if (s > 0) parts.push(`${s} ${pluralize("second", s)}`);
+	if (d > 0) parts.push(`${d} ${thisModule.pluralize("day", d)}`);
+	if (h > 0) parts.push(`${h} ${thisModule.pluralize("hour", h)}`);
+	if (m > 0) parts.push(`${m} ${thisModule.pluralize("minute", m)}`);
+	if (s > 0) parts.push(`${s} ${thisModule.pluralize("second", s)}`);
 	return parts.join(", ");
 }
 
