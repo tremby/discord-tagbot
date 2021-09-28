@@ -40,6 +40,11 @@ export async function* getAllMessages(channel: TextChannel, force: boolean = fal
 		// Note that even with `after` they come in reverse chronological order
 		// so we need to fetch items "after" (chronologically) the "first"
 		// of the just-received batch (which is the chronologically last).
+		// The ID being given here, "0", is used as a timestamp. It works
+		// (and is acceptable as per the documentation)
+		// because these "snowflake" IDs are based on timestamps
+		// with extra information afterwards,
+		// i.e. there cannot be any before zero.
 		justFetched = await channel.messages.fetch({
 			limit: DISCORD_FETCH_MESSAGES_MAX,
 			after: justFetched == null ? "0" : justFetched.first().id,
