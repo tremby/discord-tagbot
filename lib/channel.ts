@@ -69,7 +69,7 @@ export async function* getAllMessages(channel: TextChannel, force: boolean = fal
  * This is naïve -- it only checks it was posted by the bot user and is pinned.
  */
 function isStatusMessage(botUser: User, message: Message): boolean {
-	return message.pinned && message.author === botUser;
+	return message.pinned && message.author.id === botUser.id;
 }
 
 /**
