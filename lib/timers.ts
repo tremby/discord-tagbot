@@ -3,8 +3,7 @@ import { pluralize, toList } from './string';
 import { getMessageUsers } from './message';
 import { getDeadlineTimestamp, getFormattedDeadline } from './deadline';
 
-// const REMINDER_INTERVAL_MS = 1e3 * 60 * 5;
-const REMINDER_INTERVAL_MS = 1e3 * 5;
+const REMINDER_INTERVAL_MS = 1e3 * 60 * 5;
 const REMINDER_FRACTION = 0.1;
 
 /**
