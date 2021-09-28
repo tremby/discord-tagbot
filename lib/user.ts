@@ -7,4 +7,3 @@ export function isGuildMemberRoleManager(obj: object): obj is GuildMemberRoleMan
 	if (Array.isArray(obj)) return false;
 	return 'holds' in obj;
 }
-
