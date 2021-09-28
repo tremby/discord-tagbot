@@ -1,4 +1,4 @@
-import { Client, Guild, SnowflakeUtil, Role, TextChannel, Message, User, Constants } from 'discord.js';
+import { Client, Guild, SnowflakeUtil, Role, TextChannel, Message, User, GuildMember, Constants } from 'discord.js';
 
 const client = new Client({ intents: [] });
 
@@ -42,6 +42,22 @@ export function getUser(passedId?: string): User {
 		avatar: null,
 		discriminator: '1234',
 	});
+}
+
+export function getMember(guild: Guild, user: User, roles: Role[], passedId?: string): GuildMember {
+	const id = passedId ?? SnowflakeUtil.generate();
+	return new GuildMember(getClient(), {
+		user: {
+			id: user.id,
+			username: user.username,
+			discriminator: user.discriminator,
+			avatar: user.avatar,
+		},
+		roles: roles.map((role) => role.id),
+		joined_at: "2020Z",
+		deaf: false,
+		mute: false,
+	}, guild);
 }
 
 export function getMessage(channel: TextChannel, author: User, mentions: User[], hasImage: boolean, pinned: boolean, timestamp: number | Date, content: string): Message {

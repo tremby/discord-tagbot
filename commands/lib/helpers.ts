@@ -1,3 +1,5 @@
+import * as thisModule from './helpers';
+
 import type { CommandInteraction, TextChannel } from 'discord.js';
 import { Permissions } from 'discord.js';
 
@@ -37,7 +39,7 @@ export function isAdmin(interaction: CommandInteraction): boolean {
  */
 export function isAdminOrTagJudge(interaction: CommandInteraction, game: Game): boolean {
 	// If the user is an admin we're done
-	if (isAdmin(interaction)) return true;
+	if (thisModule.isAdmin(interaction)) return true;
 
 	// Allow tag judges
 	const memberRoles = interaction.member.roles;
