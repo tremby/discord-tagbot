@@ -83,7 +83,7 @@ function getReminderSender(game: Game): (() => Promise<void>) {
 		}
 
 		// Clear stored reference to timer identifier
-		game.state.reminderTimer = undefined;
+		game.state.reminderTimer = null;
 
 		// Send the reminder
 		await (game.config.chatChannel ?? game.channel).send({
@@ -104,7 +104,7 @@ function getTimeUpSender(game: Game): (() => Promise<void>) {
 		}
 
 		// Clear stored reference to timer identifier
-		game.state.timeUpTimer = undefined;
+		game.state.timeUpTimer = null;
 
 		// Send the message
 		const users = getMessageUsers(game.state.match);
@@ -159,7 +159,7 @@ export function clearTimers(game: Game): void {
 function clearReminderTimer(game: Game): void {
 	if (!gameStateIsAwaitingNext(game.state)) return;
 	clearTimeout(game.state.reminderTimer);
-	game.state.reminderTimer = undefined;
+	game.state.reminderTimer = null;
 }
 
 /**
@@ -168,5 +168,5 @@ function clearReminderTimer(game: Game): void {
 function clearTimeUpTimer(game: Game): void {
 	if (!gameStateIsAwaitingNext(game.state)) return;
 	clearTimeout(game.state.timeUpTimer);
-	game.state.timeUpTimer = undefined;
+	game.state.timeUpTimer = null;
 }
