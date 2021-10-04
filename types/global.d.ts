@@ -147,4 +147,14 @@ declare global {
 
 	type PartialBy<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
+	namespace jest {
+		interface Matchers<R> {
+			toBeFunctionWithName: (name: string) => void;
+		}
+
+		interface Expect {
+			toBeFunctionWithName: (name: string) => void;
+		}
+	}
+
 }
