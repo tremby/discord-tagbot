@@ -33,11 +33,11 @@ function setReminderTimer(game: Game, state: GameState): void {
 	// Start from a fraction of the time limit, and round up to the next interval
 	const reminderAtTimeLeft = Math.ceil(game.config.nextTagTimeLimit * REMINDER_FRACTION / REMINDER_INTERVAL_MS) * REMINDER_INTERVAL_MS;
 
-	// So how long do we need to wait from when the match was posted
-	const timeFromMatchToReminder = game.config.nextTagTimeLimit - reminderAtTimeLeft;
+	// What time should the reminder be sent?
+	const reminderTimestamp = state.match.createdTimestamp + game.config.nextTagTimeLimit - reminderAtTimeLeft;
 
 	// How long is that from now
-	const timeUntilReminder = state.match.createdTimestamp + timeFromMatchToReminder - Date.now();
+	const timeUntilReminder = reminderTimestamp - Date.now();
 
 	// Abort if that's in the past (which it could be if we just dealt with a
 	// deletion or similar
