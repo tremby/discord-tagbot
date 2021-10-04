@@ -137,7 +137,7 @@ function getTimeUpSender(game: Game): (() => Promise<void>) {
 					},
 					{
 						name: "Links",
-						value: `[See tag match post](${game.state.match.url})\n[See pinned game status post](${game.statusMessage.url})`,
+						value: `[See tag match post](${game.state.match.url})${game.statusMessage == null ? '' : `\n[See pinned game status post](${game.statusMessage.url})`}`,
 					},
 				],
 			}],
