@@ -153,6 +153,12 @@ describe("formatGameStatus", () => {
 		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@user-2>");
 		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@user-3>");
 	});
+
+	it("throws an error if it comes across an unexpected state", () => {
+		expect(() => {
+			m.formatGameStatus(gameWithState({ status: 'invalid' } as unknown as GameState));
+		}).toThrowError();
+	});
 });
 
 describe("getStatusEmbedField", () => {
@@ -244,6 +250,13 @@ describe("updateGameStatusMessage", () => {
 		await expect(async () => {
 			await m.updateGameStatusMessage({ ...game, statusMessage });
 		}).not.toThrow();
+	});
+
+	it("throws Discord's error if it's anything but unknown message", async () => {
+		jest.spyOn(statusMessage, 'edit').mockRejectedValue(new Error());
+		await expect(async () => {
+			await m.updateGameStatusMessage({ ...game, statusMessage });
+		}).rejects.toThrowError();
 	});
 
 	it("sends and pins a new message if none was found", async () => {
