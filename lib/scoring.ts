@@ -38,7 +38,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			if (!allowed.has(message.author)) {
 				console.log(`  Not posted by one of the users who posted the previous match`);
 				if (mode === 'recount') {
-					console.log("    Ignoring since this is a recount");
+					console.log("    Accepting anyway since this is a recount");
 				} else {
 					console.log("    Informing the user and deleting the message");
 					await Promise.all([
@@ -47,8 +47,8 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 						}),
 						deleteMessage(message),
 					]);
+					return null
 				}
-				return null
 			}
 
 			// Check if the next tag was not within the time limit
