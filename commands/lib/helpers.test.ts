@@ -214,4 +214,20 @@ describe("getValidChannel", () => {
 		mockChannelIsTextChannel.mockReturnValue(true);
 		expect(m.getValidChannel(interaction, 'game-channel')).toBe(channel);
 	});
+
+	it("uses game-channel as the default option name", () => {
+		mockChannelIsTextChannel.mockReturnValue(true);
+		const mockGetChannel = jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
+		m.getValidChannel(interaction);
+		expect(mockGetChannel).toHaveBeenCalledTimes(1);
+		expect(mockGetChannel).toHaveBeenCalledWith('game-channel');
+	});
+
+	it("uses a custom option name if given", () => {
+		mockChannelIsTextChannel.mockReturnValue(true);
+		const mockGetChannel = jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
+		m.getValidChannel(interaction, 'test');
+		expect(mockGetChannel).toHaveBeenCalledTimes(1);
+		expect(mockGetChannel).toHaveBeenCalledWith('test');
+	});
 });
