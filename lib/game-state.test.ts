@@ -242,7 +242,7 @@ describe("updateGameStatusMessage", () => {
 	it("silently ignores the error if Discord can't find the message to edit it", async () => {
 		jest.spyOn(statusMessage, 'edit').mockRejectedValue(error);
 		await expect(async () => {
-			await m.updateGameStatusMessage({ ...game });
+			await m.updateGameStatusMessage({ ...game, statusMessage });
 		}).not.toThrow();
 	});
 
