@@ -47,12 +47,18 @@ export function getTextChannel(guild: Guild, id?: string): TextChannel {
 
 export function getUser(passedId?: string): User {
 	const id = passedId ?? SnowflakeUtil.generate();
-	return new User(getClient(), {
+	const user = new User(getClient(), {
 		id,
 		username: `username-${id}`,
 		avatar: null,
 		discriminator: '1234',
 	});
+
+	// Add this user to the cache, so it will be correctly looked up when making
+	// messages etc, and so objects will be identical
+	getClient().users.cache.set(user.id, user);
+
+	return user;
 }
 
 export function getMember(guild: Guild, user: User, roles: Role[], passedId?: string): GuildMember {
