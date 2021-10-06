@@ -99,7 +99,7 @@ function getTimeUpSender(game: Game): (() => Promise<void>) {
 	return async function timeUpSender(): Promise<void> {
 		// No reminder if we aren't awaiting the next tag
 		if (!gameStateIsAwaitingNext(game.state)) {
-			console.error("Was going to send a reminder but we are no longer awaiting the next tag. A timer should have been cleared somewhere.");
+			console.error("Was going to send a time up message but we are no longer awaiting the next tag. A timer should have been cleared somewhere.");
 			return;
 		}
 

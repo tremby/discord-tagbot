@@ -1,5 +1,5 @@
 import * as m from './timers';
-import { getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
+import { getBotUser, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 import { expectAnyOf, flushPromises } from '../test/util';
 
 import { mocked } from 'ts-jest/utils';
@@ -30,6 +30,7 @@ const user2 = getUser('user-2');
 const user3 = getUser('user-3');
 const matchMessage = getMessage(gameChannel, user1, [user2, user3], true, false, new Date('2020-01-01T00:00Z'), "tag match");
 const tagMessage = getMessage(gameChannel, user1, [user2, user3], true, false, new Date('2020-01-01T00:00Z'), "tag");
+const statusMessage = getMessage(gameChannel, getBotUser(), [], false, true, new Date('2020Z'), "status");
 
 const stateFree: GameStateFree = {
 	status: 'free',
@@ -203,6 +204,29 @@ describe("setTimers", () => {
 			}));
 		});
 
+		it("sets a timer but, if it isn't cancelled, the timer will do nothing if the game state has moved on", async () => {
+			const mockError = jest.spyOn(console, 'error').mockImplementation();
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const state = { ...stateAwaitingNext };
+			m.setTimers(game, state);
+			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), expect.anything());
+			mockGameStateIsAwaitingNext.mockReturnValue(false);
+			jest.runAllTimers();
+			await flushPromises();
+			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
+				content: expect.stringContaining("time is running out"),
+			}));
+			expect(mockChatChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
+				content: expect.stringContaining("time is running out"),
+			}));
+			expect(mockError).toHaveBeenCalledWith(expect.stringMatching(/was going to send a reminder/i));
+		});
+
 		it("sets a timer with the correct timeout", async () => {
 			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
 			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
@@ -373,6 +397,29 @@ describe("setTimers", () => {
 			}));
 		});
 
+		it("sets a timer but, if it isn't cancelled, the timer will do nothing if the game state has moved on", async () => {
+			const mockError = jest.spyOn(console, 'error').mockImplementation();
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const state = { ...stateAwaitingNext };
+			m.setTimers(game, state);
+			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpSender'), expect.anything());
+			mockGameStateIsAwaitingNext.mockReturnValue(false);
+			jest.runAllTimers();
+			await flushPromises();
+			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
+				content: expect.stringContaining("time has run out"),
+			}));
+			expect(mockChatChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
+				content: expect.stringContaining("time has run out"),
+			}));
+			expect(mockError).toHaveBeenCalledWith(expect.stringMatching(/was going to send a time up message/i));
+		});
+
 		it("sets a timer with the correct timeout", async () => {
 			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
 			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
@@ -466,6 +513,32 @@ describe("setTimers", () => {
 				content: expect.stringContaining("time has run out"),
 			}));
 		});
+
+		it("includes the status message link if it is known", async () => {
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const state = { ...stateAwaitingNext };
+			const tmpGame = { ...game, statusMessage };
+			m.setTimers(tmpGame, state);
+			jest.runAllTimers();
+			await flushPromises();
+			expect(mockChatChannelSend).toHaveBeenCalledWith(expect.objectContaining({
+				embeds: expect.arrayContaining([
+					expect.objectContaining({
+						fields: expect.arrayContaining([
+							expect.objectContaining({
+								value: expect.stringContaining(statusMessage.url),
+							}),
+						]),
+					}),
+				]),
+			}));
+		});
+
 	});
 });
 
@@ -570,5 +643,26 @@ describe("clearTimers", () => {
 			() => expect(tmpGame.state).not.toHaveProperty('timeUpTimer'),
 			() => expect(tmpGame.state).toHaveProperty('timeUpTimer', null),
 		);
+	});
+
+	it("does nothing if the game state has moved on", async () => {
+		const tmpGame = {
+			...game,
+			state: { ...stateAwaitingNext },
+		};
+		const mockError = jest.spyOn(console, 'error').mockImplementation();
+		const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+		const mockClearTimeout = jest.spyOn(global, 'clearTimeout');
+		jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+		const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+		const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+		m.setTimers(tmpGame, tmpGame.state);
+		mockGameStateIsAwaitingNext.mockReturnValue(false);
+		m.clearTimers(tmpGame);
+		jest.runAllTimers();
+		await flushPromises();
+		expect(mockClearTimeout).not.toHaveBeenCalled();
 	});
 });
