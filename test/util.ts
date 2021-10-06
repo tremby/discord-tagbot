@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 export function expectAnyOf(...tests: (() => void)[]): void {
 	try {
 		tests.shift()?.();
