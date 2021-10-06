@@ -30,13 +30,15 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 
 	if (gameStateIsFree(game.state) || gameStateIsAwaitingNext(game.state)) {
 		let tagIsLate = false;
+		const authors = getMessageUsers(message);
 
 		if (gameStateIsAwaitingNext(game.state)) {
 			// Ensure this user was allowed to post the next tag
 			const allowed = getMessageUsers(game.state.match);
+			const intersection = setIntersection(allowed, authors);
 
-			if (!allowed.has(message.author)) {
-				console.log(`  Not posted by one of the users who posted the previous match`);
+			if (intersection.size === 0) {
+				console.log(`  Not posted by (and doesn't mention) one of the users who posted the previous match`);
 				if (mode === 'recount') {
 					console.log("    Accepting anyway since this is a recount");
 				} else {
@@ -62,7 +64,6 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 
 		// Announce new tag
 		if (mode === 'live') {
-			const authors = getMessageUsers(message);
 			const lateHelp = `*If no action is taken, the game will continue. Scores will be recalculated if the tag and previous match are deleted.*`;
 			if (game.config.chatChannel) {
 				// Purposefully not awaiting this
