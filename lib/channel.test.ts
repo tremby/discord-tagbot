@@ -1,7 +1,7 @@
 import * as m from './channel';
 import { ClientUser, Collection } from 'discord.js';
 import type { MessageManager } from 'discord.js';
-import { getClient, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
+import { getBotUser, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
 const guild = getGuild();
 const channel1 = getTextChannel(guild);
@@ -9,11 +9,7 @@ const channel2 = getTextChannel(guild);
 const channel3 = getTextChannel(guild);
 const user1 = getUser('user-1');
 const user2 = getUser('user-2');
-const botUser = getUser('bot-user');
-channel1.client.user = new ClientUser(getClient(), {
-	id: botUser.id,
-	username: botUser.username,
-});
+const botUser = getBotUser();
 
 import appState from '../lib/state';
 

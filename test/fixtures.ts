@@ -1,9 +1,20 @@
-import { Client, Guild, SnowflakeUtil, Role, TextChannel, Message, User, GuildMember, Constants } from 'discord.js';
+import { ClientUser, Client, Guild, SnowflakeUtil, Role, TextChannel, Message, User, GuildMember, Constants } from 'discord.js';
 
 const client = new Client({ intents: [] });
+const botUser = getUser('bot-user');
+const clientUser = new ClientUser(getClient(), {
+	id: botUser.id,
+	username: botUser.username,
+	discriminator: botUser.discriminator,
+});
+client.user = clientUser;
 
 export function getClient(): Client {
 	return client;
+}
+
+export function getBotUser(): User {
+	return botUser;
 }
 
 export function getGuild(id?: string): Guild {
