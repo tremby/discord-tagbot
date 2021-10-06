@@ -17,7 +17,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 	console.log(`Channel ${game.channel} (${game.state.status}): message ${message.url}`);
 
 	// Ignore anything sent by this bot
-	if (message.author === message.client.user) {
+	if (message.author.id === message.client.user.id) {
 		console.log(`  Authored by this bot; ignore`);
 		return null;
 	}
