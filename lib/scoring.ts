@@ -22,13 +22,13 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		return null;
 	}
 
-	if (gameStateIsFree(game.state) || gameStateIsAwaitingNext(game.state)) {
-		// Ensure image is present
-		if (!messageHasImage(message)) {
-			console.log(`  Message has no image`);
-			return null;
-		}
+	// Ensure image is present
+	if (!messageHasImage(message)) {
+		console.log(`  Message has no image`);
+		return null;
+	}
 
+	if (gameStateIsFree(game.state) || gameStateIsAwaitingNext(game.state)) {
 		let tagIsLate = false;
 
 		if (gameStateIsAwaitingNext(game.state)) {
@@ -128,12 +128,6 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 	if (gameStateIsAwaitingMatch(game.state)) {
 		// Get users who posted the tag
 		const tagAuthors = getMessageUsers(game.state.tag);
-
-		// Ensure image is present
-		if (!messageHasImage(message)) {
-			console.log(`  Message has no image`);
-			return null;
-		}
 
 		// Get all authors of this match
 		const authors = getMessageUsers(message);
@@ -239,12 +233,6 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		if (mode === 'recount') {
 			// This should never happen
 			throw new Error(`Status should never be "archived" when recalculating`);
-		}
-
-		// Ignore text-only
-		if (!messageHasImage(message)) {
-			console.log(`  Message has no image`);
-			return null;
 		}
 
 		// Post something and delete message
