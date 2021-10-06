@@ -1,3 +1,5 @@
+import * as thisModule from './scoring';
+
 import type { TextChannel, User, Message, EmbedFieldData } from 'discord.js';
 
 import { gameStateIsFree, gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsArchived } from './game-state';
@@ -213,8 +215,8 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 								value: getFormattedDeadline({ ...game, state: newState }, 'R'),
 								inline: true,
 							},
-							{ ...getScoreChangesEmbedField(getChangedScores(game.state.scores, newState.scores)), inline: true },
-							{ ...getScoresEmbedField({ ...game, state: newState }, 'brief'), inline: true },
+							{ ...thisModule.getScoreChangesEmbedField(thisModule.getChangedScores(game.state.scores, newState.scores)), inline: true },
+							{ ...thisModule.getScoresEmbedField({ ...game, state: newState }, 'brief'), inline: true },
 							{
 								name: "Links",
 								value: `[See tag match post](${message.url})\n[See original tag](${state.tag.url})`,
@@ -268,7 +270,7 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
 
 	// Step through all messages
 	for await (const message of getAllMessages(game.channel, true)) {
-		const newState = await handleMessage({ ...game, state }, message, 'recount');
+		const newState = await thisModule.handleMessage({ ...game, state }, message, 'recount');
 		if (newState == null) continue;
 		state = newState;
 	}
@@ -325,8 +327,8 @@ function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
 	if (game.state.scores.size === 0)
 		return "None yet";
 	if (format === 'brief' && game.state.scores.size > 3)
-		return `${formatScores(game.state.scores, 3)}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
-	return formatScores(game.state.scores);
+		return `${thisModule.formatScores(game.state.scores, 3)}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
+	return thisModule.formatScores(game.state.scores);
 }
 
 /**
