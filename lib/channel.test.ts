@@ -114,7 +114,7 @@ describe("getAllMessages", () => {
 			.mockResolvedValueOnce(new Collection(page1))
 			.mockResolvedValueOnce(new Collection(page2))
 			.mockResolvedValue(new Collection([]));
-		const results = await flushIterator(m.getAllMessages(channel1, false));
+		const results = await flushIterator(m.getAllMessages(channel1));
 		expect(results[0].content).toBe("page 1 message 100");
 		expect(results[1].content).toBe("page 1 message 99");
 		expect(results[99].content).toBe("page 1 message 1");
@@ -141,7 +141,7 @@ describe("getAllMessages", () => {
 			.mockResolvedValueOnce(new Collection(page2))
 			.mockResolvedValueOnce(new Collection(page3))
 			.mockResolvedValue(new Collection([]));
-		const results = await flushIterator(m.getAllMessages(channel1, false));
+		const results = await flushIterator(m.getAllMessages(channel1));
 		expect(mockFetch).toHaveBeenCalledTimes(3);
 		expect(results).toHaveLength(230);
 	});
