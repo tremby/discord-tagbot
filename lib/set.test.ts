@@ -13,6 +13,10 @@ describe("setsEqual", () => {
 		expect(m.setsEqual(new Set([]), new Set([]))).toBe(true);
 	});
 
+	it("is not fooled by sets with the same number of elements", () => {
+		expect(m.setsEqual(new Set([1, 2]), new Set([2, 3]))).toBe(false);
+	});
+
 	it("returns true for equal sets", () => {
 		expect(m.setsEqual(new Set([1, 2]), new Set([1, 2]))).toBe(true);
 	});
