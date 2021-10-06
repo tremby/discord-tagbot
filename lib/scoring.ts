@@ -262,7 +262,7 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
 
 	// Initial state
 	let state: GameState = {
-		status: "free",
+		status: 'free',
 		scores: new Map(),
 	}
 
@@ -317,12 +317,15 @@ function maybeMedal(position: number): string {
  * Get a message about a game's scores.
  */
 function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
-	if (game.state.scores == null)
+	if (game.state.scores == null) {
+		if (game.statusMessage == null)
+			return "Not currently available (can't find pinned status message)";
 		return `See [pinned status post](${game.statusMessage.url})`;
+	}
 	if (game.state.scores.size === 0)
 		return "None yet";
 	if (format === 'brief' && game.state.scores.size > 3)
-		return `${formatScores(game.state.scores, 3)}\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`;
+		return `${formatScores(game.state.scores, 3)}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
 	return formatScores(game.state.scores);
 }
 
