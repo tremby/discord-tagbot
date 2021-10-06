@@ -294,7 +294,7 @@ export function formatScores(scores: Scores, max: number | null = null): string 
 	}
 
 	// Format
-	return records.map(([user, score]: [User, number], index) => `${maybeMedal(index + 1, " ")}${user}: ${score}`).join("\n");
+	return records.map(([user, score]: [User, number], index) => `${maybeMedal(index + 1)}${user}: ${score}`).join("\n");
 }
 
 /**
@@ -302,14 +302,14 @@ export function formatScores(scores: Scores, max: number | null = null): string 
  *
  * Optionally add a suffix if a medal is returned.
  */
-function maybeMedal(position: number, suffix: string = ""): string {
+function maybeMedal(position: number): string {
 	let output = "";
 	switch (position) {
 		case 1: output = '🥇'; break;
 		case 2: output = '🥈'; break;
 		case 3: output = '🥉'; break;
 	}
-	if (output.length) output += suffix;
+	if (output.length) output += " ";
 	return output;
 }
 
