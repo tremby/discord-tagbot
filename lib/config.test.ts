@@ -82,3 +82,85 @@ describe('serializeConfig', () => {
 		});
 	});
 });
+
+describe("getConfigEmbedFields", () => {
+	it("returns objects with names and values", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+		});
+		for (const obj of result) {
+			expect(obj).toHaveProperty('name');
+			expect(obj).toHaveProperty('value');
+		}
+	});
+
+	it("says there is no time limit if there is not", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+		});
+		const field = result.find((field) => /time limit/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/none/i));
+	});
+
+	it("gives the time limit in minutes", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: 1e3 * 60 * 60,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+		});
+		const field = result.find((field) => /time limit/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/\b60\b/));
+	});
+
+	it("says there are no judge roles if there are not", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+		});
+		const field = result.find((field) => /judge/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/none/i));
+	});
+
+	it("gives the judge roles if some are set", () => {
+		const guild = getGuild();
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set([getRole(guild, 'role1'), getRole(guild, 'role2')]),
+			chatChannel: null,
+		});
+		const field = result.find((field) => /judge/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringContaining("<@&role1>"));
+		expect(field.value).toStrictEqual(expect.stringContaining("<@&role2>"));
+	});
+
+	it("says there is no chat channel if there is not", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+		});
+		const field = result.find((field) => /chat channel/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/none/i));
+	});
+
+	it("gives the chat channel if one is set", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: getTextChannel(getGuild(), "channel-1"),
+		});
+		const field = result.find((field) => /chat channel/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringContaining("<#channel-1>"));
+	});
+});
