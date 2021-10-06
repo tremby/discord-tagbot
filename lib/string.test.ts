@@ -129,4 +129,12 @@ describe("toList", () => {
 		];
 		expect(acceptable).toContain(m.toList(new Set(["foo", "bar", "baz", "bat"])));
 	});
+
+	it("handles an array", () => {
+		const acceptable = [
+			"foo and bar",
+			"bar and foo",
+		];
+		expect(acceptable).toContain(m.toList(["foo", "bar"]));
+	});
 });
