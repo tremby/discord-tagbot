@@ -17,6 +17,7 @@ import type { APIApplicationCommandInteractionDataOptionWithValues } from 'disco
 
 const client = new Client({ intents: [] });
 const botUser = getUser('bot-user');
+// @ts-expect-error -- private constructor
 const clientUser = new ClientUser(getClient(), {
 	id: botUser.id,
 	username: botUser.username,
@@ -33,6 +34,7 @@ export function getBotUser(): User {
 }
 
 export function getGuild(id?: string): Guild {
+	// @ts-expect-error -- private constructor
 	return new Guild(getClient(), {
 		id: id ?? SnowflakeUtil.generate(),
 		unavailable: false,
@@ -41,6 +43,7 @@ export function getGuild(id?: string): Guild {
 
 export function getRole(guild: Guild, passedId?: string): Role {
 	const id = passedId ?? SnowflakeUtil.generate();
+	// @ts-expect-error -- private constructor
 	return new Role(client, {
 		id,
 		name: `role-${id}`,
@@ -54,6 +57,7 @@ export function getRole(guild: Guild, passedId?: string): Role {
 }
 
 export function getTextChannel(guild: Guild, id?: string): TextChannel {
+	// @ts-expect-error -- private constructor
 	return new TextChannel(guild, {
 		id: id ?? SnowflakeUtil.generate(),
 		type: Constants.ChannelTypes.GUILD_TEXT.valueOf(),
@@ -62,6 +66,7 @@ export function getTextChannel(guild: Guild, id?: string): TextChannel {
 
 export function getUser(passedId?: string): User {
 	const id = passedId ?? SnowflakeUtil.generate();
+	// @ts-expect-error -- private constructor
 	const user = new User(getClient(), {
 		id,
 		username: `username-${id}`,
@@ -78,6 +83,7 @@ export function getUser(passedId?: string): User {
 
 export function getMember(guild: Guild, user: User, roles: Role[], passedId?: string): GuildMember {
 	const id = passedId ?? SnowflakeUtil.generate();
+	// @ts-expect-error -- private constructor
 	return new GuildMember(getClient(), {
 		user: {
 			id: user.id,
@@ -93,6 +99,7 @@ export function getMember(guild: Guild, user: User, roles: Role[], passedId?: st
 }
 
 export function getMessage(channel: TextChannel, author: User, mentions: User[], hasImage: boolean, pinned: boolean, timestamp: number | Date, content: string): Message {
+	// @ts-expect-error -- private constructor
 	return new Message(getClient(), {
 		id: SnowflakeUtil.generate(timestamp),
 		channel_id: channel.id,
@@ -133,6 +140,7 @@ export function getMessage(channel: TextChannel, author: User, mentions: User[],
 }
 
 export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOptionWithValues[] = []): CommandInteraction {
+	// @ts-expect-error -- private constructor
 	const interaction = new CommandInteraction(getClient(), {
 		id: SnowflakeUtil.generate(),
 		application_id: '',

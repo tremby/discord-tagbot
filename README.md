@@ -191,8 +191,7 @@ Alternatively, set the bot's login token as `DISCORD_TOKEN` in your environment.
 Future
 ------
 
-- Use a stable discord.js version (I need > 13.1, commit 56d1417e6060b324cdde8c7ffdfdc6d7ee9bac13)
 - Harden
-- Write tests
+- Finish tests
 - If someone runs out of time, don't let them get the current tag again?
 - Extract clues (spoiler tags) and print in "new tag" and "tag matched" messages?

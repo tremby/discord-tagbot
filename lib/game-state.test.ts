@@ -212,6 +212,7 @@ describe("formatGameStatusMessage", () => {
 
 describe("updateGameStatusMessage", () => {
 	const game = gameWithState(stateAwaitingNext);
+	// @ts-expect-error -- private constructor
 	const error = new DiscordAPIError({ code: Constants.APIErrors.UNKNOWN_MESSAGE }, 400, { options: { data: {} }});
 
 	beforeEach(() => {

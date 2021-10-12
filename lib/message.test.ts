@@ -16,6 +16,7 @@ const user3 = getUser('user-3');
 
 describe("messageHasImage", () => {
 	function messageWithAttachments(attachments): Message {
+		// @ts-expect-error -- private constructor
 		return new Message(getClient(), {
 			id: SnowflakeUtil.generate(new Date('2020Z')),
 			channel_id: channel.id,

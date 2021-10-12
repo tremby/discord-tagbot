@@ -161,6 +161,7 @@ describe("isAdminOrTagJudge", () => {
 });
 
 describe("getValidChannel", () => {
+	// @ts-expect-error -- private constructor
 	const interaction = new CommandInteraction(getClient(), {
 		id: '',
 		application_id: '',
