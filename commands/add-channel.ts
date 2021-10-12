@@ -31,6 +31,7 @@ const commandSpec: SlashCommandSpec = {
 						getStatusEmbedField(existingGame),
 					],
 				}],
+				ephemeral: true,
 			});
 			return;
 		}
