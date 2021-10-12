@@ -1,6 +1,18 @@
 /* istanbul ignore file */
 
-import { ClientUser, Client, Guild, SnowflakeUtil, Role, TextChannel, Message, User, GuildMember, Constants } from 'discord.js';
+import {
+	ClientUser,
+	Client,
+	Guild,
+	SnowflakeUtil,
+	Role,
+	TextChannel,
+	Message,
+	User,
+	GuildMember,
+	Constants,
+	CommandInteraction,
+} from 'discord.js';
 
 const client = new Client({ intents: [] });
 const botUser = getUser('bot-user');
