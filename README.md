@@ -28,9 +28,9 @@ It also polices who can post images in the game channel:
 
 - If awaiting a match,
   those who posted or were mentioned in the tag
-  are not allowed to post an image.
+  are not allowed to post the next image or be mentioned in it.
 - If awaiting a new tag after a match,
-  only whose who posted or were mentioned in the match
+  only those who posted or were mentioned in the match
   are allowed to post the next tag.
 
 The bot can track multiple tag games at once,
