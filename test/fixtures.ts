@@ -13,6 +13,7 @@ import {
 	Constants,
 	CommandInteraction,
 } from 'discord.js';
+import type { APIApplicationCommandInteractionDataOptionWithValues } from 'discord-api-types/v9';
 
 const client = new Client({ intents: [] });
 const botUser = getUser('bot-user');
@@ -129,4 +130,39 @@ export function getMessage(channel: TextChannel, author: User, mentions: User[],
 		pinned,
 		type: 0,
 	});
+}
+
+export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOptionWithValues[] = []): CommandInteraction {
+	const interaction = new CommandInteraction(getClient(), {
+		id: SnowflakeUtil.generate(),
+		application_id: '',
+		type: 2,
+		token: '',
+		version: 1,
+		channel_id: channel.id,
+		member: {
+			permissions: '',
+			deaf: false,
+			mute: false,
+			joined_at: '0',
+			roles: [],
+			user: {
+				id: author.id,
+				discriminator: author.discriminator,
+				username: author.username,
+				avatar: author.avatar,
+			}
+		},
+		data: {
+			id: SnowflakeUtil.generate(),
+			name,
+			options: options as never, // FIXME: can't figure out this type
+		},
+	});
+
+	interaction.reply = jest.fn();
+	interaction.deferReply = jest.fn();
+	interaction.editReply = jest.fn();
+
+	return interaction;
 }
