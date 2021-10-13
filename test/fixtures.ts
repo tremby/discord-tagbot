@@ -139,7 +139,11 @@ export function getMessage(channel: TextChannel, author: User, mentions: User[],
 	});
 }
 
-export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOptionWithValues[] = []): CommandInteraction {
+export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOptionWithValues[], resolved): CommandInteraction {
+	// FIXME: type `resolved`. It ought to be APIApplicationCommandInteractionData['resolved']
+	// but TS gets sad if we pass our role objects to this,
+	// yet it seems to work fine. Faulty types?
+
 	// @ts-expect-error -- private constructor
 	const interaction = new CommandInteraction(getClient(), {
 		id: SnowflakeUtil.generate(),
@@ -164,7 +168,8 @@ export function getCommandInteraction(channel: TextChannel, author: User, name: 
 		data: {
 			id: SnowflakeUtil.generate(),
 			name,
-			options: options as never, // FIXME: can't figure out this type
+			options,
+			resolved,
 		},
 	});
 

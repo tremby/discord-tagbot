@@ -48,7 +48,7 @@ describe("add-channel command", () => {
 	});
 
 	it("replies with an ephemeral error and does nothing else if there is already a game", async () => {
-		const interaction = getCommandInteraction(channel, user1, 'add-channel', []);
+		const interaction = getCommandInteraction(channel, user1, 'add-channel', [], {});
 		await commandSpec.handler(interaction, channel, {} as Game);
 		expectInteractionResponse(interaction, true);
 		expect(mockRecount).not.toHaveBeenCalled();
@@ -56,13 +56,13 @@ describe("add-channel command", () => {
 	});
 
 	it("gives an ephemeral response on success", async () => {
-		const interaction = getCommandInteraction(channel, user1, 'add-channel', []);
+		const interaction = getCommandInteraction(channel, user1, 'add-channel', [], {});
 		await commandSpec.handler(interaction, channel);
 		expectInteractionResponse(interaction, true);
 	});
 
 	it("adds the game to the global state", async () => {
-		const interaction = getCommandInteraction(channel, user1, 'add-channel', []);
+		const interaction = getCommandInteraction(channel, user1, 'add-channel', [], {});
 		await commandSpec.handler(interaction, channel);
 		expect(gameState.games.size).toBe(1);
 		const game = [...gameState.games][0];
@@ -74,7 +74,7 @@ describe("add-channel command", () => {
 			status: 'awaiting-next',
 			match: matchMessage,
 		} as GameStateAwaitingNext);
-		const interaction = getCommandInteraction(channel, user1, 'add-channel', []);
+		const interaction = getCommandInteraction(channel, user1, 'add-channel', [], {});
 		await commandSpec.handler(interaction, channel);
 		expect(mockRecount).toHaveBeenCalledTimes(1);
 		const game = [...gameState.games][0];
@@ -83,20 +83,20 @@ describe("add-channel command", () => {
 	});
 
 	it("updates the game status message", async () => {
-		const interaction = getCommandInteraction(channel, user1, 'add-channel', []);
+		const interaction = getCommandInteraction(channel, user1, 'add-channel', [], {});
 		await commandSpec.handler(interaction, channel);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledWith(expect.objectContaining({ channel }));
 	});
 
 	it("persists to disk", async () => {
-		const interaction = getCommandInteraction(channel, user1, 'add-channel', []);
+		const interaction = getCommandInteraction(channel, user1, 'add-channel', [], {});
 		await commandSpec.handler(interaction, channel);
 		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
 	});
 
 	it("uses the default configuration", async () => {
-		const interaction = getCommandInteraction(channel, user1, 'add-channel', []);
+		const interaction = getCommandInteraction(channel, user1, 'add-channel', [], {});
 		await commandSpec.handler(interaction, channel);
 		expect(mockGetDefaultConfig).toHaveBeenCalledTimes(1);
 	});
