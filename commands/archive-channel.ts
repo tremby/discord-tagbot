@@ -50,10 +50,12 @@ const commandSpec: SlashCommandSpec = {
 							name: "Top scores",
 							value: formatScores(game.state.scores, 3),
 						},
-						{
-							name: "Full details",
-							value: `[See pinned status post](${game.statusMessage.url})`,
-						},
+						...(game.statusMessage == null ? [] : [
+							{
+								name: "Full details",
+								value: `[See pinned status post](${game.statusMessage.url})`,
+							},
+						]),
 					],
 				}],
 			});
