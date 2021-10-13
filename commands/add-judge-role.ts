@@ -2,7 +2,6 @@ import type { CommandInteraction, Role, TextChannel } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { persistToDisk } from '../lib/state';
-import { getGameOfChannel } from '../lib/channel';
 import { isRole } from '../lib/role';
 import { getConfigEmbedFields } from '../lib/config';
 
