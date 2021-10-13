@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { updateGameState, getStatusEmbedField } from '../lib/game-state';
+import { updateGameState, getStatusEmbedField, gameStateIsArchived } from '../lib/game-state';
 import { formatScores } from '../lib/scoring';
 
 const commandSpec: SlashCommandSpec = {
@@ -19,7 +19,7 @@ const commandSpec: SlashCommandSpec = {
 
 	handler: async (interaction, channel, game) => {
 		// Handle channel which was already archived
-		if (game.state.status === 'archived') {
+		if (gameStateIsArchived(game.state)) {
 			await interaction.reply({
 				embeds: [{
 					title: "Error",
