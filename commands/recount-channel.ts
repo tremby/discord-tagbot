@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from '../lib/scoring';
-import { updateGameState, getStatusEmbedField } from '../lib/game-state';
+import { updateGameState, getStatusEmbedField, gameStateIsArchived } from '../lib/game-state';
 import { getConfigEmbedFields } from '../lib/config';
 
 const commandSpec: SlashCommandSpec = {
@@ -31,7 +31,7 @@ const commandSpec: SlashCommandSpec = {
 		const changedScores = getChangedScores(oldScores, state.scores);
 
 		// If the game was archived, do not store the result, only show it
-		if (game.state.status === 'archived') {
+		if (gameStateIsArchived(game.state)) {
 			const tempGame: Game = {
 				...game,
 				state,
