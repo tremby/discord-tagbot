@@ -76,7 +76,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 						...[...message.attachments.values()].map((attachment) => ({
 							title: "New tag",
 							description: `New tag in ${game.channel}!`,
-							image: { url: attachment.url },
+							thumbnail: { url: attachment.url },
 							fields: [
 								{
 									name: "Tagged by",
@@ -194,7 +194,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 					...[...message.attachments.values()].map((attachment) => ({
 						title: "New tag match",
 						description: `Tag matched in ${game.channel}!`,
-						image: { url: attachment.url },
+						thumbnail: { url: attachment.url },
 						fields: [
 							{
 								name: "Matched by",
