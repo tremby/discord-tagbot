@@ -12,8 +12,6 @@ import { updateGameState } from './lib/game-state';
 import { messageHasImage, getMessageUsers } from './lib/message';
 import { setsEqual } from './lib/set';
 
-const x = setTimeout(() => "whatever", 100);
-
 // Flag for whether we have finished loading any saved state or not
 let finishedRestoring = false;
 
