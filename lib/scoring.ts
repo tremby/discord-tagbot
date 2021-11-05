@@ -285,18 +285,34 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
  */
 export function formatScores(scores: Scores, max: number | null = null): string {
 	// Get records as array
-	let records = [...scores.entries()];
+	const records = [...scores.entries()];
 
 	// Sort by score descending
 	records.sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
 
+	// Rejig the scores map to be keyed by score and point to a list of users
+	const byScore: Map<number, User[]> = new Map();
+	for (const [user, score] of scores) {
+		if (byScore.has(score)) byScore.get(score).push(user);
+		else byScore.set(score, [user]);
+	}
+
+	// Sort all the user lists by ID, just for stability
+	for (const [, users] of byScore) {
+		users.sort((userA, userB) => Number(BigInt(userA.id) - BigInt(userB.id)));
+	}
+
+	// Sort by score descending
+	const sortedByScore = new Map([...byScore].sort(([scoreA], [scoreB]) => scoreB - scoreA));
+
 	// Limit those if appropriate
+	let displayable = [...sortedByScore];
 	if (max != null) {
-		records = records.slice(0, max);
+		displayable = displayable.slice(0, max);
 	}
 
 	// Format
-	return records.map(([user, score]: [User, number], index) => `${maybeMedal(index + 1)}${user}: ${score}`).join("\n");
+	return displayable.map(([score, users]: [number, User[]], index) => `${maybeMedal(index + 1)}${toList(users)}: ${score}`).join("\n");
 }
 
 /**

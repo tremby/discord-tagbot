@@ -15,13 +15,17 @@ const mockMessageHasImage = mocked(messageHasImage);
 const mockGetMessageUsers = mocked(getMessageUsers);
 const mockDeleteMessage = mocked(deleteMessage);
 
+jest.mock('./string');
+import { toList } from './string';
+const mockToList = mocked(toList);
+
 const guild = getGuild();
 const channel = getTextChannel(guild);
 const chatChannel = getTextChannel(guild);
-const user1 = getUser('user-1');
-const user2 = getUser('user-2');
-const user3 = getUser('user-3');
-const user4 = getUser('user-4');
+const user1 = getUser('100');
+const user2 = getUser('200');
+const user3 = getUser('300');
+const user4 = getUser('400');
 const botUser = getBotUser();
 const tagByUser1 = getMessage(channel, user1, [], true, false, new Date('2020Z'), "tag by user 1");
 const tagByUser2 = getMessage(channel, user2, [], true, false, new Date('2020Z'), "tag by user 2");
@@ -788,75 +792,91 @@ describe("recount", () => {
 });
 
 describe("formatScores", () => {
-	it("returns a different line for each user", () => {
-		const result = m.formatScores(new Map([
-			[user1, 1],
-			[user2, 2],
-		]));
-		const lines = result.split('\n');
-		expect(lines).toContainEqual(expect.stringContaining("<@user-1>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@user-2>"));
-		expect(lines.findIndex((line) => /<@user-1>/.test(line))).not.toEqual(lines.findIndex((line) => /<@user-2>/.test(line)));
+	beforeEach(() => {
+		mockToList.mockImplementation((strings: string[]) => strings.join(", "));
 	});
 
-	it("returns each user's score on their line", () => {
+	it("returns a different line for each score", () => {
 		const result = m.formatScores(new Map([
 			[user1, 1],
 			[user2, 2],
+			[user3, 2],
 		]));
 		const lines = result.split('\n');
-		expect(lines).toContainEqual(expect.stringMatching(/<@user-1>.*\b1\b/));
-		expect(lines).toContainEqual(expect.stringMatching(/<@user-2>.*\b2\b/));
+		expect(lines).toContainEqual(expect.stringContaining(": 1"));
+		expect(lines).toContainEqual(expect.stringContaining(": 2"));
+		expect(lines.findIndex((line) => /: 1/.test(line))).not.toEqual(lines.findIndex((line) => /: 2/.test(line)));
+	});
+
+	it("returns each score's users on its line", () => {
+		const result = m.formatScores(new Map([
+			[user1, 1],
+			[user2, 2],
+			[user3, 2],
+		]));
+		const lines = result.split('\n');
+		const score1Line = lines.find((line) => /: 1/.test(line));
+		expect(score1Line).toContain("<@100>");
+		const score2Line = lines.find((line) => /: 2/.test(line));
+		expect(score2Line).toContain("<@200>");
+		expect(score2Line).toContain("<@300>");
 	});
 
 	it("does not limit the number of scores shown by default", () => {
 		const result = m.formatScores(new Map([
 			[user1, 1],
 			[user2, 2],
-			[user3, 3],
+			[user3, 2],
 			[user4, 4],
 			[botUser, 42],
 		]));
 		const lines = result.split('\n');
-		expect(lines).toContainEqual(expect.stringContaining("<@user-1>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@user-2>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@user-3>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@user-4>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@bot-user>"));
+		expect(lines).toContainEqual(expect.stringContaining(": 1"));
+		expect(lines).toContainEqual(expect.stringContaining(": 2"));
+		expect(lines).toContainEqual(expect.stringContaining(": 4"));
+		expect(lines).toContainEqual(expect.stringContaining(": 42"));
 	});
 
 	it("sorts by score descending", () => {
 		const result = m.formatScores(new Map([
 			[user1, 1],
 			[user2, 2],
-			[user3, 3],
+			[user3, 2],
 			[user4, 4],
 		]));
 		const lines = result.split('\n');
-		const user1Index = lines.findIndex((line) => /<@user-1>/.test(line));
-		const user2Index = lines.findIndex((line) => /<@user-2>/.test(line));
-		const user3Index = lines.findIndex((line) => /<@user-3>/.test(line));
-		const user4Index = lines.findIndex((line) => /<@user-4>/.test(line));
-		expect(user4Index).toBeLessThan(user3Index);
-		expect(user4Index).toBeLessThan(user2Index);
-		expect(user4Index).toBeLessThan(user1Index);
-		expect(user3Index).toBeLessThan(user2Index);
-		expect(user3Index).toBeLessThan(user1Index);
-		expect(user2Index).toBeLessThan(user1Index);
+		const score1Index = lines.findIndex((line) => line.includes(": 1"));
+		const score2Index = lines.findIndex((line) => line.includes(": 2"));
+		const score4Index = lines.findIndex((line) => line.includes(": 4"));
+		expect(score4Index).toBeLessThan(score2Index);
+		expect(score4Index).toBeLessThan(score1Index);
+		expect(score2Index).toBeLessThan(score1Index);
 	});
 
 	it("limits the number of scores shown if asked to", () => {
 		const result = m.formatScores(new Map([
 			[user1, 1],
 			[user2, 2],
-			[user3, 3],
+			[user3, 2],
 			[user4, 4],
 		]), 2);
 		const lines = result.split('\n');
-		expect(lines).not.toContainEqual(expect.stringContaining("<@user-1>"));
-		expect(lines).not.toContainEqual(expect.stringContaining("<@user-2>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@user-3>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@user-4>"));
+		expect(lines).not.toContainEqual(expect.stringContaining(": 1"));
+		expect(lines).toContainEqual(expect.stringContaining(": 2"));
+		expect(lines).toContainEqual(expect.stringContaining(": 4"));
+	});
+
+	it("outputs users with the same score in ID order", () => {
+		const result1 = m.formatScores(new Map([
+			[user1, 1],
+			[user2, 1],
+		]));
+		expect(result1).toEqual(expect.stringContaining("<@100>, <@200>"));
+		const result2 = m.formatScores(new Map([
+			[user2, 1],
+			[user1, 1],
+		]));
+		expect(result2).toEqual(expect.stringContaining("<@100>, <@200>"));
 	});
 });
 
@@ -1047,9 +1067,9 @@ describe("getScoreChangesEmbedField", () => {
 			[user2, { before: 1, after: 0 }],
 		]));
 		const lines = result.value.split('\n');
-		expect(lines).toContainEqual(expect.stringContaining("<@user-1>"));
-		expect(lines).toContainEqual(expect.stringContaining("<@user-2>"));
-		expect(lines.findIndex((line) => /<@user-1>/.test(line))).not.toEqual(lines.findIndex((line) => /<@user-2>/.test(line)));
+		expect(lines).toContainEqual(expect.stringContaining("<@100>"));
+		expect(lines).toContainEqual(expect.stringContaining("<@200>"));
+		expect(lines.findIndex((line) => /<@100>/.test(line))).not.toEqual(lines.findIndex((line) => /<@user-2>/.test(line)));
 	});
 
 	it("lists each user's score change", () => {
@@ -1058,7 +1078,7 @@ describe("getScoreChangesEmbedField", () => {
 			[user2, { before: 5, after: 4 }],
 		]));
 		const lines = result.value.split('\n');
-		expect(lines).toContainEqual(expect.stringMatching(/<@user-1>.*\b1\b.*\b2\b/));
-		expect(lines).toContainEqual(expect.stringMatching(/<@user-2>.*\b5\b.*\b4\b/));
+		expect(lines).toContainEqual(expect.stringMatching(/<@100>.*\b1\b.*\b2\b/));
+		expect(lines).toContainEqual(expect.stringMatching(/<@200>.*\b5\b.*\b4\b/));
 	});
 });
