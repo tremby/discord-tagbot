@@ -689,7 +689,7 @@ describe("handleMessage", () => {
 });
 
 describe("recount", () => {
-	beforeAll(() => {
+	beforeEach(() => {
 		jest.spyOn(console, 'log').mockImplementation();
 	});
 

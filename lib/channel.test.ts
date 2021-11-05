@@ -79,7 +79,7 @@ describe("getGameOfChannel", () => {
 });
 
 describe("getAllMessages", () => {
-	beforeAll(() => {
+	beforeEach(() => {
 		jest.spyOn(console, 'log').mockImplementation();
 	});
 
