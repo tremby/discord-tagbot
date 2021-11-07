@@ -218,7 +218,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			status: "awaiting-next",
 			scores: newScores,
 			match: message,
-			excludedFromRound: new Set(),
+			excludedFromRound: new Set(game.state.excludedFromRound),
 		} as GameStateAwaitingNext;
 
 		if (mode === 'live' && game.config.chatChannel) {

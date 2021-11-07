@@ -521,6 +521,17 @@ describe("handleMessage", () => {
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);
 		});
 
+		it("persists the list of banned players on a new match", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const result = await m.handleMessage(gameWithState({
+				...stateAwaitingMatch,
+				tag: tagByUser2,
+				excludedFromRound: new Set([user4]),
+			} as GameStateAwaitingMatch), matchByUser1, 'live');
+			expect(result).toHaveProperty('status', 'awaiting-next');
+			expect((result as GameStateAwaitingNext).excludedFromRound.has(user4)).toBe(true);
+		});
+
 		it("awards points to the correct users", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			for (const [tag, match] of [
