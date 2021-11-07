@@ -110,7 +110,7 @@ function getTimeUpHandler(game: Game): (() => Promise<void>) {
 
 		// Remember some details of the match
 		const matchUsers = getMessageUsers(game.state.match);
-		const attachment = game.state.match.attachments[0];
+		const attachment = game.state.match.attachments.first();
 
 		// Delete the match
 		await deleteMessage(game.state.match);
