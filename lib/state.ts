@@ -37,7 +37,7 @@ export function serializeGame(game: Game): SerializedGame {
 	} as SerializedGame;
 
 	if (gameStateIsAwaitingNext(game.state) || gameStateIsAwaitingMatch(game.state)) {
-		serialized.excludedFromRound = [...game.state.excludedFromRound].map((user) => user.id);
+		serialized.disqualifiedFromRound = [...game.state.disqualifiedFromRound].map((user) => user.id);
 	}
 
 	return serialized;
@@ -85,9 +85,9 @@ export async function loadFromDisk(client: Client): Promise<void> {
 		// Get current state: if not archived that means doing a recount
 		const state: GameState = serializedGame.status === 'archived' ? { status: 'archived' } : await recount(partialGame);
 
-		// If necessary, get currently-banned users
+		// If necessary, get currently-disqualified users
 		if (gameStateIsAwaitingMatch(state) || gameStateIsAwaitingNext(state)) {
-			state.excludedFromRound = new Set(await Promise.all(serializedGame.excludedFromRound.map((id) => client.users.fetch(id))));
+			state.disqualifiedFromRound = new Set(await Promise.all(serializedGame.disqualifiedFromRound.map((id) => client.users.fetch(id))));
 		}
 
 		// Put together the final game object

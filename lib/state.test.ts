@@ -49,7 +49,7 @@ const game1: Game = {
 		match: getMessage(channel1, user1, [user2], true, false, new Date('2020Z'), "tag match"),
 		reminderTimer: null,
 		timeUpTimer: null,
-		excludedFromRound: new Set([user1, user2]),
+		disqualifiedFromRound: new Set([user1, user2]),
 	} as GameStateAwaitingNext,
 };
 const game2: Game = {
@@ -64,7 +64,7 @@ const game2: Game = {
 		status: 'awaiting-match',
 		scores: new Map(),
 		tag: getMessage(channel2, user1, [user2], true, false, new Date('2020Z'), "tag"),
-		excludedFromRound: new Set(),
+		disqualifiedFromRound: new Set(),
 	} as GameStateAwaitingMatch,
 };
 const game3: Game = {
@@ -92,14 +92,14 @@ describe("serializeGame", () => {
 		expect(serialized).toHaveProperty('status', 'awaiting-next');
 	});
 
-	it("includes the excluded users", () => {
+	it("includes the disqualified users", () => {
 		const serialized = m.serializeGame(game1);
-		expect(serialized).toHaveProperty('excludedFromRound', ['user-1', 'user-2']);
+		expect(serialized).toHaveProperty('disqualifiedFromRound', ['user-1', 'user-2']);
 	});
 
-	it("handles game states with no excluded users", () => {
+	it("handles game states with no disqualified users", () => {
 		const serialized = m.serializeGame(game3);
-		expect(serialized).not.toHaveProperty('excludedFromRound');
+		expect(serialized).not.toHaveProperty('disqualifiedFromRound');
 	});
 
 	it("includes the configuration", () => {
@@ -150,7 +150,7 @@ describe("loadFromDisk", () => {
 			status: 'awaiting-match',
 			scores: new Map(),
 			tag: getMessage(channel2, user1, [user2], true, false, new Date('2020Z'), "tag"),
-			excludedFromRound: new Set(),
+			disqualifiedFromRound: new Set(),
 		} as GameStateAwaitingMatch);
 	});
 
@@ -165,7 +165,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: 3600e3,
 						tagJudgeRoleIds: ['role-1', 'role-2'],
@@ -175,7 +175,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-2',
 					status: 'awaiting-match',
-					excludedFromRound: [],
+					disqualifiedFromRound: [],
 					config: {
 						nextTagTimeLimit: 1800e3,
 						tagJudgeRoleIds: [],
@@ -194,7 +194,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: 3600e3,
 						tagJudgeRoleIds: ['role-1', 'role-2'],
@@ -208,13 +208,13 @@ describe("loadFromDisk", () => {
 		expect([...state.games][0]).toHaveProperty('channel', channel1);
 	});
 
-	it("restores players banned for the current round", async () => {
+	it("restores players disqualified for the current round", async () => {
 		mockReadFile.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: 3600e3,
 						tagJudgeRoleIds: ['role-1', 'role-2'],
@@ -226,18 +226,18 @@ describe("loadFromDisk", () => {
 		await m.loadFromDisk(client);
 		expect(client.users.fetch).toHaveBeenCalledWith('user-1');
 		expect(client.users.fetch).toHaveBeenCalledWith('user-2');
-		expect([...state.games][0]).toHaveProperty('state.excludedFromRound.size', 2);
-		expect(([...state.games][0].state as GameStateAwaitingNext).excludedFromRound.has(user1)).toBe(true);
-		expect(([...state.games][0].state as GameStateAwaitingNext).excludedFromRound.has(user2)).toBe(true);
+		expect([...state.games][0]).toHaveProperty('state.disqualifiedFromRound.size', 2);
+		expect(([...state.games][0].state as GameStateAwaitingNext).disqualifiedFromRound.has(user1)).toBe(true);
+		expect(([...state.games][0].state as GameStateAwaitingNext).disqualifiedFromRound.has(user2)).toBe(true);
 	});
 
-	it("restores lack of players banned for the current round", async () => {
+	it("restores lack of players disqualified for the current round", async () => {
 		mockReadFile.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: [],
+					disqualifiedFromRound: [],
 					config: {
 						nextTagTimeLimit: 3600e3,
 						tagJudgeRoleIds: ['role-1', 'role-2'],
@@ -248,7 +248,7 @@ describe("loadFromDisk", () => {
 		}));
 		await m.loadFromDisk(client);
 		expect(client.users.fetch).not.toHaveBeenCalled();
-		expect([...state.games][0]).toHaveProperty('state.excludedFromRound.size', 0);
+		expect([...state.games][0]).toHaveProperty('state.disqualifiedFromRound.size', 0);
 	});
 
 	it("restores time limit", async () => {
@@ -257,7 +257,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: 3600e3,
 						tagJudgeRoleIds: ['role-1', 'role-2'],
@@ -276,7 +276,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: ['role-1', 'role-2'],
@@ -295,7 +295,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: ['role-1', 'role-2'],
@@ -318,7 +318,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],
@@ -337,7 +337,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],
@@ -357,7 +357,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: ['user-1', 'user-2'],
+					disqualifiedFromRound: ['user-1', 'user-2'],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],
@@ -395,7 +395,7 @@ describe("loadFromDisk", () => {
 					{
 						channelId: 'channel-1',
 						status: st,
-						excludedFromRound: [],
+						disqualifiedFromRound: [],
 						config: {
 							nextTagTimeLimit: null,
 							tagJudgeRoleIds: [],
@@ -433,7 +433,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: [],
+					disqualifiedFromRound: [],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],
@@ -460,7 +460,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: [],
+					disqualifiedFromRound: [],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],
@@ -482,7 +482,7 @@ describe("loadFromDisk", () => {
 				{
 					channelId: 'channel-1',
 					status: 'awaiting-next',
-					excludedFromRound: [],
+					disqualifiedFromRound: [],
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],

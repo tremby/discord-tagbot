@@ -35,7 +35,7 @@ export function formatGameStatus(game: Game): string {
 	if (thisModule.gameStateIsArchived(game.state))
 		return "Archived.";
 	if (thisModule.gameStateIsAwaitingMatch(game.state))
-		return `Awaiting tag match from anyone but ${toList(setUnion(getMessageUsers(game.state.tag), game.state.excludedFromRound), "or")}.`;
+		return `Awaiting tag match from anyone but ${toList(setUnion(getMessageUsers(game.state.tag), game.state.disqualifiedFromRound), "or")}.`;
 	if (thisModule.gameStateIsAwaitingNext(game.state))
 		return `Awaiting next tag from ${toList(getMessageUsers(game.state.match), "or")}, deadline ${getFormattedDeadline(game, 'R')}.`;
 	if (thisModule.gameStateIsFree(game.state))
@@ -125,11 +125,11 @@ export async function updateGameState(game: Game, newState: GameState): Promise<
 }
 
 /**
- * Get the excluded players embed field.
+ * Get the disqualified players embed field.
  */
-export function getExcludedPlayersEmbedField(players: Set<User>): EmbedFieldData {
+export function getDisqualifiedPlayersEmbedField(players: Set<User>): EmbedFieldData {
 	return {
-		name: "Users out of this round",
+		name: "Users disqualified from this round",
 		value: players.size ? toList(players) : "None",
 	};
 }

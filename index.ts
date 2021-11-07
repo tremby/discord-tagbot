@@ -133,13 +133,13 @@ client.on('ready', async () => {
 		console.log(`A message from ${newMessage.author} was edited in such a way that image presence or mentions changed; recounting...`);
 		const newState = await recount(game);
 
-		// Persist the list of users excluded from the round,
+		// Persist the list of users disqualified from the round,
 		// if the old and new state both support such a list
 		if (
 			(gameStateIsAwaitingMatch(game.state) || gameStateIsAwaitingNext(game.state))
 			&& (gameStateIsAwaitingMatch(newState) || gameStateIsAwaitingNext(newState))
 		) {
-			newState.excludedFromRound = new Set(game.state.excludedFromRound);
+			newState.disqualifiedFromRound = new Set(game.state.disqualifiedFromRound);
 		}
 
 		// Note the changed scores
@@ -197,13 +197,13 @@ client.on('ready', async () => {
 		console.log(`A message from ${message.author} which contained an image was deleted; recounting...`);
 		const newState = await recount(game);
 
-		// Persist the list of users excluded from the round,
+		// Persist the list of users disqualified from the round,
 		// if the old and new state both support such a list
 		if (
 			(gameStateIsAwaitingMatch(game.state) || gameStateIsAwaitingNext(game.state))
 			&& (gameStateIsAwaitingMatch(newState) || gameStateIsAwaitingNext(newState))
 		) {
-			newState.excludedFromRound = new Set(game.state.excludedFromRound);
+			newState.disqualifiedFromRound = new Set(game.state.disqualifiedFromRound);
 		}
 
 		// Note the changed scores
@@ -269,13 +269,13 @@ client.on('ready', async () => {
 			console.log(`At least one message in ${game.channel} which contained an image was deleted; recounting...`);
 			const newState = await recount(game);
 
-			// Persist the list of users excluded from the round,
+			// Persist the list of users disqualified from the round,
 			// if the old and new state both support such a list
 			if (
 				(gameStateIsAwaitingMatch(game.state) || gameStateIsAwaitingNext(game.state))
 				&& (gameStateIsAwaitingMatch(newState) || gameStateIsAwaitingNext(newState))
 			) {
-				newState.excludedFromRound = new Set(game.state.excludedFromRound);
+				newState.disqualifiedFromRound = new Set(game.state.disqualifiedFromRound);
 			}
 
 			// Note the changed scores

@@ -49,13 +49,13 @@ const stateAwaitingNext: GameStateAwaitingNext = {
 	match: matchMessage,
 	reminderTimer: null,
 	timeUpTimer: null,
-	excludedFromRound: new Set(),
+	disqualifiedFromRound: new Set(),
 };
 const stateAwaitingMatch: GameStateAwaitingMatch = {
 	status: 'awaiting-match',
 	scores: new Map(),
 	tag: tagMessage,
-	excludedFromRound: new Set(),
+	disqualifiedFromRound: new Set(),
 };
 const stateArchived: GameStateArchived = {
 	status: 'archived',
@@ -656,7 +656,7 @@ describe("setTimers", () => {
 			expect(mockUpdateGameState).toHaveBeenCalledWith(game, newState);
 		});
 
-		it("adds the match authors to the list of banned users for this round", async () => {
+		it("adds the match authors to the list of disqualified users for this round", async () => {
 			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
 			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
@@ -672,7 +672,7 @@ describe("setTimers", () => {
 			jest.runAllTimers();
 			await flushPromises();
 			await flushPromises(); // FIXME: no idea why I need to call this twice
-			expect(newState).toHaveProperty('excludedFromRound.size', 1);
+			expect(newState).toHaveProperty('disqualifiedFromRound.size', 1);
 		});
 
 		it("emits an error if somehow after deleting the match the state didn't go back to awaiting match", async () => {

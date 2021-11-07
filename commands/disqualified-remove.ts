@@ -4,7 +4,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import {
 	gameStateIsAwaitingNext,
 	gameStateIsAwaitingMatch,
-	getExcludedPlayersEmbedField,
+	getDisqualifiedPlayersEmbedField,
 	getStatusEmbedField,
 } from '../lib/game-state';
 
@@ -13,11 +13,16 @@ const commandSpec: SlashCommandSpec = {
 	requireGame: true,
 
 	description: new SlashCommandBuilder()
-		.setName('tag-excluded-clear')
-		.setDescription("Clear the list of players banned from the current round")
+		.setName('tag-disqualified-remove')
+		.setDescription("Remove a player from those disqualified from the current round")
+		.addUserOption((option) =>
+			option.setName('user')
+			.setDescription("User to pardon.")
+			.setRequired(true)
+		)
 		.addChannelOption((option) =>
 			option.setName('game-channel')
-			.setDescription("Channel in which to clear the list (this channel if not set).")
+			.setDescription("Channel in which to remove the player from the list (this channel if not set).")
 			.setRequired(false)
 		),
 
@@ -26,12 +31,12 @@ const commandSpec: SlashCommandSpec = {
 		const user = interaction.options.getUser('user');
 
 		// Handle the case where the current game state
-		// cannot have a list of excluded users
+		// cannot have a list of disqualified users
 		if (!gameStateIsAwaitingNext(game.state) && !gameStateIsAwaitingMatch(game.state)) {
 			await interaction.reply({
 				embeds: [{
 					title: "Error",
-					description: `Only games in the states of awaiting next tag or awaiting match can have lists of excluded users. The game in ${channel} is not in either of these states.`,
+					description: `Only games in the states of awaiting next tag or awaiting match can have lists of disqualified users. The game in ${channel} is not in either of these states.`,
 					fields: [getStatusEmbedField(game)],
 				}],
 				ephemeral: true,
@@ -39,28 +44,28 @@ const commandSpec: SlashCommandSpec = {
 			return;
 		}
 
-		// Handle the case where the list is already empty
-		if (game.state.excludedFromRound.size === 0) {
+		// Handle the case where the user is not in the exclusion list
+		if (!game.state.disqualifiedFromRound.has(user)) {
 			await interaction.reply({
 				embeds: [{
 					title: "Error",
-					description: `No users are excluded from the current round in ${channel}.`,
-					fields: [getExcludedPlayersEmbedField(game.state.excludedFromRound)],
+					description: `${user} is not disqualified from the current round in ${channel}.`,
+					fields: [getDisqualifiedPlayersEmbedField(game.state.disqualifiedFromRound)],
 				}],
 				ephemeral: true,
 			});
 			return;
 		}
 
-		// Remove all players from the list
-		game.state.excludedFromRound.clear();
+		// Remove the player from the list
+		game.state.disqualifiedFromRound.delete(user);
 
 		// Respond to user
 		await interaction.reply({
 			embeds: [{
 				title: "Current round player exclusion list updated",
-				description: `All players removed from the list of players excluded from the current round in ${channel}.`,
-				fields: [getExcludedPlayersEmbedField(game.state.excludedFromRound)],
+				description: `${user} removed from the list of players disqualified from the current round in ${channel}.`,
+				fields: [getDisqualifiedPlayersEmbedField(game.state.disqualifiedFromRound)],
 			}],
 			ephemeral: true,
 		});

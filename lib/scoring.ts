@@ -67,7 +67,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 						console.log("    Informing the user and deleting both the new tag and the match");
 						await Promise.all([
 							(game.config.chatChannel ?? game.channel).send({
-								content: `${message.author}, you just tried to post a new tag ${game.config.chatChannel ? `in ${game.channel} ` : ""}but time had already run out. Your tag and the match before have been removed, and you're out until next round!`,
+								content: `${message.author}, you just tried to post a new tag ${game.config.chatChannel ? `in ${game.channel} ` : ""}but time had already run out. Your tag and the match before have been removed, and you're disqualified until next round!`,
 							}),
 							deleteMessage(message),
 							deleteMessage(game.state.match),
@@ -81,7 +81,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 						/* istanbul ignore else */
 						if (gameStateIsAwaitingMatch(newState)) {
 							for (const user of getMessageUsers(game.state.match)) {
-								newState.excludedFromRound.add(user);
+								newState.disqualifiedFromRound.add(user);
 							}
 						}
 
@@ -135,7 +135,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			status: "awaiting-match",
 			scores: game.state.scores,
 			tag: message,
-			excludedFromRound: new Set(),
+			disqualifiedFromRound: new Set(),
 		} as GameStateAwaitingMatch;
 	}
 
@@ -172,28 +172,28 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			}
 		}
 
-		// Get intersection of authors of the match with excluded users
-		const excludedAuthors = setIntersection<User | string>(game.state.excludedFromRound, authors);
-		if (excludedAuthors.has(message.author)) {
-			excludedAuthors.delete(message.author);
-			excludedAuthors.add("you");
+		// Get intersection of authors of the match with disqualified users
+		const disqualifiedAuthors = setIntersection<User | string>(game.state.disqualifiedFromRound, authors);
+		if (disqualifiedAuthors.has(message.author)) {
+			disqualifiedAuthors.delete(message.author);
+			disqualifiedAuthors.add("you");
 		}
 
-		// Complain if any of the currently-excluded players were involved with this match
-		if (excludedAuthors.size) {
-			console.log(`  Message involved one or more users who are excluded from the current round`);
+		// Complain if any of the currently-disqualified players were involved with this match
+		if (disqualifiedAuthors.size) {
+			console.log(`  Message involved one or more users who are disqualified from the current round`);
 			if (mode === 'live') {
 				const otherAuthors = new Set(authors);
 				otherAuthors.delete(message.author);
 				await Promise.all([
 					(game.config.chatChannel ?? game.channel).send({
-						content: `${message.author}, you just tried to post an image ${game.config.chatChannel ? `in ${game.channel} ` : ""}${otherAuthors.size ? `along with ${toList(otherAuthors)} ` : ""}but ${toList(excludedAuthors)} ${excludedAuthors.size === 1 && excludedAuthors.has("you") ? "were banned" : excludedAuthors.size === 1 ? "was banned" : "were banned"} from this round. We're waiting on someone else to match it.`,
+						content: `${message.author}, you just tried to post an image ${game.config.chatChannel ? `in ${game.channel} ` : ""}${otherAuthors.size ? `along with ${toList(otherAuthors)} ` : ""}but ${toList(disqualifiedAuthors)} ${disqualifiedAuthors.size === 1 && disqualifiedAuthors.has("you") ? "are" : disqualifiedAuthors.size === 1 ? "is" : "are"} disqualified until the next tag. We're waiting on someone else to match this one.`,
 					}),
 					deleteMessage(message),
 				]);
 				return null;
 			} else {
-				console.log("    Accepting anyway since this is a recount (this should never happen anyway; there are no excluded users during a recount)");
+				console.log("    Accepting anyway since this is a recount (this should never happen anyway; there are no disqualified users during a recount)");
 			}
 		}
 
@@ -218,7 +218,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			status: "awaiting-next",
 			scores: newScores,
 			match: message,
-			excludedFromRound: new Set(game.state.excludedFromRound),
+			disqualifiedFromRound: new Set(game.state.disqualifiedFromRound),
 		} as GameStateAwaitingNext;
 
 		if (mode === 'live' && game.config.chatChannel) {
@@ -293,8 +293,8 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 /**
  * Recalculate the scores on demand.
  *
- * Note that this cannot know which players should be banned from the current
- * round, and will always produce an empty banned list.
+ * Note that this cannot know which players should be disqualified from the current
+ * round, and will always produce an empty disqualification list.
  *
  * @param {PartialBy<Game, 'state'>} game - Game metadata but the state is not
  * required (it'll be ignored)

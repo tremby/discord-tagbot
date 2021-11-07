@@ -44,13 +44,13 @@ const stateAwaitingNext: GameStateAwaitingNext = {
 	match: matchMessage,
 	reminderTimer: null,
 	timeUpTimer: null,
-	excludedFromRound: new Set(),
+	disqualifiedFromRound: new Set(),
 };
 const stateAwaitingMatch: GameStateAwaitingMatch = {
 	status: 'awaiting-match',
 	scores: new Map(),
 	tag: tagMessage,
-	excludedFromRound: new Set(),
+	disqualifiedFromRound: new Set(),
 };
 const stateArchived: GameStateArchived = {
 	status: 'archived',
@@ -156,11 +156,11 @@ describe("formatGameStatus", () => {
 		expect(m.formatGameStatus(gameWithState(stateAwaitingMatch))).toContain("<@300>");
 	});
 
-	it("lists the current banned players when awaiting a match", () => {
+	it("lists the current disqualified players when awaiting a match", () => {
 		jest.spyOn(m, 'gameStateIsAwaitingMatch').mockReturnValue(true);
 		const state = {
 			...stateAwaitingMatch,
-			excludedFromRound: new Set([user4]),
+			disqualifiedFromRound: new Set([user4]),
 		} as GameStateAwaitingMatch;
 		expect(m.formatGameStatus(gameWithState(state))).toContain("<@400>");
 	});
@@ -335,22 +335,22 @@ describe("updateGameState", () => {
 	});
 });
 
-describe("getExcludedPlayersEmbedField", () => {
+describe("getDisqualifiedPlayersEmbedField", () => {
 	it("returns an object with name and value", () => {
-		const result = m.getExcludedPlayersEmbedField(new Set([user1, user2]));
+		const result = m.getDisqualifiedPlayersEmbedField(new Set([user1, user2]));
 		expect(result).toHaveProperty('name');
 		expect(result).toHaveProperty('value');
 	});
 
 	it("lists each passed user", () => {
 		mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
-		const result = m.getExcludedPlayersEmbedField(new Set([user1, user2]));
+		const result = m.getDisqualifiedPlayersEmbedField(new Set([user1, user2]));
 		expect(result.value).toEqual(expect.stringContaining("<@100>"));
 		expect(result.value).toEqual(expect.stringContaining("<@200>"));
 	});
 
 	it("says 'none' if there were no users", () => {
-		const result = m.getExcludedPlayersEmbedField(new Set());
+		const result = m.getDisqualifiedPlayersEmbedField(new Set());
 		expect(result.value).toEqual(expect.stringMatching(/none/i));
 	});
 });

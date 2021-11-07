@@ -104,7 +104,7 @@ and by tag judges for the game in question.
   If no new tag is posted when the time runs out,
   an announcement is made,
   and the current match is deleted, meaning those users lose their score.
-  Those users are then excluded from the current round,
+  Those users are then disqualified from the current round,
   and we await a new match from somebody else.
 
 - **`/tag-set-chat-channel`:** associate another channel as the chat channel for this tag game.
@@ -138,13 +138,13 @@ This does not delete any end-of-game announcement which might have been posted.
 These archiving commands can only be performed by admins,
 and by tag judges associated with that game.
 
-### Managing excluded players
+### Managing disqualified players
 
-If players miss a time limit they are excluded from the current round.
-The list of excluded players can expand
+If players miss a time limit they are disqualified from the current round.
+The list of disqualified players can expand
 if other players then post a match and fail to meet *their* time limit.
 
-In normal situations this list of excluded players is managed automatically:
+In normal situations this list of disqualified players is managed automatically:
 players associated with a match are added to the list if they then miss the time limit to post the next tag,
 and the list is cleared once a new tag is posted.
 
@@ -152,15 +152,15 @@ However, in certain situations where a recount was required,
 such as due to a bulk message deletion,
 it's possible for the list to get out of sync.
 
-It may also be desirable to manually manage the list of exclusions for arbitrary reasons.
+It may also be desirable to manually manage the list of disqualifications for arbitrary reasons.
 
-For those reasons some exclusion list management commands are available:
+For those reasons some disqualification list management commands are available:
 
-- **`/tag-excluded-add`:** add a user to the list of excluded players for the current round.
+- **`/tag-disqualified-add`:** add a user to the list of disqualified players for the current round.
 
-- **`/tag-excluded-remove`:** remove a user from the list of excluded players for the current round.
+- **`/tag-disqualified-remove`:** remove a user from the list of disqualified players for the current round.
 
-- **`/tag-excluded-clear`:**: clear the list of excluded players for the current round.
+- **`/tag-disqualified-clear`:**: clear the list of disqualified players for the current round.
 
 ### Miscellaneous commands
 

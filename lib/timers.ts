@@ -1,4 +1,4 @@
-import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsFree, updateGameState, getExcludedPlayersEmbedField } from './game-state';
+import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsFree, updateGameState, getDisqualifiedPlayersEmbedField } from './game-state';
 import { pluralize, toList } from './string';
 import { getMessageUsers, deleteMessage } from './message';
 import { getDeadlineTimestamp, getFormattedDeadline } from './deadline';
@@ -120,7 +120,7 @@ function getTimeUpHandler(game: Game): (() => Promise<void>) {
 		const newState = await recount(game);
 		if (gameStateIsAwaitingMatch(newState)) {
 			// This should always be true
-			newState.excludedFromRound = setUnion(oldState.excludedFromRound, matchUsers);
+			newState.disqualifiedFromRound = setUnion(oldState.disqualifiedFromRound, matchUsers);
 		}
 		await updateGameState(game, newState);
 		if (!gameStateIsAwaitingMatch(newState)) {
@@ -138,7 +138,7 @@ function getTimeUpHandler(game: Game): (() => Promise<void>) {
 				fields: [
 					{ ...getScoreChangesEmbedField(getChangedScores(oldState.scores, newState.scores)), inline: true },
 					{ ...getScoresEmbedField(game, 'brief'), inline: true },
-					newState.excludedFromRound.size ? { ...getExcludedPlayersEmbedField(newState.excludedFromRound), inline: true } : [],
+					newState.disqualifiedFromRound.size ? { ...getDisqualifiedPlayersEmbedField(newState.disqualifiedFromRound), inline: true } : [],
 					{
 						name: "Links",
 						value: [
