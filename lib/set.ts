@@ -15,3 +15,12 @@ export function setIntersection<T>(a: Set<T>, b: Set<T>): Set<T> {
 	for (const x of a) if (b.has(x)) out.add(x);
 	return out;
 }
+
+/**
+ * Get the union of two sets.
+ */
+export function setUnion<T>(a: Set<T>, b: Set<T>): Set<T> {
+	const out = new Set<T>(a);
+	for (const x of b) out.add(x);
+	return out;
+}

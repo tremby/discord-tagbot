@@ -1,4 +1,5 @@
 import * as m from './game-state';
+import type { User } from 'discord.js';
 import { getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
 import { DiscordAPIError, Constants } from 'discord.js';
@@ -18,11 +19,16 @@ jest.mock('./channel');
 import { getStatusMessage } from './channel';
 const mockGetStatusMessage = mocked(getStatusMessage);
 
+jest.mock('./string');
+import { toList } from './string';
+const mockToList = mocked(toList);
+
 const guild = getGuild();
 const channel = getTextChannel(guild);
-const user1 = getUser('user-1');
-const user2 = getUser('user-2');
-const user3 = getUser('user-3');
+const user1 = getUser('100');
+const user2 = getUser('200');
+const user3 = getUser('300');
+const user4 = getUser('400');
 const botUser = getUser('bot-user');
 const tagMessage = getMessage(channel, user1, [user2, user3], true, false, new Date('2020Z'), "tag");
 const matchMessage = getMessage(channel, user1, [user2, user3], true, false, new Date('2020Z'), "tag match");
@@ -38,11 +44,13 @@ const stateAwaitingNext: GameStateAwaitingNext = {
 	match: matchMessage,
 	reminderTimer: null,
 	timeUpTimer: null,
+	excludedFromRound: new Set(),
 };
 const stateAwaitingMatch: GameStateAwaitingMatch = {
 	status: 'awaiting-match',
 	scores: new Map(),
 	tag: tagMessage,
+	excludedFromRound: new Set(),
 };
 const stateArchived: GameStateArchived = {
 	status: 'archived',
@@ -118,6 +126,7 @@ describe("formatGameStatus", () => {
 		jest.spyOn(m, 'gameStateIsAwaitingMatch').mockReturnValue(false);
 		jest.spyOn(m, 'gameStateIsAwaitingNext').mockReturnValue(false);
 		jest.spyOn(m, 'gameStateIsFree').mockReturnValue(false);
+		mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
 	});
 
 	it("detects an archived game", () => {
@@ -142,16 +151,25 @@ describe("formatGameStatus", () => {
 
 	it("lists the current tag authors when awaiting a match", () => {
 		jest.spyOn(m, 'gameStateIsAwaitingMatch').mockReturnValue(true);
-		expect(m.formatGameStatus(gameWithState(stateAwaitingMatch))).toContain("<@user-1>");
-		expect(m.formatGameStatus(gameWithState(stateAwaitingMatch))).toContain("<@user-2>");
-		expect(m.formatGameStatus(gameWithState(stateAwaitingMatch))).toContain("<@user-3>");
+		expect(m.formatGameStatus(gameWithState(stateAwaitingMatch))).toContain("<@100>");
+		expect(m.formatGameStatus(gameWithState(stateAwaitingMatch))).toContain("<@200>");
+		expect(m.formatGameStatus(gameWithState(stateAwaitingMatch))).toContain("<@300>");
+	});
+
+	it("lists the current banned players when awaiting a match", () => {
+		jest.spyOn(m, 'gameStateIsAwaitingMatch').mockReturnValue(true);
+		const state = {
+			...stateAwaitingMatch,
+			excludedFromRound: new Set([user4]),
+		} as GameStateAwaitingMatch;
+		expect(m.formatGameStatus(gameWithState(state))).toContain("<@400>");
 	});
 
 	it("lists the match authors when awaiting a new tag", () => {
 		jest.spyOn(m, 'gameStateIsAwaitingNext').mockReturnValue(true);
-		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@user-1>");
-		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@user-2>");
-		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@user-3>");
+		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@100>");
+		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@200>");
+		expect(m.formatGameStatus(gameWithState(stateAwaitingNext))).toContain("<@300>");
 	});
 
 	it("throws an error if it comes across an unexpected state", () => {
@@ -314,5 +332,25 @@ describe("updateGameState", () => {
 		await m.updateGameState(game, stateAwaitingMatch);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledWith(game);
+	});
+});
+
+describe("getExcludedPlayersEmbedField", () => {
+	it("returns an object with name and value", () => {
+		const result = m.getExcludedPlayersEmbedField(new Set([user1, user2]));
+		expect(result).toHaveProperty('name');
+		expect(result).toHaveProperty('value');
+	});
+
+	it("lists each passed user", () => {
+		mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
+		const result = m.getExcludedPlayersEmbedField(new Set([user1, user2]));
+		expect(result.value).toEqual(expect.stringContaining("<@100>"));
+		expect(result.value).toEqual(expect.stringContaining("<@200>"));
+	});
+
+	it("says 'none' if there were no users", () => {
+		const result = m.getExcludedPlayersEmbedField(new Set());
+		expect(result.value).toEqual(expect.stringMatching(/none/i));
 	});
 });

@@ -5,8 +5,10 @@ import { expectAnyOf, flushPromises } from '../test/util';
 import { mocked } from 'ts-jest/utils';
 
 jest.mock('./game-state');
-import { gameStateIsAwaitingNext } from './game-state';
+import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, updateGameState } from './game-state';
 const mockGameStateIsAwaitingNext = mocked(gameStateIsAwaitingNext);
+const mockGameStateIsAwaitingMatch = mocked(gameStateIsAwaitingMatch);
+const mockUpdateGameState = mocked(updateGameState);
 
 jest.mock('./deadline');
 import { getDeadlineTimestamp, getFormattedDeadline } from './deadline';
@@ -14,13 +16,18 @@ const mockGetDeadlineTimestamp = mocked(getDeadlineTimestamp);
 const mockGetFormattedDeadline = mocked(getFormattedDeadline);
 
 jest.mock('./message');
-import { getMessageUsers } from './message';
+import { getMessageUsers, deleteMessage } from './message';
 const mockGetMessageUsers = mocked(getMessageUsers);
+const mockDeleteMessage = mocked(deleteMessage);
 
 jest.mock('./string');
 import { pluralize, toList } from './string';
 const mockPluralize = mocked(pluralize);
 const mockToList = mocked(toList);
+
+jest.mock('./scoring');
+import { recount } from './scoring';
+const mockRecount = mocked(recount);
 
 const guild = getGuild();
 const gameChannel = getTextChannel(guild);
@@ -42,11 +49,13 @@ const stateAwaitingNext: GameStateAwaitingNext = {
 	match: matchMessage,
 	reminderTimer: null,
 	timeUpTimer: null,
+	excludedFromRound: new Set(),
 };
 const stateAwaitingMatch: GameStateAwaitingMatch = {
 	status: 'awaiting-match',
 	scores: new Map(),
 	tag: tagMessage,
+	excludedFromRound: new Set(),
 };
 const stateArchived: GameStateArchived = {
 	status: 'archived',
@@ -67,6 +76,7 @@ const game: Game = {
 describe("setTimers", () => {
 	beforeEach(() => {
 		jest.useFakeTimers();
+		mockRecount.mockResolvedValue(stateAwaitingMatch);
 	});
 	afterEach(() => {
 		// FIXME: I don't see why this should be necessary,
@@ -81,13 +91,15 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(false);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			const state = { ...stateFree };
 			m.setTimers(game, state);
 			expectAnyOf(
 				() => expect(state).not.toHaveProperty('reminderTimer'),
 				() => expect(state).toHaveProperty('reminderTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -103,6 +115,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			const state = { ...stateAwaitingNext };
 			m.setTimers({
 				...game,
@@ -115,7 +129,7 @@ describe("setTimers", () => {
 				() => expect(state).not.toHaveProperty('reminderTimer'),
 				() => expect(state).toHaveProperty('reminderTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -132,6 +146,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() - 1e3 * 60 * 60);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
@@ -139,7 +155,7 @@ describe("setTimers", () => {
 				() => expect(state).not.toHaveProperty('reminderTimer'),
 				() => expect(state).toHaveProperty('reminderTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -156,6 +172,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60);
 			const state = { ...stateAwaitingNext };
 			m.setTimers({
@@ -169,7 +187,7 @@ describe("setTimers", () => {
 				() => expect(state).not.toHaveProperty('reminderTimer'),
 				() => expect(state).toHaveProperty('reminderTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -186,6 +204,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 2);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
@@ -193,7 +213,7 @@ describe("setTimers", () => {
 				() => expect(state).not.toHaveProperty('reminderTimer'),
 				() => expect(state).toHaveProperty('reminderTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -211,10 +231,12 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
-			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), expect.anything());
+			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderHandler'), expect.anything());
 			mockGameStateIsAwaitingNext.mockReturnValue(false);
 			jest.runAllTimers();
 			await flushPromises();
@@ -233,10 +255,12 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
-			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderSender'), 1e3 * 60 * 10);
+			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('reminderHandler'), 1e3 * 60 * 10);
 			jest.runAllTimers();
 			await flushPromises();
 		});
@@ -247,6 +271,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			expect(state.reminderTimer).toBeFalsy();
@@ -262,6 +288,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
@@ -283,6 +311,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
@@ -302,6 +332,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers({
@@ -328,13 +360,15 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(false);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			const state = { ...stateFree };
 			m.setTimers(game, state);
 			expectAnyOf(
 				() => expect(state).not.toHaveProperty('timeUpTimer'),
 				() => expect(state).toHaveProperty('timeUpTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -343,6 +377,7 @@ describe("setTimers", () => {
 			expect(mockChatChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
 				content: expect.stringContaining("time has run out"),
 			}));
+			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
 
 		it("does nothing if there is no time limit", async () => {
@@ -350,6 +385,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			const state = { ...stateAwaitingNext };
 			m.setTimers({
 				...game,
@@ -362,7 +399,7 @@ describe("setTimers", () => {
 				() => expect(state).not.toHaveProperty('timeUpTimer'),
 				() => expect(state).toHaveProperty('timeUpTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -371,6 +408,7 @@ describe("setTimers", () => {
 			expect(mockChatChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
 				content: expect.stringContaining("time has run out"),
 			}));
+			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
 
 		it("does nothing if the deadline is in the past", async () => {
@@ -379,6 +417,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() - 1e3 * 60 * 60);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
@@ -386,7 +426,7 @@ describe("setTimers", () => {
 				() => expect(state).not.toHaveProperty('timeUpTimer'),
 				() => expect(state).toHaveProperty('timeUpTimer', null),
 			);
-			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpSender'), expect.anything());
+			expect(mockSetTimeout).not.toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpHandler'), expect.anything());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -395,6 +435,7 @@ describe("setTimers", () => {
 			expect(mockChatChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
 				content: expect.stringContaining("time has run out"),
 			}));
+			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
 
 		it("sets a timer but, if it isn't cancelled, the timer will do nothing if the game state has moved on", async () => {
@@ -404,11 +445,15 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
-			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpSender'), expect.anything());
+			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpHandler'), expect.anything());
 			mockGameStateIsAwaitingNext.mockReturnValue(false);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			jest.runAllTimers();
 			await flushPromises();
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -418,6 +463,7 @@ describe("setTimers", () => {
 				content: expect.stringContaining("time has run out"),
 			}));
 			expect(mockError).toHaveBeenCalledWith(expect.stringMatching(/was going to send a time up message/i));
+			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
 
 		it("sets a timer with the correct timeout", async () => {
@@ -426,10 +472,12 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
-			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpSender'), 1e3 * 60 * 20);
+			expect(mockSetTimeout).toHaveBeenCalledWith(expect.toBeFunctionWithName('timeUpHandler'), 1e3 * 60 * 20);
 			jest.runAllTimers();
 			await flushPromises();
 		});
@@ -440,6 +488,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			expect(state.timeUpTimer).toBeFalsy();
@@ -449,17 +499,37 @@ describe("setTimers", () => {
 			await flushPromises();
 		});
 
-		it("sends a message with a warning once the timer runs out", async () => {
+		it("deletes the match message once the timer runs out", async () => {
 			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
 			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
 			jest.runAllTimers();
 			await flushPromises();
+			expect(mockDeleteMessage).toHaveBeenCalledTimes(1);
+			expect(mockDeleteMessage).toHaveBeenCalledWith(matchMessage);
+		});
+
+		it("sends a message once the timer runs out", async () => {
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const state = { ...stateAwaitingNext };
+			m.setTimers(game, state);
+			jest.runAllTimers();
+			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
 			expectAnyOf(
 				() => expect(mockGameChannelSend).toHaveBeenCalledWith(expect.objectContaining({
 					content: expect.stringContaining("time has run out"),
@@ -476,11 +546,14 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers(game, state);
 			jest.runAllTimers();
 			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
 			expect(mockGameChannelSend).not.toHaveBeenCalledWith(expect.objectContaining({
 				content: expect.stringContaining("time has run out"),
 			}));
@@ -495,6 +568,8 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			m.setTimers({
@@ -506,6 +581,7 @@ describe("setTimers", () => {
 			}, state);
 			jest.runAllTimers();
 			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
 			expect(mockGameChannelSend).toHaveBeenCalledWith(expect.objectContaining({
 				content: expect.stringContaining("time has run out"),
 			}));
@@ -520,12 +596,15 @@ describe("setTimers", () => {
 			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
 			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 			const state = { ...stateAwaitingNext };
 			const tmpGame = { ...game, statusMessage };
 			m.setTimers(tmpGame, state);
 			jest.runAllTimers();
 			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
 			expect(mockChatChannelSend).toHaveBeenCalledWith(expect.objectContaining({
 				embeds: expect.arrayContaining([
 					expect.objectContaining({
@@ -539,6 +618,80 @@ describe("setTimers", () => {
 			}));
 		});
 
+		it("triggers a recount", async () => {
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const state = { ...stateAwaitingNext };
+			m.setTimers(game, state);
+			jest.runAllTimers();
+			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
+			expect(mockRecount).toHaveBeenCalledTimes(1);
+			expect(mockRecount).toHaveBeenCalledWith(game);
+		});
+
+		it("updates the game state to the recount result", async () => {
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set());
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const newState = { ...stateAwaitingMatch };
+			mockRecount.mockResolvedValue(newState);
+			const state = { ...stateAwaitingNext };
+			m.setTimers(game, state);
+			jest.runAllTimers();
+			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
+			expect(mockUpdateGameState).toHaveBeenCalledTimes(1);
+			expect(mockUpdateGameState).toHaveBeenCalledWith(game, newState);
+		});
+
+		it("adds the match authors to the list of banned users for this round", async () => {
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(true);
+			mockGetMessageUsers.mockReturnValue(new Set([user1]));
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const newState = { ...stateAwaitingMatch };
+			mockRecount.mockResolvedValue(newState);
+			const state = { ...stateAwaitingNext };
+			m.setTimers(game, state);
+			jest.runAllTimers();
+			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
+			expect(newState).toHaveProperty('excludedFromRound.size', 1);
+		});
+
+		it("emits an error if somehow after deleting the match the state didn't go back to awaiting match", async () => {
+			const mockError = jest.spyOn(console, 'error').mockImplementation();
+			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
+			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
+			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
+			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			mockGameStateIsAwaitingNext.mockReturnValue(true);
+			mockGameStateIsAwaitingMatch.mockReturnValue(false);
+			mockGetMessageUsers.mockReturnValue(new Set());
+			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
+			const state = { ...stateAwaitingNext };
+			m.setTimers(game, state);
+			jest.runAllTimers();
+			await flushPromises();
+			await flushPromises(); // FIXME: no idea why I need to call this twice
+			expect(mockError).toHaveBeenCalledWith(expect.stringMatching(/expected state to go back to awaiting match/i));
+		});
 	});
 });
 
@@ -563,6 +716,8 @@ describe("clearTimers", () => {
 		const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 		const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGetMessageUsers.mockReturnValue(new Set());
 		mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 		m.setTimers(tmpGame, tmpGame.state);
 		expect(tmpGame.state).toHaveProperty('reminderTimer', expect.any(Object)),
@@ -587,6 +742,8 @@ describe("clearTimers", () => {
 		const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 		const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGetMessageUsers.mockReturnValue(new Set());
 		mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 		m.setTimers(tmpGame, tmpGame.state);
 		expect(tmpGame.state).toHaveProperty('reminderTimer', expect.any(Object)),
@@ -609,6 +766,8 @@ describe("clearTimers", () => {
 		const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 		const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGetMessageUsers.mockReturnValue(new Set());
 		mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 		m.setTimers(tmpGame, tmpGame.state);
 		expect(tmpGame.state).toHaveProperty('timeUpTimer', expect.any(Object)),
@@ -633,6 +792,8 @@ describe("clearTimers", () => {
 		const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 		const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGetMessageUsers.mockReturnValue(new Set());
 		mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 		m.setTimers(tmpGame, tmpGame.state);
 		expect(tmpGame.state).toHaveProperty('timeUpTimer', expect.any(Object)),
@@ -657,6 +818,8 @@ describe("clearTimers", () => {
 		const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(null);
 		const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGetMessageUsers.mockReturnValue(new Set());
 		mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
 		m.setTimers(tmpGame, tmpGame.state);
 		mockGameStateIsAwaitingNext.mockReturnValue(false);

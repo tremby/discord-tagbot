@@ -8,7 +8,7 @@ import { ProblemCheckingPermissionsError, NoTextChannelError, isAdmin, isAdminOr
 import appState, { loadFromDisk, persistToDisk } from './lib/state';
 import { channelIsTextChannel, getGameOfChannel } from './lib/channel';
 import { handleMessage, recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from './lib/scoring';
-import { updateGameState } from './lib/game-state';
+import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, updateGameState } from './lib/game-state';
 import { messageHasImage, getMessageUsers } from './lib/message';
 import { setsEqual } from './lib/set';
 
@@ -129,16 +129,29 @@ client.on('ready', async () => {
 			&& messageHasImage(oldMessage) === messageHasImage(newMessage)
 		) return;
 
-		// Trigger a full recount and update the game state
+		// Trigger a full recount
 		console.log(`A message from ${newMessage.author} was edited in such a way that image presence or mentions changed; recounting...`);
-		const oldScores = game.state.scores;
 		const newState = await recount(game);
-		const changedScores = getChangedScores(oldScores, newState.scores);
+
+		// Persist the list of users excluded from the round,
+		// if the old and new state both support such a list
+		if (
+			(gameStateIsAwaitingMatch(game.state) || gameStateIsAwaitingNext(game.state))
+			&& (gameStateIsAwaitingMatch(newState) || gameStateIsAwaitingNext(newState))
+		) {
+			newState.excludedFromRound = new Set(game.state.excludedFromRound);
+		}
+
+		// Note the changed scores
+		const changedScores = getChangedScores(game.state.scores, newState.scores);
+
+		// Update the current game state
 		console.log(`Recount finished; updating game state`);
 		await updateGameState(game, newState);
+
 		console.log("Finished handling edit");
 
-		// For each affected game, trigger a full recount and update the game state
+		// If there is a chat channel, inform users
 		if (game.config.chatChannel) {
 			game.config.chatChannel.send({
 				embeds: [{
@@ -180,17 +193,30 @@ client.on('ready', async () => {
 		// Do nothing if the game is archived
 		if (game.state.status === 'archived') return;
 
-		// Trigger a full recount and update the game state
+		// Trigger a full recount
 		console.log(`A message from ${message.author} which contained an image was deleted; recounting...`);
-		const oldScores = game.state.scores;
 		const newState = await recount(game);
-		const changedScores = getChangedScores(oldScores, newState.scores);
+
+		// Persist the list of users excluded from the round,
+		// if the old and new state both support such a list
+		if (
+			(gameStateIsAwaitingMatch(game.state) || gameStateIsAwaitingNext(game.state))
+			&& (gameStateIsAwaitingMatch(newState) || gameStateIsAwaitingNext(newState))
+		) {
+			newState.excludedFromRound = new Set(game.state.excludedFromRound);
+		}
+
+		// Note the changed scores
+		const changedScores = getChangedScores(game.state.scores, newState.scores);
+
+		// Update the current game state
 		console.log(`Recount finished; updating game state`);
 		await updateGameState(game, newState);
+
 		console.log("Finished handling deletion");
 
-		// For each affected game, trigger a full recount and update the game state
-		if (changedScores.size > 0 && game.config.chatChannel) {
+		// If there is a chat channel, inform users
+		if (game.config.chatChannel) {
 			game.config.chatChannel.send({
 				embeds: [{
 					title: "Recount",
@@ -241,14 +267,26 @@ client.on('ready', async () => {
 		// For each affected game, trigger a full recount and update the game state
 		await Promise.all([...affectedGames].map(async (game) => {
 			console.log(`At least one message in ${game.channel} which contained an image was deleted; recounting...`);
-			const oldScores = game.state.scores;
 			const newState = await recount(game);
-			const changedScores = getChangedScores(oldScores, newState.scores);
+
+			// Persist the list of users excluded from the round,
+			// if the old and new state both support such a list
+			if (
+				(gameStateIsAwaitingMatch(game.state) || gameStateIsAwaitingNext(game.state))
+				&& (gameStateIsAwaitingMatch(newState) || gameStateIsAwaitingNext(newState))
+			) {
+				newState.excludedFromRound = new Set(game.state.excludedFromRound);
+			}
+
+			// Note the changed scores
+			const changedScores = getChangedScores(game.state.scores, newState.scores);
+
+			// Update the current game state
 			console.log(`Recount for ${game.channel} finished; updating game state`);
 			await updateGameState(game, newState);
 
-			// If any scores changed, inform users in the chat channel
-			if (changedScores.size > 0 && game.config.chatChannel) {
+			// If there is a chat channel, inform users
+			if (game.config.chatChannel) {
 				game.config.chatChannel.send({
 					embeds: [{
 						title: "Recount",

@@ -12,6 +12,10 @@ export function expectAnyOf(...tests: (() => void)[]): void {
 }
 
 export async function flushPromises(): Promise<unknown> {
+	// XXX
+	// Here be dragons.
+	// I don't really know how this works.
+	// Sometimes it needs to be called twice and I don't know why.
 	const p = new Promise((resolve) => process.nextTick(resolve));
 	jest.runAllTicks();
 	return p;

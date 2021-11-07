@@ -1,5 +1,6 @@
 import * as m from './scoring';
 import { getBotUser, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
+import type { Message, User } from 'discord.js';
 
 import { mocked } from 'ts-jest/utils';
 
@@ -75,11 +76,13 @@ const stateAwaitingNext: GameStateAwaitingNext = {
 	match: matchByUser2,
 	reminderTimer: null,
 	timeUpTimer: null,
+	excludedFromRound: new Set(),
 };
 const stateAwaitingMatch: GameStateAwaitingMatch = {
 	status: 'awaiting-match',
 	scores: new Map(),
 	tag: tagByUser1,
+	excludedFromRound: new Set(),
 };
 const stateArchived: GameStateArchived = {
 	status: 'archived',
@@ -191,28 +194,34 @@ describe("handleMessage", () => {
 
 		it("allows and handles a match from anybody", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			for (const [tag, match] of [
+			const data: [Message, Message, Set<User>][] = [
 				// Usually allowed
-				[tagByUser1, matchByUser2],
-				[tagByUser1, matchByUser2FtUser3],
-				[tagByUser1FtUser2, matchByUser3],
+				[tagByUser1, matchByUser2, new Set()],
+				[tagByUser1, matchByUser2FtUser3, new Set()],
+				[tagByUser1FtUser2, matchByUser3, new Set()],
+				[tagByUser1, matchByUser2, new Set([user3])],
 
 				// Usually disallowed
-				[tagByUser1, matchByUser1],
-				[tagByUser1, matchByUser1FtUser2],
-				[tagByUser1, matchByUser2FtUser1],
-				[tagByUser1FtUser2, matchByUser1],
-				[tagByUser1FtUser2, matchByUser2],
-				[tagByUser1FtUser2, matchByUser1FtUser2],
-				[tagByUser1FtUser2, matchByUser2FtUser1],
-				[tagByUser1FtUser2, matchByUser2FtUser3],
-				[tagByUser1FtUser2, matchByUser3FtUser2],
-				[tagByUser1FtUser2, matchByUser1FtUser3],
-				[tagByUser1FtUser2, matchByUser3FtUser1],
-			]) {
+				[tagByUser1, matchByUser1, new Set()],
+				[tagByUser1, matchByUser1FtUser2, new Set()],
+				[tagByUser1, matchByUser2FtUser1, new Set()],
+				[tagByUser1FtUser2, matchByUser1, new Set()],
+				[tagByUser1FtUser2, matchByUser2, new Set()],
+				[tagByUser1FtUser2, matchByUser1FtUser2, new Set()],
+				[tagByUser1FtUser2, matchByUser2FtUser1, new Set()],
+				[tagByUser1FtUser2, matchByUser2FtUser3, new Set()],
+				[tagByUser1FtUser2, matchByUser3FtUser2, new Set()],
+				[tagByUser1FtUser2, matchByUser1FtUser3, new Set()],
+				[tagByUser1FtUser2, matchByUser3FtUser1, new Set()],
+				[tagByUser4, matchByUser1, new Set([user1])],
+				[tagByUser4, matchByUser1FtUser2, new Set([user1])],
+				[tagByUser4, matchByUser2FtUser1, new Set([user1])],
+			];
+			for (const [tag, match, excludedFromRound] of data) {
 				const result = await m.handleMessage(gameWithState({
 					...stateAwaitingMatch,
 					tag,
+					excludedFromRound,
 				} as GameStateAwaitingMatch), match, 'recount');
 				expect(result).toHaveProperty('status', 'awaiting-next');
 				expect(result.scores.size).toBeGreaterThan(0);
@@ -396,7 +405,7 @@ describe("handleMessage", () => {
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);
 		});
 
-		it("allows and handles a match from anyone who didn't author or get mentioned in the tag", async () => {
+		it("allows and handles a match from anyone unbanned who didn't author or get mentioned in the tag", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			for (const [tag, match] of [
 				[tagByUser1, matchByUser2],
@@ -439,7 +448,34 @@ describe("handleMessage", () => {
 			}
 		});
 
-		it("warns a user if their match post was rejected, in the game channel if there is no chat channel", async () => {
+		it("rejects and deletes a match from someone or mentioning someone banned from the current round", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const data: [Set<User>, Message][] = [
+				[new Set([user1]), matchByUser1],
+				[new Set([user1]), matchByUser1FtUser2],
+				[new Set([user1]), matchByUser2FtUser1],
+				[new Set([user1, user2]), matchByUser1],
+				[new Set([user1, user2]), matchByUser2],
+				[new Set([user1, user2]), matchByUser1FtUser2],
+				[new Set([user1, user2]), matchByUser2FtUser1],
+				[new Set([user1, user2]), matchByUser2FtUser3],
+				[new Set([user1, user2]), matchByUser3FtUser2],
+				[new Set([user1, user2]), matchByUser1FtUser3],
+				[new Set([user1, user2]), matchByUser3FtUser1],
+			];
+			for (const [excludedFromRound, match] of data) {
+				const result = await m.handleMessage(gameWithState({
+					...stateAwaitingMatch,
+					tag: tagByUser4,
+					excludedFromRound,
+				} as GameStateAwaitingMatch), match, 'live');
+				expect(result).toBeNull();
+				expect(mockDeleteMessage).toHaveBeenCalledTimes(1);
+				mockDeleteMessage.mockClear();
+			}
+		});
+
+		it("warns a user if their match post was rejected for being by a tag author, in the game channel if there is no chat channel", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
@@ -449,12 +485,36 @@ describe("handleMessage", () => {
 			expect(mockSend).toHaveBeenCalledTimes(1);
 		});
 
-		it("warns a user if their match post was rejected, in the chat channel if there is one", async () => {
+		it("warns a user if their match post was rejected for being by a tag author, in the chat channel if there is one", async () => {
 			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
+			} as GameStateAwaitingMatch, true), matchByUser1, 'live');
+			expect(result).toBeNull();
+			expect(mockSendToGame).not.toHaveBeenCalled();
+			expect(mockSendToChat).toHaveBeenCalledTimes(1);
+		});
+
+		it("warns a user if their match post was rejected for being banned, in the game channel if there is no chat channel", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const result = await m.handleMessage(gameWithState({
+				...stateAwaitingMatch,
+				tag: tagByUser4,
+				excludedFromRound: new Set([user1]),
+			} as GameStateAwaitingMatch, false), matchByUser1, 'live');
+			expect(result).toBeNull();
+			expect(mockSend).toHaveBeenCalledTimes(1);
+		});
+
+		it("warns a user if their match post was rejected for being banned, in the chat channel if there is one", async () => {
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const result = await m.handleMessage(gameWithState({
+				...stateAwaitingMatch,
+				tag: tagByUser4,
+				excludedFromRound: new Set([user1]),
 			} as GameStateAwaitingMatch, true), matchByUser1, 'live');
 			expect(result).toBeNull();
 			expect(mockSendToGame).not.toHaveBeenCalled();
@@ -564,6 +624,16 @@ describe("handleMessage", () => {
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);
 		});
 
+		it("clears the list of banned players on a new tag", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const result = await m.handleMessage(gameWithState({
+				...stateAwaitingNext,
+				match: matchByUser1,
+				excludedFromRound: new Set([user4]),
+			} as GameStateAwaitingNext), tagByUser1, 'live');
+			expect(result).toHaveProperty('excludedFromRound.size', 0);
+		});
+
 		it("rejects and deletes a new tag if it's a disallowed author", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			for (const [match, tag] of [
@@ -628,7 +698,7 @@ describe("handleMessage", () => {
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);
 		});
 
-		it("accepts the tag with no warning if it's within the time limit", async () => {
+		it("accepts the tag if it's within the time limit", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -640,50 +710,102 @@ describe("handleMessage", () => {
 			expect(mockSend).not.toHaveBeenCalled();
 		});
 
-		it("doesn't mention lateness in the new tag announcement if it was not late", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
-			const game = gameWithState({
-				...stateAwaitingNext,
-				match: matchByUser1,
-			} as GameStateAwaitingNext, true);
-			game.config.nextTagTimeLimit = 1e3 * 60;
-			const result = await m.handleMessage(game, tagByUser1, 'live');
-			expect(result).toHaveProperty('status', 'awaiting-match');
-			expect(mockSendToGame).not.toHaveBeenCalled();
-			expect(mockSendToChat).toHaveBeenCalledTimes(1);
-			expect(mockSendToChat).not.toHaveBeenCalledWith(expect.objectContaining({
-				content: expect.stringContaining("tag is late"),
-			}));
-		});
-
-		it("issues a warning if the tag was not within the time limit", async () => {
+		it("deletes the new tag if it's outside of the time limit", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
 			} as GameStateAwaitingNext);
 			game.config.nextTagTimeLimit = 1e3 * 60;
 			const result = await m.handleMessage(game, lateTagByUser1, 'live');
-			expect(result).toHaveProperty('status', 'awaiting-match');
+			expect(mockDeleteMessage).toHaveBeenCalledWith(lateTagByUser1);
+		});
+
+		it("deletes the previous match if the new tag is outside of the time limit", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
+			const game = gameWithState({
+				...stateAwaitingNext,
+				match: matchByUser1,
+			} as GameStateAwaitingNext);
+			game.config.nextTagTimeLimit = 1e3 * 60;
+			const result = await m.handleMessage(game, lateTagByUser1, 'live');
+			expect(mockDeleteMessage).toHaveBeenCalledWith(matchByUser1);
+		});
+
+		it("triggers a recount if the tag is outside of the time limit", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
+			const game = gameWithState({
+				...stateAwaitingNext,
+				match: matchByUser1,
+			} as GameStateAwaitingNext);
+			game.config.nextTagTimeLimit = 1e3 * 60;
+			const result = await m.handleMessage(game, lateTagByUser1, 'live');
+			expect(mockRecount).toHaveBeenCalledTimes(1);
+		});
+
+		it("posts a message (in the game channel if there is no chat channel) saying what happened if the tag was outside of the time limit", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
+			const game = gameWithState({
+				...stateAwaitingNext,
+				match: matchByUser1,
+			} as GameStateAwaitingNext, false);
+			game.config.nextTagTimeLimit = 1e3 * 60;
+			const result = await m.handleMessage(game, lateTagByUser1, 'live');
 			expect(mockSend).toHaveBeenCalledTimes(1);
 		});
 
-		it("adds a warning to the new tag message in the chat channel if the tag was late", async () => {
+		it("posts a message (in the chat channel if there is one) saying what happened if the tag was outside of the time limit", async () => {
 			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
 			} as GameStateAwaitingNext, true);
 			game.config.nextTagTimeLimit = 1e3 * 60;
 			const result = await m.handleMessage(game, lateTagByUser1, 'live');
-			expect(result).toHaveProperty('status', 'awaiting-match');
 			expect(mockSendToGame).not.toHaveBeenCalled();
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);
-			expect(mockSendToChat).toHaveBeenCalledWith(expect.objectContaining({
-				content: expect.stringContaining("tag is late"),
-			}));
+		});
+
+		it("bans everyone involved from the round if the tag was outside of the time limit", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
+			const game = gameWithState({
+				...stateAwaitingNext,
+				match: matchByUser1,
+			} as GameStateAwaitingNext, false);
+			game.config.nextTagTimeLimit = 1e3 * 60;
+			const result = await m.handleMessage(game, lateTagByUser1, 'live');
+			expect((result as GameStateAwaitingMatch).excludedFromRound.has(user1)).toBe(true);
+		});
+
+		it("preserves previously-banned players if the tag was outside of the time limit", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue({ ...stateAwaitingMatch, excludedFromRound: new Set([user2]) } as GameStateAwaitingMatch);
+			const game = gameWithState({
+				...stateAwaitingNext,
+				match: matchByUser1,
+			} as GameStateAwaitingNext, false);
+			game.config.nextTagTimeLimit = 1e3 * 60;
+			const result = await m.handleMessage(game, lateTagByUser1, 'live');
+			expect((result as GameStateAwaitingMatch).excludedFromRound.has(user2)).toBe(true);
+		});
+
+		it("combines newly-banned players if the tag was outside of the time limit", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue({ ...stateAwaitingMatch, excludedFromRound: new Set([user2]) } as GameStateAwaitingMatch);
+			const game = gameWithState({
+				...stateAwaitingNext,
+				match: matchByUser1,
+			} as GameStateAwaitingNext, false);
+			game.config.nextTagTimeLimit = 1e3 * 60;
+			const result = await m.handleMessage(game, lateTagByUser1, 'live');
+			expect((result as GameStateAwaitingMatch).excludedFromRound.has(user1)).toBe(true);
 		});
 	});
 });

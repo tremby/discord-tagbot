@@ -45,6 +45,7 @@ declare global {
 		channelId: string;
 		status: GameState['status'];
 		config: SerializedConfig;
+		excludedFromRound?: string[];
 	}
 
 	interface GameState {
@@ -81,6 +82,7 @@ declare global {
 		match: Message;
 		reminderTimer: NodeJS.Timeout | null;
 		timeUpTimer: NodeJS.Timeout | null;
+		excludedFromRound: Set<User>;
 	}
 
 	/**
@@ -93,6 +95,7 @@ declare global {
 		status: 'awaiting-match';
 		scores: Scores;
 		tag: Message;
+		excludedFromRound: Set<User>;
 	}
 
 	/**

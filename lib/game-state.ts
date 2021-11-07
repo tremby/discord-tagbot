@@ -1,4 +1,4 @@
-import type { MessageOptions, EmbedFieldData } from 'discord.js';
+import type { MessageOptions, EmbedFieldData, User } from 'discord.js';
 import { Constants } from 'discord.js';
 
 import { getScoresEmbedField } from './scoring';
@@ -7,6 +7,7 @@ import { getStatusMessage } from './channel';
 import { toList } from './string';
 import { clearTimers, setTimers } from './timers';
 import { getFormattedDeadline } from './deadline';
+import { setUnion } from './set';
 
 // To ease tests
 import * as thisModule from './game-state';
@@ -34,7 +35,7 @@ export function formatGameStatus(game: Game): string {
 	if (thisModule.gameStateIsArchived(game.state))
 		return "Archived.";
 	if (thisModule.gameStateIsAwaitingMatch(game.state))
-		return `Awaiting tag match from anyone but ${toList(getMessageUsers(game.state.tag), "or")}.`;
+		return `Awaiting tag match from anyone but ${toList(setUnion(getMessageUsers(game.state.tag), game.state.excludedFromRound), "or")}.`;
 	if (thisModule.gameStateIsAwaitingNext(game.state))
 		return `Awaiting next tag from ${toList(getMessageUsers(game.state.match), "or")}, deadline ${getFormattedDeadline(game, 'R')}.`;
 	if (thisModule.gameStateIsFree(game.state))
@@ -121,4 +122,14 @@ export async function updateGameState(game: Game, newState: GameState): Promise<
 
 	// Update status message
 	await thisModule.updateGameStatusMessage(game);
+}
+
+/**
+ * Get the excluded players embed field.
+ */
+export function getExcludedPlayersEmbedField(players: Set<User>): EmbedFieldData {
+	return {
+		name: "Users out of this round",
+		value: players.size ? toList(players) : "None",
+	};
 }

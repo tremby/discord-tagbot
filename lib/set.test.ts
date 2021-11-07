@@ -38,3 +38,26 @@ describe("setIntersection", () => {
 		expect(result.has(3)).toBe(true);
 	});
 });
+
+describe("setUnion", () => {
+	it("returns an empty set if both inputs are empty", () => {
+		expect(m.setUnion(new Set([]), new Set([])).size).toBe(0);
+	});
+
+	it("includes all members of the first set", () => {
+		const output = m.setUnion(new Set([1, 2]), new Set([3, 4]));
+		expect(output.has(1)).toBe(true);
+		expect(output.has(2)).toBe(true);
+	});
+
+	it("includes all members of the second set", () => {
+		const output = m.setUnion(new Set([1, 2]), new Set([3, 4]));
+		expect(output.has(3)).toBe(true);
+		expect(output.has(4)).toBe(true);
+	});
+
+	it("includes any duplicated members", () => {
+		const output = m.setUnion(new Set([1, 2]), new Set([2, 3]));
+		expect(output.has(2)).toBe(true);
+	});
+});

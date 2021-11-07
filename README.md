@@ -102,14 +102,10 @@ and by tag judges for the game in question.
   as long as that's at least 10 minutes.
 
   If no new tag is posted when the time runs out,
-  a message is posted,
-  and tag judges are notified if such roles have been set.
-  It is then up to them to make a judgement:
-  they can allow the game to continue,
-  or delete the user's tag match so they lose their score.
-
-  If the user proceeds to post a new tag beyond the time limit,
-  judges are notified again.
+  an announcement is made,
+  and the current match is deleted, meaning those users lose their score.
+  Those users are then excluded from the current round,
+  and we await a new match from somebody else.
 
 - **`/tag-set-chat-channel`:** associate another channel as the chat channel for this tag game.
   The same channel can be used as the chat channel for multiple games.
@@ -141,6 +137,30 @@ This does not delete any end-of-game announcement which might have been posted.
 
 These archiving commands can only be performed by admins,
 and by tag judges associated with that game.
+
+### Managing excluded players
+
+If players miss a time limit they are excluded from the current round.
+The list of excluded players can expand
+if other players then post a match and fail to meet *their* time limit.
+
+In normal situations this list of excluded players is managed automatically:
+players associated with a match are added to the list if they then miss the time limit to post the next tag,
+and the list is cleared once a new tag is posted.
+
+However, in certain situations where a recount was required,
+such as due to a bulk message deletion,
+it's possible for the list to get out of sync.
+
+It may also be desirable to manually manage the list of exclusions for arbitrary reasons.
+
+For those reasons some exclusion list management commands are available:
+
+- **`/tag-excluded-add`:** add a user to the list of excluded players for the current round.
+
+- **`/tag-excluded-remove`:** remove a user from the list of excluded players for the current round.
+
+- **`/tag-excluded-clear`:**: clear the list of excluded players for the current round.
 
 ### Miscellaneous commands
 
@@ -193,5 +213,4 @@ Future
 
 - Harden
 - Finish tests
-- If someone runs out of time, don't let them get the current tag again?
 - Extract clues (spoiler tags) and print in "new tag" and "tag matched" messages?

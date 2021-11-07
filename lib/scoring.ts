@@ -31,7 +31,6 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 	}
 
 	if (gameStateIsFree(game.state) || gameStateIsAwaitingNext(game.state)) {
-		let tagIsLate = false;
 		const authors = getMessageUsers(message);
 
 		if (gameStateIsAwaitingNext(game.state)) {
@@ -51,27 +50,54 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 						}),
 						deleteMessage(message),
 					]);
-					return null
+					return null;
 				}
 			}
 
 			// Check if the next tag was not within the time limit
 			if (game.config.nextTagTimeLimit != null) {
 				if (message.createdTimestamp - game.state.match.createdTimestamp > game.config.nextTagTimeLimit) {
-					tagIsLate = true;
 					console.log(`  Posted more than the time limit (${game.config.nextTagTimeLimit}ms) after the match`);
+
+					if (mode === 'recount') {
+						console.log("    Accepting anyway since this is a recount");
+					} else {
+						// We shouldn't really be here; the match should have
+						// been deleted when the time ran out
+						console.log("    Informing the user and deleting both the new tag and the match");
+						await Promise.all([
+							(game.config.chatChannel ?? game.channel).send({
+								content: `${message.author}, you just tried to post a new tag ${game.config.chatChannel ? `in ${game.channel} ` : ""}but time had already run out. Your tag and the match before have been removed, and you're out until next round!`,
+							}),
+							deleteMessage(message),
+							deleteMessage(game.state.match),
+						]);
+
+						// Get new game state
+						console.log("    Recounting, since we now need to await another new match");
+						const newState = await thisModule.recount(game);
+
+						// Ban everyone involved with the match from this round
+						/* istanbul ignore else */
+						if (gameStateIsAwaitingMatch(newState)) {
+							for (const user of getMessageUsers(game.state.match)) {
+								newState.excludedFromRound.add(user);
+							}
+						}
+
+						// Return the new state
+						return newState;
+					}
 				}
 			}
 		}
 
 		// Announce new tag
 		if (mode === 'live') {
-			const lateHelp = `*If no action is taken, the game will continue. Scores will be recalculated if the tag and previous match are deleted.*`;
 			if (game.config.chatChannel) {
 				// Purposefully not awaiting this
 				console.log("  Announcing new tag");
 				game.config.chatChannel.send({
-					content: tagIsLate ? `${toList(authors)}, your new tag is late.\n\n${toList(game.config.tagJudgeRoles) || "Judges"}, will you let it stand?\n${lateHelp}` : undefined,
 					embeds: [
 						...[...message.attachments.values()].map((attachment) => ({
 							title: "New tag",
@@ -100,22 +126,6 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 						})),
 					],
 				});
-			} else if (tagIsLate) {
-				// Purposefully not awaiting this
-				console.log("  No chat channel, so we need to post a warning message in the game channel");
-				game.channel.send({
-					content: `${toList(game.config.tagJudgeRoles) || "Judges"}, this tag is late. It's up to you to pass judgement.\n${lateHelp}`,
-					embeds: [{
-						title: "Info",
-						fields: [
-							{
-								name: "Time taken",
-								value: msToHumanReadable(message.createdTimestamp - (game.state as GameStateAwaitingNext).match.createdTimestamp),
-								inline: true,
-							},
-						].filter((field) => field),
-					}],
-				});
 			}
 		}
 
@@ -125,6 +135,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			status: "awaiting-match",
 			scores: game.state.scores,
 			tag: message,
+			excludedFromRound: new Set(),
 		} as GameStateAwaitingMatch;
 	}
 
@@ -161,6 +172,31 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			}
 		}
 
+		// Get intersection of authors of the match with excluded users
+		const excludedAuthors = setIntersection<User | string>(game.state.excludedFromRound, authors);
+		if (excludedAuthors.has(message.author)) {
+			excludedAuthors.delete(message.author);
+			excludedAuthors.add("you");
+		}
+
+		// Complain if any of the currently-excluded players were involved with this match
+		if (excludedAuthors.size) {
+			console.log(`  Message involved one or more users who are excluded from the current round`);
+			if (mode === 'live') {
+				const otherAuthors = new Set(authors);
+				otherAuthors.delete(message.author);
+				await Promise.all([
+					(game.config.chatChannel ?? game.channel).send({
+						content: `${message.author}, you just tried to post an image ${game.config.chatChannel ? `in ${game.channel} ` : ""}${otherAuthors.size ? `along with ${toList(otherAuthors)} ` : ""}but ${toList(excludedAuthors)} ${excludedAuthors.size === 1 && excludedAuthors.has("you") ? "were banned" : excludedAuthors.size === 1 ? "was banned" : "were banned"} from this round. We're waiting on someone else to match it.`,
+					}),
+					deleteMessage(message),
+				]);
+				return null;
+			} else {
+				console.log("    Accepting anyway since this is a recount (this should never happen anyway; there are no excluded users during a recount)");
+			}
+		}
+
 		// Award points
 		const score = 1;
 		console.log(`  Awarding score of ${score} to ${toList(authors)}`);
@@ -182,6 +218,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			status: "awaiting-next",
 			scores: newScores,
 			match: message,
+			excludedFromRound: new Set(),
 		} as GameStateAwaitingNext;
 
 		if (mode === 'live' && game.config.chatChannel) {
@@ -255,6 +292,9 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 
 /**
  * Recalculate the scores on demand.
+ *
+ * Note that this cannot know which players should be banned from the current
+ * round, and will always produce an empty banned list.
  *
  * @param {PartialBy<Game, 'state'>} game - Game metadata but the state is not
  * required (it'll be ignored)

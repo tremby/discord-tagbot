@@ -7,6 +7,7 @@ import { serializeConfig } from './config';
 import { getStatusMessage } from './channel';
 import { recount } from './scoring';
 import { setTimers } from './timers';
+import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch } from './game-state';
 
 const STATE_FILE = 'state.json';
 
@@ -29,11 +30,17 @@ export default state;
  * Serialize game object to something which can be persisted.
  */
 export function serializeGame(game: Game): SerializedGame {
-	return {
+	const serialized = {
 		channelId: game.channel.id,
 		status: game.state.status,
 		config: serializeConfig(game.config),
-	};
+	} as SerializedGame;
+
+	if (gameStateIsAwaitingNext(game.state) || gameStateIsAwaitingMatch(game.state)) {
+		serialized.excludedFromRound = [...game.state.excludedFromRound].map((user) => user.id);
+	}
+
+	return serialized;
 }
 
 /**
@@ -77,6 +84,11 @@ export async function loadFromDisk(client: Client): Promise<void> {
 
 		// Get current state: if not archived that means doing a recount
 		const state: GameState = serializedGame.status === 'archived' ? { status: 'archived' } : await recount(partialGame);
+
+		// If necessary, get currently-banned users
+		if (gameStateIsAwaitingMatch(state) || gameStateIsAwaitingNext(state)) {
+			state.excludedFromRound = new Set(await Promise.all(serializedGame.excludedFromRound.map((id) => client.users.fetch(id))));
+		}
 
 		// Put together the final game object
 		const game: Game = {

@@ -1,7 +1,9 @@
-import { gameStateIsAwaitingNext } from './game-state';
+import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsFree, updateGameState, getExcludedPlayersEmbedField } from './game-state';
 import { pluralize, toList } from './string';
-import { getMessageUsers } from './message';
+import { getMessageUsers, deleteMessage } from './message';
 import { getDeadlineTimestamp, getFormattedDeadline } from './deadline';
+import { recount, getChangedScores, getScoreChangesEmbedField, getScoresEmbedField } from './scoring';
+import { setUnion } from './set';
 
 const REMINDER_INTERVAL_MS = 1e3 * 60 * 5;
 const REMINDER_FRACTION = 0.1;
@@ -44,7 +46,7 @@ function setReminderTimer(game: Game, state: GameState): void {
 	if (timeUntilReminder < 0) return;
 
 	// Set the timer
-	const timer = setTimeout(getReminderSender(game), timeUntilReminder);
+	const timer = setTimeout(getReminderHandler(game), timeUntilReminder);
 
 	// Store the timer in the game state so it can be cleared if necessary
 	state.reminderTimer = timer;
@@ -65,17 +67,17 @@ function setTimeUpTimer(game: Game, state: GameState): void {
 	if (timeUntilDeadline < 0) return;
 
 	// Set the timer
-	const timer = setTimeout(getTimeUpSender(game), timeUntilDeadline);
+	const timer = setTimeout(getTimeUpHandler(game), timeUntilDeadline);
 
 	// Store the timer in the game state so it can be cleared if necessary
 	state.timeUpTimer = timer;
 }
 
 /**
- * Get a reminder sender for a particular game.
+ * Get a reminder handler for a particular game.
  */
-function getReminderSender(game: Game): (() => Promise<void>) {
-	return async function reminderSender(): Promise<void> {
+function getReminderHandler(game: Game): (() => Promise<void>) {
+	return async function reminderHandler(): Promise<void> {
 		// No reminder if we aren't awaiting the next tag
 		if (!gameStateIsAwaitingNext(game.state)) {
 			console.error("Was going to send a reminder but we are no longer awaiting the next tag. A timer should have been cleared somewhere.");
@@ -93,10 +95,10 @@ function getReminderSender(game: Game): (() => Promise<void>) {
 }
 
 /**
- * Get a "time up" sender for a particular game.
+ * Get a "time up" handler for a particular game.
  */
-function getTimeUpSender(game: Game): (() => Promise<void>) {
-	return async function timeUpSender(): Promise<void> {
+function getTimeUpHandler(game: Game): (() => Promise<void>) {
+	return async function timeUpHandler(): Promise<void> {
 		// No reminder if we aren't awaiting the next tag
 		if (!gameStateIsAwaitingNext(game.state)) {
 			console.error("Was going to send a time up message but we are no longer awaiting the next tag. A timer should have been cleared somewhere.");
@@ -106,40 +108,45 @@ function getTimeUpSender(game: Game): (() => Promise<void>) {
 		// Clear stored reference to timer identifier
 		game.state.timeUpTimer = null;
 
-		// Send the message
-		const users = getMessageUsers(game.state.match);
-		const minutes = game.config.nextTagTimeLimit / 1e3 / 60;
+		// Remember some details of the match
+		const matchUsers = getMessageUsers(game.state.match);
+		const attachment = game.state.match.attachments[0];
+
+		// Delete the match
+		await deleteMessage(game.state.match);
+
+		// Recount and set the new state
+		const oldState = game.state;
+		const newState = await recount(game);
+		if (gameStateIsAwaitingMatch(newState)) {
+			// This should always be true
+			newState.excludedFromRound = setUnion(oldState.excludedFromRound, matchUsers);
+		}
+		await updateGameState(game, newState);
+		if (!gameStateIsAwaitingMatch(newState)) {
+			console.error("After deleting the match, expected state to go back to awaiting match.");
+			return;
+		}
+
+		// Announce that the time limit was missed
 		await (game.config.chatChannel ?? game.channel).send({
-			content: `${toList(users)}, time has run out.\n\n${toList(game.config.tagJudgeRoles) || "Judges"}, what will you do?\n*If the match post is deleted, the game will recalculate. If it is not deleted and a new tag is posted, another warning message will be posted. Another option is to temporarily change the time limit.*`,
+			content: `${toList(matchUsers)}, time has run out.`,
 			embeds: [{
-				title: "Time is up",
-				description: `${toList(users)} didn't post a new tag in ${game.channel} before the time ran out. Will they be shown mercy?`,
+				title: "Tag match expired",
+				description: `${toList(matchUsers)} didn't post a new tag in ${game.channel} before the time ran out. Their match was deleted. The previous tag is open for matching again!`,
+				thumbnail: { url: attachment.url },
 				fields: [
-					{
-						name: "Users",
-						value: toList(users),
-						inline: true,
-					},
-					{
-						name: "Match posted",
-						value: `<t:${Math.round(game.state.match.createdTimestamp / 1e3)}>`,
-						inline: true,
-					},
-					{
-						name: "Time limit",
-						value: `${minutes} ${pluralize("minute", minutes)}`,
-						inline: true,
-					},
-					{
-						name: "Deadline",
-						value: getFormattedDeadline(game, 'R'),
-						inline: true,
-					},
+					{ ...getScoreChangesEmbedField(getChangedScores(oldState.scores, newState.scores)), inline: true },
+					{ ...getScoresEmbedField(game, 'brief'), inline: true },
+					newState.excludedFromRound.size ? { ...getExcludedPlayersEmbedField(newState.excludedFromRound), inline: true } : [],
 					{
 						name: "Links",
-						value: `[See tag match post](${game.state.match.url})${game.statusMessage == null ? '' : `\n[See pinned game status post](${game.statusMessage.url})`}`,
+						value: [
+							`[See current tag](${newState.tag.url})`,
+							game.statusMessage != null ? `[See pinned game status post](${game.statusMessage.url})` : [],
+						].flat().join("\n"),
 					},
-				],
+				].flat(),
 			}],
 		});
 	};
