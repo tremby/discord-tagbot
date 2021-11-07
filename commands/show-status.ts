@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { getStatusEmbedField } from '../lib/game-state';
+import { getStatusEmbedField, getDisqualifiedPlayersEmbedField } from '../lib/game-state';
 import { getScoresEmbedField } from '../lib/scoring';
 
 const commandSpec: SlashCommandSpec = {
@@ -25,7 +25,8 @@ const commandSpec: SlashCommandSpec = {
 				fields: [
 					getStatusEmbedField(game),
 					getScoresEmbedField(game, 'brief'),
-				],
+					getDisqualifiedPlayersEmbedField(game) ?? [],
+				].flat(),
 			}],
 			ephemeral: true,
 		});

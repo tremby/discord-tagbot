@@ -127,9 +127,12 @@ export async function updateGameState(game: Game, newState: GameState): Promise<
 /**
  * Get the disqualified players embed field.
  */
-export function getDisqualifiedPlayersEmbedField(players: Set<User>): EmbedFieldData {
+export function getDisqualifiedPlayersEmbedField(game: Game): EmbedFieldData | null {
+	if (!gameStateIsAwaitingNext(game.state) && !gameStateIsAwaitingMatch(game.state)) {
+		return null;
+	}
 	return {
 		name: "Users disqualified from this round",
-		value: players.size ? toList(players) : "None",
+		value: game.state.disqualifiedFromRound.size ? toList(game.state.disqualifiedFromRound) : "None",
 	};
 }

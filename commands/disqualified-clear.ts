@@ -45,7 +45,7 @@ const commandSpec: SlashCommandSpec = {
 				embeds: [{
 					title: "Error",
 					description: `No users are disqualified from the current round in ${channel}.`,
-					fields: [getDisqualifiedPlayersEmbedField(game.state.disqualifiedFromRound)],
+					fields: [getDisqualifiedPlayersEmbedField(game)],
 				}],
 				ephemeral: true,
 			});
@@ -60,7 +60,7 @@ const commandSpec: SlashCommandSpec = {
 			embeds: [{
 				title: "Current round player exclusion list updated",
 				description: `All players removed from the list of players disqualified from the current round in ${channel}.`,
-				fields: [getDisqualifiedPlayersEmbedField(game.state.disqualifiedFromRound)],
+				fields: [getDisqualifiedPlayersEmbedField(game)],
 			}],
 			ephemeral: true,
 		});

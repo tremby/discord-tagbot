@@ -336,21 +336,49 @@ describe("updateGameState", () => {
 });
 
 describe("getDisqualifiedPlayersEmbedField", () => {
-	it("returns an object with name and value", () => {
-		const result = m.getDisqualifiedPlayersEmbedField(new Set([user1, user2]));
-		expect(result).toHaveProperty('name');
-		expect(result).toHaveProperty('value');
+	describe("when the game state is free", () => {
+		it("returns null", () => {
+			const result = m.getDisqualifiedPlayersEmbedField(gameWithState(stateFree));
+			expect(result).toBeNull();
+		});
 	});
 
-	it("lists each passed user", () => {
-		mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
-		const result = m.getDisqualifiedPlayersEmbedField(new Set([user1, user2]));
-		expect(result.value).toEqual(expect.stringContaining("<@100>"));
-		expect(result.value).toEqual(expect.stringContaining("<@200>"));
+	describe("when the game state is archived", () => {
+		it("returns null", () => {
+			const result = m.getDisqualifiedPlayersEmbedField(gameWithState(stateArchived));
+			expect(result).toBeNull();
+		});
 	});
 
-	it("says 'none' if there were no users", () => {
-		const result = m.getDisqualifiedPlayersEmbedField(new Set());
-		expect(result.value).toEqual(expect.stringMatching(/none/i));
+	describe.each([
+		["awaiting next", stateAwaitingNext],
+		["awaiting match", stateAwaitingMatch],
+	])("when the game state is %s", (_, state) => {
+		it("returns an object with name and value", () => {
+			const result = m.getDisqualifiedPlayersEmbedField(gameWithState({
+				...state,
+				disqualifiedFromRound: new Set([user1, user2]),
+			} as typeof state));
+			expect(result).toHaveProperty('name');
+			expect(result).toHaveProperty('value');
+		});
+
+		it("lists each passed user", () => {
+			mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
+			const result = m.getDisqualifiedPlayersEmbedField(gameWithState({
+				...state,
+				disqualifiedFromRound: new Set([user1, user2]),
+			} as typeof state));
+			expect(result.value).toEqual(expect.stringContaining("<@100>"));
+			expect(result.value).toEqual(expect.stringContaining("<@200>"));
+		});
+
+		it("says 'none' if there were no users", () => {
+			const result = m.getDisqualifiedPlayersEmbedField(gameWithState({
+				...state,
+				disqualifiedFromRound: new Set(),
+			} as typeof state));
+			expect(result.value).toEqual(expect.stringMatching(/none/i));
+		});
 	});
 });
