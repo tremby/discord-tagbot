@@ -170,7 +170,7 @@ For those reasons some disqualification list management commands are available:
 
 ### Miscellaneous commands
 
-- **`/tag-recount-channel`:** force a recount of the current game.
+- **`/tag-recount`:** force a recount of the current game.
   Only server admins and tag judges can do this.
 
   If a recount is asked for on an archived game, the result is not stored,

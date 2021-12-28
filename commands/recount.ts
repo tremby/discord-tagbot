@@ -9,7 +9,7 @@ const commandSpec: SlashCommandSpec = {
 	requireGame: true,
 
 	description: new SlashCommandBuilder()
-		.setName('tag-recount-channel')
+		.setName('tag-recount')
 		.setDescription("Perform a recount on a particular channel."),
 
 	handler: async (interaction, channel, game) => {

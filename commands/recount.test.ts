@@ -1,4 +1,4 @@
-import commandSpec from './recount-channel';
+import commandSpec from './recount';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getMessage, getBotUser } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 
@@ -39,7 +39,7 @@ function getGame(): Game {
 	};
 }
 
-describe("recount-channel command", () => {
+describe("recount command", () => {
 	beforeEach(() => {
 		mockGameStateIsArchived.mockReturnValue(false);
 		mockGetChangedScores.mockReturnValue(new Map());
@@ -48,14 +48,14 @@ describe("recount-channel command", () => {
 
 	it("warns the user it may take time", async () => {
 		const game = getGame();
-		const interaction = getCommandInteraction(gameChannel, user1, 'recount-channel', [], {});
+		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
 		expect(interaction.deferReply).toHaveBeenCalledTimes(1);
 	});
 
 	it("performs a recount", async () => {
 		const game = getGame();
-		const interaction = getCommandInteraction(gameChannel, user1, 'recount-channel', [], {});
+		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
 		expect(mockRecount).toHaveBeenCalledTimes(1);
 		expect(mockRecount).toHaveBeenCalledWith(game);
@@ -64,21 +64,21 @@ describe("recount-channel command", () => {
 	it("does not mutate the game if it was archived", async () => {
 		mockGameStateIsArchived.mockReturnValue(true);
 		const game = getGame();
-		const interaction = getCommandInteraction(gameChannel, user1, 'recount-channel', [], {});
+		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
 		expect(mockUpdateGameState).not.toHaveBeenCalled();
 	});
 
 	it("mutates the game if it was not archived", async () => {
 		const game = getGame();
-		const interaction = getCommandInteraction(gameChannel, user1, 'recount-channel', [], {});
+		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
 		expect(mockUpdateGameState).toHaveBeenCalledTimes(1);
 	});
 
 	it("responds to the user", async () => {
 		const game = getGame();
-		const interaction = getCommandInteraction(gameChannel, user1, 'recount-channel', [], {});
+		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
 		expectInteractionResponse(interaction, true);
 		expect(mockGetScoreChangesEmbedField).toHaveBeenCalledTimes(1);
@@ -88,7 +88,7 @@ describe("recount-channel command", () => {
 		const mockSend = jest.spyOn(chatChannel, 'send').mockImplementation();
 		const game = getGame();
 		game.config.chatChannel = chatChannel;
-		const interaction = getCommandInteraction(gameChannel, user1, 'recount-channel', [], {});
+		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
 		expect(mockSend).not.toHaveBeenCalled();
 		expect(mockGetScoreChangesEmbedField).toHaveBeenCalledTimes(1);
@@ -99,7 +99,7 @@ describe("recount-channel command", () => {
 		const mockSend = jest.spyOn(chatChannel, 'send').mockImplementation();
 		const game = getGame();
 		game.config.chatChannel = chatChannel;
-		const interaction = getCommandInteraction(gameChannel, user1, 'recount-channel', [], {});
+		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
 		expect(mockSend).toHaveBeenCalledTimes(1);
 		expect(mockGetScoreChangesEmbedField).toHaveBeenCalledTimes(2);
