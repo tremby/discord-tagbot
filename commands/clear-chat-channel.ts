@@ -8,12 +8,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-clear-chat-channel')
-		.setDescription("Unassociate the chat channel from a tag game.")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which the game is taking place (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Unassociate the chat channel from the tag game."),
 
 	handler: async (interaction, channel, game) => {
 		// Handle the case where there wasn't a chat channel

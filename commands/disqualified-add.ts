@@ -19,11 +19,6 @@ const commandSpec: SlashCommandSpec = {
 			option.setName('user')
 			.setDescription("User to exclude.")
 			.setRequired(true)
-		)
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which to add the player to the list (this channel if not set).")
-			.setRequired(false)
 		),
 
 	handler: async (interaction, channel, game) => {

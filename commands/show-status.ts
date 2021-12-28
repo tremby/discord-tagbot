@@ -9,12 +9,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-show-status')
-		.setDescription("Show the current status.")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel of the tag game (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Show the current status for the tag game in this channel."),
 
 	handler: async (interaction, channel, game) => {
 		// Reply to user with status

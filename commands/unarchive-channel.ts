@@ -9,12 +9,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-unarchive-channel')
-		.setDescription("Mark a tag game as still running (this also recalculates its scores).")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which the tag game has been marked as archived (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Mark the tag game in this channel as still running (this also recalculates its scores)."),
 
 
 	handler: async (interaction, channel, game) => {

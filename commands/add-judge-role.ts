@@ -16,11 +16,6 @@ const commandSpec: SlashCommandSpec = {
 			option.setName('role')
 			.setDescription("Role to treat as judge.")
 			.setRequired(true)
-		)
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which to add judge role (this channel if not set).")
-			.setRequired(false)
 		),
 
 	handler: async (interaction, channel, game) => {

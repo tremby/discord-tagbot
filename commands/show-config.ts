@@ -9,12 +9,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-show-config')
-		.setDescription("Show the configuration for a tag game.")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel of the tag game (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Show the configuration for the tag game in this channel."),
 
 	handler: async (interaction, channel, game) => {
 		// Reply with config

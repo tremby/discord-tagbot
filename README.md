@@ -61,7 +61,8 @@ A tag game can be registered when already in motion
 (as long as the players stuck to the conventions the bot expects)
 or in an empty channel.
 
-To register a game, use the `/tag-add-channel` command.
+To register a game, use the `/tag-add-channel` command
+in the channel which will host the game.
 This will do a few things:
 
 - Register that channel as one hosting a game
@@ -83,16 +84,18 @@ These commands can only be performed by server admins.
 These commands can only be performed by server admins
 and by tag judges for the game in question.
 
-- **`/tag-add-judge-role`:** associate a particular role with a particular tag game.
+- **`/tag-add-judge-role`:** associate a particular role
+  with the tag game in this channel.
   After doing this, members of this role are considered to be judges of that game.
   These members can then perform most configuration and admin commands.
   Multiple roles can be added,
   and the same roles can be used as judges in multiple games.
 
-- **`/tag-remove-judge-role`:** disassociate a particular role with a particular tag game.
+- **`/tag-remove-judge-role`:** disassociate a particular role
+  with the tag game in this channel.
 
-- **`/tag-set-next-tag-time-limit`:** change the time limit for a player who posted a match
-  to post a new tag.
+- **`/tag-set-next-tag-time-limit`:** change the time limit for a player who posted a match to post a new tag,
+  for the tag game in this channel.
   This defaults to 60 minutes, and can be set to a number of minutes
   or to `0` for no time limit.
 
@@ -107,11 +110,12 @@ and by tag judges for the game in question.
   Those users are then disqualified from the current round,
   and we await a new match from somebody else.
 
-- **`/tag-set-chat-channel`:** associate another channel as the chat channel for this tag game.
+- **`/tag-set-chat-channel`:** associate another channel as the chat channel
+  for the tag game in this channel.
   The same channel can be used as the chat channel for multiple games.
   Once a chat channel is associated, messages will be posted there when game events occur.
 
-- **`/tag-clear-chat-channel`:** disassociate a chat channel from a tag game.
+- **`/tag-clear-chat-channel`:** disassociate a chat channel from this tag game.
 
 ### Archiving a game
 
@@ -164,7 +168,7 @@ For those reasons some disqualification list management commands are available:
 
 ### Miscellaneous commands
 
-- **`/tag-recount-channel`:** force a recount of the channel.
+- **`/tag-recount-channel`:** force a recount of the current game.
   Only server admins and tag judges can do this.
 
   If a recount is asked for on an archived game, the result is not stored,

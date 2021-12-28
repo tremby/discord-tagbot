@@ -14,12 +14,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-disqualified-clear')
-		.setDescription("Clear the list of players disqualified from the current round")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which to clear the list (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Clear the list of players disqualified from the current round"),
 
 	handler: async (interaction, channel, game) => {
 		// Get the specified role

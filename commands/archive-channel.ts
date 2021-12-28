@@ -9,12 +9,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-archive-channel')
-		.setDescription("Mark a tag game as finished.")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which the tag game has ended (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Mark the tag game in this channel as finished."),
 
 
 	handler: async (interaction, channel, game) => {

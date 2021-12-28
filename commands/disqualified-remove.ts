@@ -19,11 +19,6 @@ const commandSpec: SlashCommandSpec = {
 			option.setName('user')
 			.setDescription("User to pardon.")
 			.setRequired(true)
-		)
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which to remove the player from the list (this channel if not set).")
-			.setRequired(false)
 		),
 
 	handler: async (interaction, channel, game) => {

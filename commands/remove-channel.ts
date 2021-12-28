@@ -10,12 +10,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-remove-channel')
-		.setDescription("Make the bot forget a particular channel.")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel to forget (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Make the bot forget this channel."),
 
 	handler: async (interaction, channel, game) => {
 		// Clean up the pinned status message

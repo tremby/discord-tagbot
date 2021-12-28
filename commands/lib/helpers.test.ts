@@ -182,53 +182,64 @@ describe("getValidChannel", () => {
 		},
 	});
 
-	it("throws an error if no channel was passed", () => {
-		expect(() => {
-			m.getValidChannel(interaction, 'game-channel', false);
-		}).toThrow(expect.any(m.NoTextChannelError));
+	describe("with a given option name", () => {
+		it("throws an error if no channel was passed", () => {
+			expect(() => {
+				m.getValidChannel(interaction, 'channel');
+			}).toThrow(expect.any(m.NoTextChannelError));
+		});
+
+		it("throws an error if the channel has been deleted", () => {
+			jest.spyOn(interaction.options, 'getChannel').mockReturnValue(deletedChannel);
+			expect(() => {
+				m.getValidChannel(interaction, 'channel');
+			}).toThrow(expect.any(m.NoTextChannelError));
+		});
+
+		it("throws an error if the channel is not a text channel", () => {
+			jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
+			mockChannelIsTextChannel.mockReturnValue(false);
+			expect(() => {
+				m.getValidChannel(interaction, 'channel');
+			}).toThrow(expect.any(m.NoTextChannelError));
+		});
+
+		it("looks for the channel via the given option name", () => {
+			mockChannelIsTextChannel.mockReturnValue(true);
+			const mockGetChannel = jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
+			m.getValidChannel(interaction, 'test');
+			expect(mockGetChannel).toHaveBeenCalledTimes(1);
+			expect(mockGetChannel).toHaveBeenCalledWith('test');
+		});
+
+		it("returns the specified channel", () => {
+			jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
+			mockChannelIsTextChannel.mockReturnValue(true);
+			expect(m.getValidChannel(interaction, 'channel')).toBe(channel);
+		});
 	});
 
-	it("throws an error if the channel has been deleted", () => {
-		jest.spyOn(interaction.options, 'getChannel').mockReturnValue(deletedChannel);
-		expect(() => {
-			m.getValidChannel(interaction, 'game-channel', false);
-		}).toThrow(expect.any(m.NoTextChannelError));
-	});
+	describe("when using the interaction's own channel", () => {
+		it("throws an error if the channel is not a text channel", () => {
+			jest.spyOn(interaction, 'channel', 'get').mockReturnValue(channel);
+			mockChannelIsTextChannel.mockReturnValue(false);
+			expect(() => {
+				m.getValidChannel(interaction);
+			}).toThrow(expect.any(m.NoTextChannelError));
+		});
 
-	it("throws an error if the channel is not a text channel", () => {
-		jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
-		mockChannelIsTextChannel.mockReturnValue(false);
-		expect(() => {
-			m.getValidChannel(interaction, 'game-channel', false);
-		}).toThrow(expect.any(m.NoTextChannelError));
-	});
+		it("doesn't look for a channel by name", () => {
+			jest.spyOn(interaction, 'channel', 'get').mockReturnValue(channel);
+			mockChannelIsTextChannel.mockReturnValue(true);
+			const mockGetChannel = jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
+			m.getValidChannel(interaction);
+			expect(mockGetChannel).not.toHaveBeenCalled();
+		});
 
-	it("returns the channel", () => {
-		jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
-		mockChannelIsTextChannel.mockReturnValue(true);
-		expect(m.getValidChannel(interaction, 'game-channel', false)).toBe(channel);
-	});
-
-	it("falls back to the channel the interaction took place in if required", () => {
-		jest.spyOn(interaction.options, 'getChannel').mockReturnValue(null);
-		jest.spyOn(interaction, 'channel', 'get').mockReturnValue(channel);
-		mockChannelIsTextChannel.mockReturnValue(true);
-		expect(m.getValidChannel(interaction, 'game-channel')).toBe(channel);
-	});
-
-	it("uses game-channel as the default option name", () => {
-		mockChannelIsTextChannel.mockReturnValue(true);
-		const mockGetChannel = jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
-		m.getValidChannel(interaction);
-		expect(mockGetChannel).toHaveBeenCalledTimes(1);
-		expect(mockGetChannel).toHaveBeenCalledWith('game-channel');
-	});
-
-	it("uses a custom option name if given", () => {
-		mockChannelIsTextChannel.mockReturnValue(true);
-		const mockGetChannel = jest.spyOn(interaction.options, 'getChannel').mockReturnValue(channel);
-		m.getValidChannel(interaction, 'test');
-		expect(mockGetChannel).toHaveBeenCalledTimes(1);
-		expect(mockGetChannel).toHaveBeenCalledWith('test');
+		it("returns the channel the interaction took place in", () => {
+			jest.spyOn(interaction, 'channel', 'get').mockReturnValue(channel);
+			mockChannelIsTextChannel.mockReturnValue(true);
+			expect(m.getValidChannel(interaction)).toBe(channel);
+		});
 	});
 });

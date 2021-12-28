@@ -10,12 +10,7 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-recount-channel')
-		.setDescription("Perform a recount on a particular channel.")
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which to recount scores (this channel if not set).")
-			.setRequired(false)
-		),
+		.setDescription("Perform a recount on a particular channel."),
 
 	handler: async (interaction, channel, game) => {
 		// Inform the user that this could take time

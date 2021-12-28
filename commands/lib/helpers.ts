@@ -51,22 +51,21 @@ export function isAdminOrTagJudge(interaction: CommandInteraction, game: Game): 
 }
 
 /**
- * Get the associated channel for a particular interaction, whether from an
- * option given with the command or optionally falling back to the channel the
- * interaction was initiated in.
+ * Get a valid channel associated with a particular interaction,
+ * whether from an option given with the command
+ * or the channel the interaction was initiated in.
  *
  * If there's no such channel, or it's not a text channel, throw an error.
  *
  * @param {CommandInteraction} interaction - The interaction taking place.
- * @param {string} [optionName] - Name of the option from which to take the channel.
- * @param {boolean} [fallback] - True if we should fall back to the current channel.
+ * @param {?string} [optionName] - Name of the option from which to take the channel. If not given, use the channel the interaction took place in.
  * @returns {Channel} The channel associated with the interaction.
  * @throws {NoTextChannelError}
  */
-export function getValidChannel(interaction: CommandInteraction, optionName: string = 'game-channel', fallback: boolean = true): TextChannel {
-	const channel = interaction.options.getChannel(optionName) ?? (fallback ? interaction.channel : null);
+export function getValidChannel(interaction: CommandInteraction, optionName: string = null): TextChannel {
+	const channel = optionName ? interaction.options.getChannel(optionName) : interaction.channel;
 
-	if (channel == null) {
+	if (optionName && channel == null) {
 		throw new NoTextChannelError(`A channel was required for ${optionName}`);
 	}
 

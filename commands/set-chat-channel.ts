@@ -10,16 +10,11 @@ const commandSpec: SlashCommandSpec = {
 
 	description: new SlashCommandBuilder()
 		.setName('tag-set-chat-channel')
-		.setDescription("Set a chat channel associated with a tag game.")
+		.setDescription("Set a chat channel associated with the tag game in this channel.")
 		.addChannelOption((option) =>
 			option.setName('chat-channel')
 			.setDescription("Channel used for chat about this tag game.")
 			.setRequired(true)
-		)
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which the game is taking place (this channel if not set).")
-			.setRequired(false)
 		),
 
 	handler: async (interaction, channel, game) => {

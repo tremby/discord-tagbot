@@ -16,11 +16,6 @@ const commandSpec: SlashCommandSpec = {
 			option.setName('time-limit')
 			.setDescription("Time limit in minutes, or 0 for no limit.")
 			.setRequired(true)
-		)
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which the tag game is happening (this channel if not set).")
-			.setRequired(false)
 		),
 
 	handler: async (interaction, channel, game) => {

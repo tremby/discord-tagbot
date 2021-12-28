@@ -14,11 +14,6 @@ const commandSpec: SlashCommandSpec = {
 			option.setName('role')
 			.setDescription("Role to remove.")
 			.setRequired(true)
-		)
-		.addChannelOption((option) =>
-			option.setName('game-channel')
-			.setDescription("Channel in which to remove judge role (this channel if not set).")
-			.setRequired(false)
 		),
 
 	handler: async (interaction, channel, game) => {
