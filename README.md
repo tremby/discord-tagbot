@@ -86,14 +86,14 @@ These commands can only be performed by server admins.
 These commands can only be performed by server admins
 and by tag judges for the game in question.
 
-- **`/tag-add-judge-role`:** associate a particular role
+- **`/tag-judge-role add`:** associate a particular role
   with the tag game in this channel.
   After doing this, members of this role are considered to be judges of that game.
   These members can then perform most configuration and admin commands.
   Multiple roles can be added,
   and the same roles can be used as judges in multiple games.
 
-- **`/tag-remove-judge-role`:** disassociate a particular role
+- **`/tag-judge-role remove`:** disassociate a particular role
   with the tag game in this channel.
 
 - **`/tag-set-next-tag-time-limit`:** change the time limit for a player who posted a match to post a new tag,

@@ -3,8 +3,7 @@ import forget from './forget';
 import archiveChannel from './archive-channel';
 import unarchiveChannel from './unarchive-channel';
 import recount from './recount';
-import addJudgeRole from './add-judge-role';
-import removeJudgeRole from './remove-judge-role';
+import judgeRole from './judge-role';
 import setNextTagTimeLimit from './set-next-tag-time-limit';
 import chatChannel from './chat-channel';
 import disqualified from './disqualified';
@@ -17,8 +16,7 @@ const commands: SlashCommandSpec[] = [
 	archiveChannel,
 	unarchiveChannel,
 	recount,
-	addJudgeRole,
-	removeJudgeRole,
+	judgeRole,
 	setNextTagTimeLimit,
 	chatChannel,
 	disqualified,
