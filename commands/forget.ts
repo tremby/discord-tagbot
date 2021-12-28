@@ -21,7 +21,7 @@ const commandSpec: SlashCommandSpec = {
 		await interaction.reply({
 			embeds: [{
 				title: "Game unregistered",
-				description: `The channel ${channel} is no longer being tracked as a tag game.`,
+				description: `The channel ${channel} is no longer being tracked as a tag game. You may or may not wish to tidy up any posts made by the bot.`,
 			}],
 			ephemeral: true,
 		});
