@@ -74,7 +74,9 @@ This will do a few things:
 From now on, messages being sent to this channel will be watched.
 
 You can undo this, and unregister a game by using `/tag-remove-channel`.
-This will delete the pinned message and stop tracking the game.
+This will stop tracking the game.
+It won't do anything else -- for example, the tagged status message is not removed;
+this can be done manually.
 Note that this is different from archiving the game.
 
 These commands can only be performed by server admins.

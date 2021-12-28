@@ -13,19 +13,6 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Make the bot forget this channel."),
 
 	handler: async (interaction, channel, game) => {
-		// Clean up the pinned status message
-		if (game.statusMessage != null) {
-			try {
-				await game.statusMessage.delete();
-			} catch (error) {
-				if (error.code === Constants.APIErrors.UNKNOWN_MESSAGE) {
-					// That's fine; maybe an admin already deleted it
-				} else {
-					throw error;
-				}
-			}
-		}
-
 		// Unregister game
 		appState.games.delete(game);
 		persistToDisk();
