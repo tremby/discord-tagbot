@@ -112,12 +112,12 @@ and by tag judges for the game in question.
   Those users are then disqualified from the current round,
   and we await a new match from somebody else.
 
-- **`/tag-set-chat-channel`:** associate another channel as the chat channel
+- **`/tag-chat-channel set`:** associate another channel as the chat channel
   for the tag game in this channel.
   The same channel can be used as the chat channel for multiple games.
   Once a chat channel is associated, messages will be posted there when game events occur.
 
-- **`/tag-clear-chat-channel`:** disassociate a chat channel from this tag game.
+- **`/tag-chat-channel unset`:** disassociate a chat channel from this tag game.
 
 ### Archiving a game
 
