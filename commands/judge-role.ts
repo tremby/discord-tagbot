@@ -97,6 +97,7 @@ const commandSpec: SlashCommandSpec = {
 
 				// Unregister the role
 				game.config.tagJudgeRoles.delete(role);
+				persistToDisk();
 
 				// Respond to user
 				await interaction.reply({
