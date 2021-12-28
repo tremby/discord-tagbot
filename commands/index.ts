@@ -8,9 +8,7 @@ import removeJudgeRole from './remove-judge-role';
 import setNextTagTimeLimit from './set-next-tag-time-limit';
 import setChatChannel from './set-chat-channel';
 import clearChatChannel from './clear-chat-channel';
-import disqualifiedAdd from './disqualified-add';
-import disqualifiedRemove from './disqualified-remove';
-import disqualifiedClear from './disqualified-clear';
+import disqualified from './disqualified';
 import showStatus from './show-status';
 import showConfig from './show-config';
 
@@ -25,9 +23,7 @@ const commands: SlashCommandSpec[] = [
 	setNextTagTimeLimit,
 	setChatChannel,
 	clearChatChannel,
-	disqualifiedAdd,
-	disqualifiedRemove,
-	disqualifiedClear,
+	disqualified,
 	showStatus,
 	showConfig,
 	// Remember to update the readme

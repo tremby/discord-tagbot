@@ -162,11 +162,11 @@ It may also be desirable to manually manage the list of disqualifications for ar
 
 For those reasons some disqualification list management commands are available:
 
-- **`/tag-disqualified-add`:** add a user to the list of disqualified players for the current round.
+- **`/tag-disqualified add`:** add a user to the list of disqualified players for the current round.
 
-- **`/tag-disqualified-remove`:** remove a user from the list of disqualified players for the current round.
+- **`/tag-disqualified remove`:** remove a user from the list of disqualified players for the current round.
 
-- **`/tag-disqualified-clear`:**: clear the list of disqualified players for the current round.
+- **`/tag-disqualified clear`:**: clear the list of disqualified players for the current round.
 
 ### Miscellaneous commands
 

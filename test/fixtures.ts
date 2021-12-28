@@ -13,7 +13,7 @@ import {
 	Constants,
 	CommandInteraction,
 } from 'discord.js';
-import type { APIApplicationCommandInteractionDataOptionWithValues } from 'discord-api-types/v9';
+import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v9';
 
 const client = new Client({ intents: [] });
 const botUser = getUser('bot-user');
@@ -139,7 +139,7 @@ export function getMessage(channel: TextChannel, author: User, mentions: User[],
 	});
 }
 
-export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOptionWithValues[], resolved): CommandInteraction {
+export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOption[], resolved): CommandInteraction {
 	// FIXME: type `resolved`. It ought to be APIApplicationCommandInteractionData['resolved']
 	// but TS gets sad if we pass our role objects to this,
 	// yet it seems to work fine. Faulty types?

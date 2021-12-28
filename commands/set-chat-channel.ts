@@ -21,7 +21,7 @@ const commandSpec: SlashCommandSpec = {
 		// Check input
 		let chatChannel: TextChannel;
 		try {
-			chatChannel = getValidChannel(interaction, 'chat-channel', false);
+			chatChannel = getValidChannel(interaction, 'chat-channel');
 		} catch (error) {
 			if (!(error instanceof NoTextChannelError)) throw error;
 			await interaction.reply({
