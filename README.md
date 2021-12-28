@@ -61,7 +61,7 @@ A tag game can be registered when already in motion
 (as long as the players stuck to the conventions the bot expects)
 or in an empty channel.
 
-To register a game, use the `/tag-add-channel` command
+To register a game, use the `/tag-init` command
 in the channel which will host the game.
 This will do a few things:
 
@@ -73,7 +73,7 @@ This will do a few things:
 
 From now on, messages being sent to this channel will be watched.
 
-You can undo this, and unregister a game by using `/tag-remove-channel`.
+You can undo this, and unregister a game by using `/tag-forget`.
 This will stop tracking the game.
 It won't do anything else -- for example, the tagged status message is not removed;
 this can be done manually.

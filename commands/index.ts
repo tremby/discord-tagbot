@@ -1,5 +1,5 @@
-import addChannel from './add-channel';
-import removeChannel from './remove-channel';
+import init from './init';
+import forget from './forget';
 import archiveChannel from './archive-channel';
 import unarchiveChannel from './unarchive-channel';
 import recount from './recount';
@@ -13,8 +13,8 @@ import showStatus from './show-status';
 import showConfig from './show-config';
 
 const commands: SlashCommandSpec[] = [
-	addChannel,
-	removeChannel,
+	init,
+	forget,
 	archiveChannel,
 	unarchiveChannel,
 	recount,

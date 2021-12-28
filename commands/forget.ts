@@ -9,7 +9,7 @@ const commandSpec: SlashCommandSpec = {
 	requireGame: true,
 
 	description: new SlashCommandBuilder()
-		.setName('tag-remove-channel')
+		.setName('tag-forget')
 		.setDescription("Make the bot forget this channel."),
 
 	handler: async (interaction, channel, game) => {

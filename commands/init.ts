@@ -12,7 +12,7 @@ const commandSpec: SlashCommandSpec = {
 	requireGame: false,
 
 	description: new SlashCommandBuilder()
-		.setName('tag-add-channel')
+		.setName('tag-init')
 		.setDescription("Inform the bot that this channel hosts a tag game."),
 
 	handler: async function(interaction, channel, existingGame) {
