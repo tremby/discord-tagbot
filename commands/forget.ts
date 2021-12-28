@@ -3,6 +3,7 @@ import { Constants } from 'discord.js';
 
 import appState, { persistToDisk } from '../lib/state';
 import { getStatusMessage } from '../lib/channel';
+import { clearTimers } from '../lib/timers';
 
 const commandSpec: SlashCommandSpec = {
 	permissions: 'admin',
@@ -13,6 +14,9 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Make the bot forget this channel."),
 
 	handler: async (interaction, channel, game) => {
+		// Stop any timers
+		clearTimers(game);
+
 		// Unregister game
 		appState.games.delete(game);
 		persistToDisk();
