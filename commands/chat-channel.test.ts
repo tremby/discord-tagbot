@@ -33,6 +33,31 @@ describe("chat-channel command", () => {
 			expect(game).toHaveProperty('config.chatChannel', null);
 		});
 
+		it("rejects the game channel", async () => {
+			const game = {
+				config: { chatChannel: null },
+			} as Game;
+			const options = [
+				{
+					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					name: 'set',
+					options: [
+						{
+							name: 'channel',
+							type: Constants.ApplicationCommandOptionTypes.CHANNEL as number, // FIXME: broken types?
+							value: gameChannel.id,
+						},
+					],
+				},
+			] as APIApplicationCommandInteractionDataOption[];
+			const interaction = getCommandInteraction(gameChannel, user1, 'chat-channel', options, {
+				channels: { [gameChannel.id]: gameChannel },
+			});
+			await commandSpec.handler(interaction, gameChannel, game);
+			expectInteractionResponse(interaction, true);
+			expect(game).toHaveProperty('config.chatChannel', null);
+		});
+
 		it("registers the chat channel in configuration, if previously none was set", async () => {
 			const game = {
 				config: { chatChannel: null },

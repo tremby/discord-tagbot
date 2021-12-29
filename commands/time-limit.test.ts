@@ -259,4 +259,22 @@ describe("time-limit command", () => {
 			expect(mockUpdateGameStatusMessage).toHaveBeenCalledWith(game);
 		});
 	});
+
+	describe("unknown subcommand", () => {
+		it("responds with an error and does nothing else", async () => {
+			const config = { nextTagTimeLimit: 42 } as Config;
+			const game = { config } as Game;
+			const options = [
+				{
+					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					name: 'x',
+				},
+			] as APIApplicationCommandInteractionDataOption[];
+			const interaction = getCommandInteraction(channel, user1, 'time-limit', options, {});
+			await commandSpec.handler(interaction, channel, game);
+			expectInteractionResponse(interaction, true);
+			expect(game).toHaveProperty('config.nextTagTimeLimit', 42);
+			expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
+		});
+	});
 });
