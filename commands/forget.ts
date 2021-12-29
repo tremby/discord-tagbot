@@ -14,18 +14,6 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Make the bot forget this channel."),
 
 	handler: async (interaction, channel, game) => {
-		// Handle the case where this channel has no tag game
-		if (game == null) {
-			await interaction.reply({
-				embeds: [{
-					title: "Error",
-					description: `There no tag game running in ${channel}.`,
-				}],
-				ephemeral: true,
-			});
-			return;
-		}
-
 		// Stop any timers
 		clearTimers(game);
 
