@@ -8,7 +8,7 @@ import setNextTagTimeLimit from './set-next-tag-time-limit';
 import chatChannel from './chat-channel';
 import disqualified from './disqualified';
 import showStatus from './show-status';
-import showConfig from './show-config';
+import config from './config';
 
 const commands: SlashCommandSpec[] = [
 	init,
@@ -21,7 +21,7 @@ const commands: SlashCommandSpec[] = [
 	chatChannel,
 	disqualified,
 	showStatus,
-	showConfig,
+	config,
 	// Remember to update the readme
 ];
 

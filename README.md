@@ -119,6 +119,8 @@ and by tag judges for the game in question.
 
 - **`/tag-chat-channel unset`:** disassociate a chat channel from this tag game.
 
+- **`/tag-config show`:** show (just to you) the current game configuration.
+
 ### Archiving a game
 
 Once a game is finished
@@ -181,8 +183,6 @@ For those reasons some disqualification list management commands are available:
   If any scores changed, it is announced in the chat channel, assuming one is set.
 
 - **`/tag-show-status`:** show (just to you) the current game status.
-
-- **`/tag-show-config`:** show (just to you) the current game configuration.
 
 Technical stuff
 ---------------
