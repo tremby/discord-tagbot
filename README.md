@@ -96,10 +96,10 @@ and by tag judges for the game in question.
 - **`/tag-judge-role remove`:** disassociate a particular role
   with the tag game in this channel.
 
-- **`/tag-set-next-tag-time-limit`:** change the time limit for a player who posted a match to post a new tag,
+- **`/tag-time-limit set`:** set or change the time limit for a player who posted a match to post a new tag,
   for the tag game in this channel.
-  This defaults to 60 minutes, and can be set to a number of minutes
-  or to `0` for no time limit.
+  No scores are recalculated; this only affects new tags.
+  This defaults to 60 minutes, and can be set to any number of minutes.
 
   If there is a time limit,
   the users who posted a match are reminded when about 10% of the time
@@ -111,6 +111,10 @@ and by tag judges for the game in question.
   and the current match is deleted, meaning those users lose their score.
   Those users are then disqualified from the current round,
   and we await a new match from somebody else.
+
+- **`/tag-time-limit clear`:** remove the time limit for a player who posted a match to post a new tag
+- for the tag game in this channel.
+  No scores are recalculated; this only affects new tags.
 
 - **`/tag-chat-channel set`:** associate another channel as the chat channel
   for the tag game in this channel.

@@ -5,32 +5,66 @@ import { updateGameStatusMessage } from '../lib/game-state';
 import { getConfigEmbedFields } from '../lib/config';
 import { setTimers, clearTimers } from '../lib/timers';
 
+const commandDescription = new SlashCommandBuilder()
+	.setName('tag-time-limit')
+	.setDescription("Manage the time limit between a match being posted and the next tag being posted.");
+
+commandDescription.addSubcommand((sc) => sc
+	.setName('set')
+	.setDescription("Set the time limit for the next tag to be posted.")
+	.addIntegerOption((option) =>
+		option.setName('time-limit')
+		.setDescription("Time limit in minutes.")
+		.setRequired(true)
+	)
+);
+
+commandDescription.addSubcommand((sc) => sc
+	.setName('clear')
+	.setDescription("Remove the time limit between a match and the next tag.")
+);
+
 const commandSpec: SlashCommandSpec = {
 	permissions: 'judge',
 	requireGame: true,
 
-	description: new SlashCommandBuilder()
-		.setName('tag-set-next-tag-time-limit')
-		.setDescription("Set the time limit for the next tag to be posted. Only affects future tags; no scores will change.")
-		.addIntegerOption((option) =>
-			option.setName('time-limit')
-			.setDescription("Time limit in minutes, or 0 for no limit.")
-			.setRequired(true)
-		),
+	description: commandDescription,
 
 	handler: async (interaction, channel, game) => {
-		// Check input
-		const newTimeLimitInMinutes = interaction.options.getInteger('time-limit');
-		if (newTimeLimitInMinutes < 0) {
-			await interaction.reply({
-				embeds: [{
-					title: "Error",
-					description: "Time limit can't be negative.",
-					fields: getConfigEmbedFields(game.config),
-				}],
-				ephemeral: true,
-			});
-			return;
+		let newTimeLimitInMinutes: number;
+
+		switch (interaction.options.getSubcommand()) {
+			case 'set':
+				newTimeLimitInMinutes = interaction.options.getInteger('time-limit');
+
+				if (newTimeLimitInMinutes <= 0) {
+					await interaction.reply({
+						embeds: [{
+							title: "Error",
+							description: "Time limit must be positive.",
+							fields: getConfigEmbedFields(game.config),
+						}],
+						ephemeral: true,
+					});
+					return;
+				}
+
+				break;
+
+			case 'clear':
+				newTimeLimitInMinutes = 0;
+				break;
+
+			default:
+				await interaction.reply({
+					embeds: [{
+						title: "Error",
+						description: "Unknown subcommand; expected `set` or `clear`.",
+						fields: getConfigEmbedFields(game.config),
+					}],
+					ephemeral: true,
+				});
+				return;
 		}
 
 		// Inform the user this may take time
