@@ -1,5 +1,5 @@
 import commandSpec from './disqualified';
-import { getCommandInteraction, getTextChannel, getGuild, getUser, getRole } from '../test/fixtures';
+import { getCommandInteraction, getTextChannel, getGuild, getUser } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 import { Constants } from 'discord.js';
 import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types';
