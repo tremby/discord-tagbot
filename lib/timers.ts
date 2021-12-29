@@ -138,7 +138,7 @@ function getTimeUpHandler(game: Game): (() => Promise<void>) {
 				fields: [
 					{ ...getScoreChangesEmbedField(getChangedScores(oldState.scores, newState.scores)), inline: true },
 					{ ...getScoresEmbedField(game, 'brief'), inline: true },
-					{ ...getDisqualifiedPlayersEmbedField(game), inline: true } ?? [],
+					{ ...getDisqualifiedPlayersEmbedField(game), inline: true },
 					{
 						name: "Links",
 						value: [
