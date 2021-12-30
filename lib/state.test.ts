@@ -22,7 +22,7 @@ const mockRecount = mocked(recount);
 
 jest.mock('./timers');
 import { setTimers } from './timers';
-const mockSetTimers = mocked(recount);
+const mockSetTimers = mocked(setTimers);
 
 const guild = getGuild();
 const channel1 = getTextChannel(guild);
