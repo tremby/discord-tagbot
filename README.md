@@ -21,7 +21,7 @@ The bot facilitates the game by keeping track of game status
 (if the game is open,
 or we're awaiting a match,
 or we're awaiting a new tag,
-or it's archived)
+or it's inactive)
 and score.
 
 It also polices who can post images in the game channel:
@@ -77,7 +77,6 @@ You can undo this, and unregister a game by using `/tag-forget`.
 This will stop tracking the game.
 It won't do anything else -- for example, the tagged status message is not removed;
 this can be done manually.
-Note that this is different from archiving the game.
 
 These commands can only be performed by server admins.
 
@@ -123,30 +122,15 @@ and by tag judges for the game in question.
 
 - **`/tag-chat-channel unset`:** disassociate a chat channel from this tag game.
 
-### Archiving a game
+### Inactive games
 
-Once a game is finished
-(maybe it's the end of the month and the winner has been awarded with a nice prize)
-you can archive it by running the `/tag-archive-channel` command.
+If a game is finished without restarting,
+it goes into the "inactive" state.
 
 This means any new messages with images coming in will be deleted immediately,
 with a message reminding the author that the game is finished.
 
-The status message in the game channel with the scoreboard will remain pinned.
-
-If a chat channel was associated with the game,
-a message announcing that the game is over will be posted there,
-with the top 3 scores shown,
-along with a link to the pinned post in the game channel
-which has with the full scoreboard.
-
-Archiving a channel can be undone with the `/tag-unarchive-channel` command,
-which also forces a recount
-(to figure out what the game status was).
-This does not delete any end-of-game announcement which might have been posted.
-
-These archiving commands can only be performed by admins,
-and by tag judges associated with that game.
+The status message in the game channel with the latest scoreboard will remain pinned.
 
 ### Managing disqualified players
 
@@ -177,12 +161,10 @@ For those reasons some disqualification list management commands are available:
 - **`/tag-recount`:** force a recount of the current game.
   Only server admins and tag judges can do this.
 
-  If a recount is asked for on an archived game, the result is not stored,
-  and the pinned status message is not edited;
-  the results are only shown to the user then discarded.
-
-  In other cases, the pinned message is updated with the recalculated scores and state.
+  The pinned message is updated with the recalculated scores and state.
   If any scores changed, it is announced in the chat channel, assuming one is set.
+
+  This does nothing on inactive games.
 
 - **`/tag-show-status`:** show (just to you) the current game status.
 

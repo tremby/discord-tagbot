@@ -84,9 +84,8 @@ const stateAwaitingMatch: GameStateAwaitingMatch = {
 	tag: tagByUser1,
 	disqualifiedFromRound: new Set(),
 };
-const stateArchived: GameStateArchived = {
-	status: 'archived',
-	scores: null,
+const stateInactive: GameStateInactive = {
+	status: 'inactive',
 };
 
 function gameWithState(state: GameState, hasChatChannel: boolean = false): Game {
@@ -142,10 +141,10 @@ describe("handleMessage", () => {
 	});
 
 	describe("recount mode", () => {
-		it("throws an error if it finds itself starting from an archived state", async () => {
+		it("throws an error if it finds itself starting from an inactive state", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			expect(async () => {
-				await m.handleMessage(gameWithState(stateArchived), textMessage, 'recount');
+				await m.handleMessage(gameWithState(stateInactive), textMessage, 'recount');
 			}).rejects.toThrowError();
 			expect(mockSend).not.toHaveBeenCalled();
 			expect(mockDeleteMessage).not.toHaveBeenCalled();
@@ -358,7 +357,7 @@ describe("handleMessage", () => {
 			expect(await m.handleMessage(gameWithState(stateFree), botMessage, 'live')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingMatch), botMessage, 'live')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingNext), botMessage, 'live')).toBeNull();
-			expect(await m.handleMessage(gameWithState(stateArchived), botMessage, 'live')).toBeNull();
+			expect(await m.handleMessage(gameWithState(stateInactive), botMessage, 'live')).toBeNull();
 			expect(mockSend).not.toHaveBeenCalled();
 			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
@@ -369,7 +368,7 @@ describe("handleMessage", () => {
 			expect(await m.handleMessage(gameWithState(stateFree), textMessage, 'live')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingMatch), textMessage, 'live')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingNext), textMessage, 'live')).toBeNull();
-			expect(await m.handleMessage(gameWithState(stateArchived), textMessage, 'live')).toBeNull();
+			expect(await m.handleMessage(gameWithState(stateInactive), textMessage, 'live')).toBeNull();
 			expect(mockSend).not.toHaveBeenCalled();
 			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
@@ -685,25 +684,25 @@ describe("handleMessage", () => {
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);
 		});
 
-		it("deletes images posted to a game in the archived state", async () => {
+		it("deletes images posted to a game in the inactive state", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const result = await m.handleMessage(gameWithState(stateArchived), tagByUser1, 'live');
+			const result = await m.handleMessage(gameWithState(stateInactive), tagByUser1, 'live');
 			expect(result).toBeNull();
 			expect(mockDeleteMessage).toHaveBeenCalledTimes(1);
 			expect(mockDeleteMessage).toHaveBeenCalledWith(tagByUser1);
 		});
 
-		it("informs (in the game channel if there is no chat channel) a user who posted an image to a game in the archived state", async () => {
+		it("informs (in the game channel if there is no chat channel) a user who posted an image to a game in the inactive state", async () => {
 			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const result = await m.handleMessage(gameWithState(stateArchived, false), tagByUser1, 'live');
+			const result = await m.handleMessage(gameWithState(stateInactive, false), tagByUser1, 'live');
 			expect(result).toBeNull();
 			expect(mockSend).toHaveBeenCalledTimes(1);
 		});
 
-		it("informs (in the chat channel if it is set) a user who posted an image to a game in the archived state", async () => {
+		it("informs (in the chat channel if it is set) a user who posted an image to a game in the inactive state", async () => {
 			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
 			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
-			const result = await m.handleMessage(gameWithState(stateArchived, true), tagByUser1, 'live');
+			const result = await m.handleMessage(gameWithState(stateInactive, true), tagByUser1, 'live');
 			expect(result).toBeNull();
 			expect(mockSendToGame).not.toHaveBeenCalled();
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);

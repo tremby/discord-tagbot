@@ -11,9 +11,9 @@ const mockGetChangedScores = mocked(getChangedScores);
 const mockGetScoreChangesEmbedField = mocked(getScoreChangesEmbedField);
 
 jest.mock('../lib/game-state');
-import { updateGameState, gameStateIsArchived } from '../lib/game-state';
+import { updateGameState, gameStateIsInactive } from '../lib/game-state';
 const mockUpdateGameState = mocked(updateGameState);
-const mockGameStateIsArchived = mocked(gameStateIsArchived);
+const mockGameStateIsInactive = mocked(gameStateIsInactive);
 
 const guild = getGuild();
 const gameChannel = getTextChannel(guild);
@@ -41,7 +41,7 @@ function getGame(): Game {
 
 describe("recount command", () => {
 	beforeEach(() => {
-		mockGameStateIsArchived.mockReturnValue(false);
+		mockGameStateIsInactive.mockReturnValue(false);
 		mockGetChangedScores.mockReturnValue(new Map());
 		mockRecount.mockImplementation(async (game) => ({ ...game.state }));
 	});
@@ -61,15 +61,16 @@ describe("recount command", () => {
 		expect(mockRecount).toHaveBeenCalledWith(game);
 	});
 
-	it("does not mutate the game if it was archived", async () => {
-		mockGameStateIsArchived.mockReturnValue(true);
+	it("does nothing if the game is inactive", async () => {
+		mockGameStateIsInactive.mockReturnValue(true);
 		const game = getGame();
 		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);
+		expect(mockRecount).not.toHaveBeenCalled();
 		expect(mockUpdateGameState).not.toHaveBeenCalled();
 	});
 
-	it("mutates the game if it was not archived", async () => {
+	it("mutates the game if it was not inactive", async () => {
 		const game = getGame();
 		const interaction = getCommandInteraction(gameChannel, user1, 'recount', [], {});
 		await commandSpec.handler(interaction, gameChannel, game);

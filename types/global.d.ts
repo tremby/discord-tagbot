@@ -52,12 +52,12 @@ declare global {
 		/**
 		 * A string representing the current game state.
 		 */
-		status: 'archived' | 'awaiting-match' | 'awaiting-next' | 'free';
+		status: 'inactive' | 'awaiting-match' | 'awaiting-next' | 'free';
 
 		/**
 		 * The current scores.
 		 *
-		 * This may not be present in archived games.
+		 * Inactive games do not have scores.
 		 */
 		scores?: Scores;
 	}
@@ -99,11 +99,10 @@ declare global {
 	}
 
 	/**
-	 * The game state after the game has finished.
+	 * The game state when the channel is tracked but there is no active game.
 	 */
-	type GameStateArchived = {
-		status: 'archived';
-		scores?: Scores;
+	type GameStateInactive = {
+		status: 'inactive';
 	}
 
 	/**

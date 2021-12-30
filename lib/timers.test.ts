@@ -57,9 +57,8 @@ const stateAwaitingMatch: GameStateAwaitingMatch = {
 	tag: tagMessage,
 	disqualifiedFromRound: new Set(),
 };
-const stateArchived: GameStateArchived = {
-	status: 'archived',
-	scores: null,
+const stateInactive: GameStateInactive = {
+	status: 'inactive',
 };
 
 const game: Game = {

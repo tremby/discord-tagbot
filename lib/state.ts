@@ -82,8 +82,8 @@ export async function loadFromDisk(client: Client): Promise<void> {
 			statusMessage,
 		};
 
-		// Get current state: if not archived that means doing a recount
-		const state: GameState = serializedGame.status === 'archived' ? { status: 'archived' } : await recount(partialGame);
+		// Get current state: if not inactive that means doing a recount
+		const state: GameState = serializedGame.status === 'inactive' ? { status: 'inactive' } : await recount(partialGame);
 
 		// If necessary, get currently-disqualified users
 		if (gameStateIsAwaitingMatch(state) || gameStateIsAwaitingNext(state)) {

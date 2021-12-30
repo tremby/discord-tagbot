@@ -8,7 +8,7 @@ import { ProblemCheckingPermissionsError, NoTextChannelError, isAdmin, isAdminOr
 import appState, { loadFromDisk, persistToDisk } from './lib/state';
 import { channelIsTextChannel, getGameOfChannel } from './lib/channel';
 import { handleMessage, recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from './lib/scoring';
-import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, updateGameState } from './lib/game-state';
+import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, gameStateIsInactive, updateGameState } from './lib/game-state';
 import { messageHasImage, getMessageUsers } from './lib/message';
 import { setsEqual } from './lib/set';
 
@@ -119,8 +119,8 @@ client.on('ready', async () => {
 		// Do nothing if there was no image before or after
 		if (!messageHasImage(oldMessage) && !messageHasImage(newMessage)) return;
 
-		// Do nothing if the game is archived
-		if (game.state.status === 'archived') return;
+		// Do nothing if the game is inactive
+		if (gameStateIsInactive(game.state)) return;
 
 		// Do nothing if the author and tagged users didn't change
 		// *and also* the presence of an image didn't change
@@ -190,8 +190,8 @@ client.on('ready', async () => {
 		// Do nothing if there was no image
 		if (!messageHasImage(message)) return;
 
-		// Do nothing if the game is archived
-		if (game.state.status === 'archived') return;
+		// Do nothing if the game is inactive
+		if (gameStateIsInactive(game.state)) return;
 
 		// Trigger a full recount
 		console.log(`A message from ${message.author} which contained an image was deleted; recounting...`);
@@ -257,8 +257,8 @@ client.on('ready', async () => {
 			// Do nothing if there was no image
 			if (!messageHasImage(message)) continue;
 
-			// Do nothing if the game is archived
-			if (game.state.status === 'archived') return;
+			// Do nothing if the game is inactive
+			if (gameStateIsInactive(game.state)) return;
 
 			// Add this game to the set of those affected
 			affectedGames.add(game);

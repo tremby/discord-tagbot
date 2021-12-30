@@ -46,9 +46,8 @@ describe("getGameOfChannel", () => {
 			chatChannel: null,
 		},
 		state: {
-			status: 'archived',
-			scores: new Map(),
-		} as GameStateArchived,
+			status: 'inactive',
+		} as GameStateInactive,
 		statusMessage: null,
 	} as Game;
 

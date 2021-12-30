@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from '../lib/scoring';
-import { updateGameState, getStatusEmbedField, gameStateIsArchived } from '../lib/game-state';
+import { updateGameState, getStatusEmbedField, gameStateIsInactive } from '../lib/game-state';
 import { getConfigEmbedFields } from '../lib/config';
 
 const commandSpec: SlashCommandSpec = {
@@ -25,22 +25,15 @@ const commandSpec: SlashCommandSpec = {
 		// Did any scores change?
 		const changedScores = getChangedScores(oldScores, state.scores);
 
-		// If the game was archived, do not store the result, only show it
-		if (gameStateIsArchived(game.state)) {
-			const tempGame: Game = {
-				...game,
-				state,
-			};
+		// If the game is inactive, do nothing
+		if (gameStateIsInactive(game.state)) {
 			await deferralPromise;
 			await interaction.editReply({
 				embeds: [{
 					title: "Recount results",
-					description: `Game in ${channel} is **archived** so we do not alter the recorded scores. The following recount is shown only to you.`,
+					description: `Game in ${channel} is **inactive** so doesn't have anything to recount.`,
 					fields: [
-						...getConfigEmbedFields(tempGame.config),
-						getStatusEmbedField(tempGame),
-						getScoreChangesEmbedField(changedScores),
-						getScoresEmbedField(tempGame, 'full'),
+						getStatusEmbedField(game),
 					],
 				}],
 			});

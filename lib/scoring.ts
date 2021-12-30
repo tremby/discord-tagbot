@@ -2,7 +2,7 @@ import * as thisModule from './scoring';
 
 import type { TextChannel, User, Message, EmbedFieldData } from 'discord.js';
 
-import { gameStateIsFree, gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsArchived } from './game-state';
+import { gameStateIsFree, gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsInactive } from './game-state';
 import { messageHasImage, getMessageUsers, deleteMessage } from './message';
 import { pluralize, msToHumanReadable, toList } from './string';
 import { getAllMessages } from './channel';
@@ -269,17 +269,17 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		return newState;
 	}
 
-	if (gameStateIsArchived(game.state)) {
+	if (gameStateIsInactive(game.state)) {
 		if (mode === 'recount') {
 			// This should never happen
-			throw new Error(`Status should never be "archived" when recalculating`);
+			throw new Error(`Status should never be "inactive" when recalculating`);
 		}
 
 		// Post something and delete message
 		console.log("  Informing user and deleting message");
 		await Promise.all([
 			(game.config.chatChannel ?? game.channel).send({
-				content: `${message.author}, you just tried to post an image ${game.config.chatChannel ? `in ${game.channel} ` : ""}but this game is archived.`,
+				content: `${message.author}, you just tried to post an image ${game.config.chatChannel ? `in ${game.channel} ` : ""}but this game is inactive.`,
 			}),
 			deleteMessage(message),
 		]);

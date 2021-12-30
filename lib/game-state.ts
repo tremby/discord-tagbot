@@ -24,16 +24,16 @@ export function gameStateIsAwaitingNext(gameState: GameState): gameState is Game
 export function gameStateIsAwaitingMatch(gameState: GameState): gameState is GameStateAwaitingMatch {
 	return gameState.status === 'awaiting-match';
 }
-export function gameStateIsArchived(gameState: GameState): gameState is GameStateArchived {
-	return gameState.status === 'archived';
+export function gameStateIsInactive(gameState: GameState): gameState is GameStateInactive {
+	return gameState.status === 'inactive';
 }
 
 /**
  * Format a game status string.
  */
 export function formatGameStatus(game: Game): string {
-	if (thisModule.gameStateIsArchived(game.state))
-		return "Archived.";
+	if (thisModule.gameStateIsInactive(game.state))
+		return "Inactive.";
 	if (thisModule.gameStateIsAwaitingMatch(game.state))
 		return `Awaiting tag match from anyone but ${toList(setUnion(getMessageUsers(game.state.tag), game.state.disqualifiedFromRound), "or")}.`;
 	if (thisModule.gameStateIsAwaitingNext(game.state))

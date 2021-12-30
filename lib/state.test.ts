@@ -76,9 +76,8 @@ const game3: Game = {
 	},
 	statusMessage: null,
 	state: {
-		status: 'archived',
-		scores: new Map(),
-	} as GameStateArchived,
+		status: 'inactive',
+	} as GameStateInactive,
 };
 
 describe("serializeGame", () => {
@@ -370,12 +369,12 @@ describe("loadFromDisk", () => {
 		expect([...state.games][0]).toHaveProperty('config.chatChannel', null);
 	});
 
-	it("doesn't cause a recount if the status was archived", async () => {
+	it("doesn't cause a recount if the status was inactive", async () => {
 		mockReadFile.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
-					status: 'archived',
+					status: 'inactive',
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],
@@ -388,7 +387,7 @@ describe("loadFromDisk", () => {
 		expect(mockRecount).not.toHaveBeenCalled();
 	});
 
-	it("causes a recount for non-archived statuses", async () => {
+	it("causes a recount for active statuses", async () => {
 		for (const st of ['free', 'awaiting-next', 'awaiting-match']) {
 			mockReadFile.mockResolvedValue(JSON.stringify({
 				games: [
@@ -409,12 +408,12 @@ describe("loadFromDisk", () => {
 		expect(mockRecount).toHaveBeenCalledTimes(3);
 	});
 
-	it("correctly sets the status for archived games", async () => {
+	it("correctly sets the status for inactive games", async () => {
 		mockReadFile.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
-					status: 'archived',
+					status: 'inactive',
 					config: {
 						nextTagTimeLimit: null,
 						tagJudgeRoleIds: [],
@@ -424,10 +423,10 @@ describe("loadFromDisk", () => {
 			],
 		}));
 		await m.loadFromDisk(client);
-		expect([...state.games][0]).toHaveProperty('state', { status: 'archived' });
+		expect([...state.games][0]).toHaveProperty('state', { status: 'inactive' });
 	});
 
-	it("uses the recount's conclusion as state for non-archived games", async () => {
+	it("uses the recount's conclusion as state for active games", async () => {
 		mockReadFile.mockResolvedValue(JSON.stringify({
 			games: [
 				{

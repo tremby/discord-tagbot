@@ -52,9 +52,8 @@ const stateAwaitingMatch: GameStateAwaitingMatch = {
 	tag: tagMessage,
 	disqualifiedFromRound: new Set(),
 };
-const stateArchived: GameStateArchived = {
-	status: 'archived',
-	scores: null,
+const stateInactive: GameStateInactive = {
+	status: 'inactive',
 };
 
 function gameWithState(state: GameState): Game {
@@ -79,7 +78,7 @@ describe("GameState discriminators", () => {
 		it("rejects other states", () => {
 			expect(m.gameStateIsFree(stateAwaitingNext)).toBe(false);
 			expect(m.gameStateIsFree(stateAwaitingMatch)).toBe(false);
-			expect(m.gameStateIsFree(stateArchived)).toBe(false);
+			expect(m.gameStateIsFree(stateInactive)).toBe(false);
 		});
 	});
 
@@ -91,7 +90,7 @@ describe("GameState discriminators", () => {
 		it("rejects other states", () => {
 			expect(m.gameStateIsAwaitingNext(stateFree)).toBe(false);
 			expect(m.gameStateIsAwaitingNext(stateAwaitingMatch)).toBe(false);
-			expect(m.gameStateIsAwaitingNext(stateArchived)).toBe(false);
+			expect(m.gameStateIsAwaitingNext(stateInactive)).toBe(false);
 		});
 	});
 
@@ -103,35 +102,35 @@ describe("GameState discriminators", () => {
 		it("rejects other states", () => {
 			expect(m.gameStateIsAwaitingMatch(stateFree)).toBe(false);
 			expect(m.gameStateIsAwaitingMatch(stateAwaitingNext)).toBe(false);
-			expect(m.gameStateIsAwaitingMatch(stateArchived)).toBe(false);
+			expect(m.gameStateIsAwaitingMatch(stateInactive)).toBe(false);
 		});
 	});
 
-	describe("gameStateIsArchived", () => {
+	describe("gameStateIsInactive", () => {
 		it("accepts the matching state", () => {
-			expect(m.gameStateIsArchived(stateArchived)).toBe(true);
+			expect(m.gameStateIsInactive(stateInactive)).toBe(true);
 		});
 
 		it("rejects other states", () => {
-			expect(m.gameStateIsArchived(stateFree)).toBe(false);
-			expect(m.gameStateIsArchived(stateAwaitingNext)).toBe(false);
-			expect(m.gameStateIsArchived(stateAwaitingMatch)).toBe(false);
+			expect(m.gameStateIsInactive(stateFree)).toBe(false);
+			expect(m.gameStateIsInactive(stateAwaitingNext)).toBe(false);
+			expect(m.gameStateIsInactive(stateAwaitingMatch)).toBe(false);
 		});
 	});
 });
 
 describe("formatGameStatus", () => {
 	beforeEach(() => {
-		jest.spyOn(m, 'gameStateIsArchived').mockReturnValue(false);
+		jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(false);
 		jest.spyOn(m, 'gameStateIsAwaitingMatch').mockReturnValue(false);
 		jest.spyOn(m, 'gameStateIsAwaitingNext').mockReturnValue(false);
 		jest.spyOn(m, 'gameStateIsFree').mockReturnValue(false);
 		mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
 	});
 
-	it("detects an archived game", () => {
-		jest.spyOn(m, 'gameStateIsArchived').mockReturnValue(true);
-		expect(m.formatGameStatus(gameWithState({} as GameState))).toContain("Archived");
+	it("detects an inactive game", () => {
+		jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(true);
+		expect(m.formatGameStatus(gameWithState({} as GameState))).toContain("Inactive");
 	});
 
 	it("detects a game awaiting a match", () => {
@@ -343,9 +342,9 @@ describe("getDisqualifiedPlayersEmbedField", () => {
 		});
 	});
 
-	describe("when the game state is archived", () => {
+	describe("when the game state is inactive", () => {
 		it("returns null", () => {
-			const result = m.getDisqualifiedPlayersEmbedField(gameWithState(stateArchived));
+			const result = m.getDisqualifiedPlayersEmbedField(gameWithState(stateInactive));
 			expect(result).toBeNull();
 		});
 	});
