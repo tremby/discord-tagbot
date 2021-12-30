@@ -13,7 +13,6 @@ import {
 	getDisqualifiedPlayersEmbedField,
 	getStatusEmbedField,
 } from '../lib/game-state';
-import { getStatusMessage } from '../lib/channel';
 const mockGameStateIsAwaitingNext = mocked(gameStateIsAwaitingNext);
 const mockGameStateIsAwaitingMatch = mocked(gameStateIsAwaitingMatch);
 const mockGetDisqualifiedPlayersEmbedField = mocked(getDisqualifiedPlayersEmbedField);
