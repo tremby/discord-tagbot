@@ -2,7 +2,6 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { Constants } from 'discord.js';
 
 import appState, { persistToDisk } from '../lib/state';
-import { getStatusMessage } from '../lib/channel';
 import { clearTimers } from '../lib/timers';
 
 const commandSpec: SlashCommandSpec = {

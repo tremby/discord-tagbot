@@ -5,7 +5,6 @@ import appState, { persistToDisk } from '../lib/state';
 import { getDefaultConfig, getConfigEmbedFields } from '../lib/config';
 import { recount, getScoresEmbedField } from '../lib/scoring';
 import { updateGameStatusMessage, getStatusEmbedField } from '../lib/game-state';
-import { getStatusMessage } from '../lib/channel';
 
 const commandSpec: SlashCommandSpec = {
 	permissions: 'admin',
