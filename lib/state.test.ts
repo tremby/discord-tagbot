@@ -41,6 +41,9 @@ const game1: Game = {
 		nextTagTimeLimit: null,
 		tagJudgeRoles: new Set(),
 		chatChannel: null,
+		autoRestart: false,
+		period: null,
+		locale: 'UTC',
 	},
 	statusMessage: null,
 	state: {
@@ -58,6 +61,9 @@ const game2: Game = {
 		nextTagTimeLimit: 3600e3,
 		tagJudgeRoles: new Set(),
 		chatChannel: null,
+		autoRestart: false,
+		period: null,
+		locale: 'UTC',
 	},
 	statusMessage: null,
 	state: {
@@ -73,6 +79,9 @@ const game3: Game = {
 		nextTagTimeLimit: null,
 		tagJudgeRoles: new Set(),
 		chatChannel: null,
+		autoRestart: false,
+		period: null,
+		locale: 'UTC',
 	},
 	statusMessage: null,
 	state: {

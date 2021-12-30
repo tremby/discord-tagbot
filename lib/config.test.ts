@@ -15,6 +15,18 @@ describe('getDefaultConfig', () => {
 	it("defaults the chat channel to none", () => {
 		expect(getDefaultConfig()).toHaveProperty('chatChannel', null);
 	});
+
+	it("defaults auto-restart to false", () => {
+		expect(getDefaultConfig()).toHaveProperty('autoRestart', false);
+	});
+
+	it("defaults period to null", () => {
+		expect(getDefaultConfig()).toHaveProperty('period', null);
+	});
+
+	it("defaults locale to UTC", () => {
+		expect(getDefaultConfig()).toHaveProperty('locale', 'UTC');
+	});
 });
 
 describe('serializeConfig', () => {
@@ -24,6 +36,9 @@ describe('serializeConfig', () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			};
 			expect(serializeConfig(config)).toHaveProperty('nextTagTimeLimit', null);
 		});
@@ -33,6 +48,9 @@ describe('serializeConfig', () => {
 				nextTagTimeLimit: 42,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			};
 			expect(serializeConfig(config)).toHaveProperty('nextTagTimeLimit', 42);
 		});
@@ -44,6 +62,9 @@ describe('serializeConfig', () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			};
 			expect(serializeConfig(config)).toHaveProperty('tagJudgeRoleIds', []);
 		});
@@ -56,6 +77,9 @@ describe('serializeConfig', () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set([role1, role2]),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			};
 			expect(serializeConfig(config)).toHaveProperty('tagJudgeRoleIds', expect.arrayContaining(['role1', 'role2']));
 			expect(serializeConfig(config)).toHaveProperty('tagJudgeRoleIds.length', 2);
@@ -68,6 +92,9 @@ describe('serializeConfig', () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			};
 			expect(serializeConfig(config)).toHaveProperty('chatChannelId', null);
 		});
@@ -77,8 +104,77 @@ describe('serializeConfig', () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: getTextChannel(getGuild(), "channel-1"),
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			};
 			expect(serializeConfig(config)).toHaveProperty('chatChannelId', 'channel-1');
+		});
+	});
+
+	describe("auto-restart", () => {
+		it("reads false", () => {
+			const config: Config = {
+				nextTagTimeLimit: null,
+				tagJudgeRoles: new Set(),
+				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
+			};
+			expect(serializeConfig(config)).toHaveProperty('autoRestart', false);
+		});
+
+		it("reads true", () => {
+			const config: Config = {
+				nextTagTimeLimit: null,
+				tagJudgeRoles: new Set(),
+				chatChannel: null,
+				autoRestart: true,
+				period: null,
+				locale: 'UTC',
+			};
+			expect(serializeConfig(config)).toHaveProperty('autoRestart', true);
+		});
+	});
+
+	describe("period", () => {
+		it("keeps null as null", () => {
+			const config: Config = {
+				nextTagTimeLimit: null,
+				tagJudgeRoles: new Set(),
+				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
+			};
+			expect(serializeConfig(config)).toHaveProperty('period', null);
+		});
+
+		it("reads strings", () => {
+			const config: Config = {
+				nextTagTimeLimit: null,
+				tagJudgeRoles: new Set(),
+				chatChannel: null,
+				autoRestart: true,
+				period: 'month',
+				locale: 'UTC',
+			};
+			expect(serializeConfig(config)).toHaveProperty('period', 'month');
+		});
+	});
+
+	describe("locale", () => {
+		it("reads strings", () => {
+			const config: Config = {
+				nextTagTimeLimit: null,
+				tagJudgeRoles: new Set(),
+				chatChannel: null,
+				autoRestart: true,
+				period: null,
+				locale: 'America/Vancouver',
+			};
+			expect(serializeConfig(config)).toHaveProperty('locale', 'America/Vancouver');
 		});
 	});
 });
@@ -89,6 +185,9 @@ describe("getConfigEmbedFields", () => {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set(),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		});
 		for (const obj of result) {
 			expect(obj).toHaveProperty('name');
@@ -101,6 +200,9 @@ describe("getConfigEmbedFields", () => {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set(),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		});
 		const field = result.find((field) => /time limit/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -112,6 +214,9 @@ describe("getConfigEmbedFields", () => {
 			nextTagTimeLimit: 1e3 * 60 * 60,
 			tagJudgeRoles: new Set(),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		});
 		const field = result.find((field) => /time limit/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -123,6 +228,9 @@ describe("getConfigEmbedFields", () => {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set(),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		});
 		const field = result.find((field) => /judge/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -135,6 +243,9 @@ describe("getConfigEmbedFields", () => {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set([getRole(guild, 'role1'), getRole(guild, 'role2')]),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		});
 		const field = result.find((field) => /judge/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -147,6 +258,9 @@ describe("getConfigEmbedFields", () => {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set(),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		});
 		const field = result.find((field) => /chat channel/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -158,9 +272,109 @@ describe("getConfigEmbedFields", () => {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set(),
 			chatChannel: getTextChannel(getGuild(), "channel-1"),
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		});
 		const field = result.find((field) => /chat channel/i.test(field.name));
 		expect(field).not.toBeUndefined();
 		expect(field.value).toStrictEqual(expect.stringContaining("<#channel-1>"));
+	});
+
+	it("says the game is on a manual timeline if that is the case", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
+		});
+		const field = result.find((field) => /game lifespan/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/manual/i));
+	});
+
+	it("mentions the period on which the game is running and negative auto-restart status (month)", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: false,
+			period: 'month',
+			locale: 'UTC',
+		});
+		const field = result.find((field) => /game lifespan/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/stops at the end of the month/i));
+	});
+
+	it("mentions the period on which the game is running and positive auto-restart status (month)", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: true,
+			period: 'month',
+			locale: 'UTC',
+		});
+		const field = result.find((field) => /game lifespan/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/restarts at the end of the month/i));
+	});
+
+	it("mentions the period on which the game is running and negative auto-restart status (hour)", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: false,
+			period: 'hour',
+			locale: 'UTC',
+		});
+		const field = result.find((field) => /game lifespan/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/stops at the end of the hour/i));
+	});
+
+	it("mentions the period on which the game is running and positive auto-restart status (hour)", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: true,
+			period: 'hour',
+			locale: 'UTC',
+		});
+		const field = result.find((field) => /game lifespan/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringMatching(/restarts at the end of the hour/i));
+	});
+
+	it("shows the configured locale", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: true,
+			period: 'month',
+			locale: 'America/Vancouver',
+		});
+		const field = result.find((field) => /locale/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field.value).toStrictEqual(expect.stringContaining('America/Vancouver'));
+	});
+
+	it("doesn't show a locale if on a manual schedule", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: true,
+			period: null,
+			locale: 'America/Vancouver',
+		});
+		const field = result.find((field) => /locale/i.test(field.name));
+		expect(field).toBeUndefined();
 	});
 });

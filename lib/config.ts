@@ -10,6 +10,9 @@ export function getDefaultConfig(): Config {
 		nextTagTimeLimit: 1e3 * 60 * 60,
 		tagJudgeRoles: new Set(),
 		chatChannel: null,
+		autoRestart: false,
+		period: null,
+		locale: 'UTC',
 	};
 }
 
@@ -21,6 +24,9 @@ export function serializeConfig(config: Config): SerializedConfig {
 		nextTagTimeLimit: config.nextTagTimeLimit,
 		tagJudgeRoleIds: [...config.tagJudgeRoles].map((role) => role.id),
 		chatChannelId: config.chatChannel?.id ?? null,
+		autoRestart: config.autoRestart,
+		period: config.period,
+		locale: config.locale,
 	};
 }
 
@@ -45,5 +51,30 @@ export function getConfigEmbedFields(config: Config): EmbedFieldData[] {
 			value: config.chatChannel?.toString() ?? "None",
 			inline: true,
 		},
-	];
+		{
+			name: "Game lifespan",
+			value: getLifespanString(config),
+			inline: true,
+		},
+		config.period == null ? [] : {
+			name: "Timekeeping locale",
+			value: config.locale,
+			inline: true,
+		},
+	].flat();
+}
+
+/**
+ * Get a plain English description of the period and autoRestart config options.
+ */
+export function getLifespanString(config: Config): string {
+	if (config.period == null) return "Manual control";
+
+	if (config.period === 'month') {
+		if (config.autoRestart) return "Restarts at the end of the month";
+		return "Stops at the end of the month";
+	}
+
+	if (config.autoRestart) return "Restarts at the end of the hour";
+	return "Stops at the end of the hour";
 }

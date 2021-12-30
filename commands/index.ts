@@ -7,6 +7,7 @@ import chatChannel from './chat-channel';
 import disqualified from './disqualified';
 import showStatus from './show-status';
 import showConfig from './show-config';
+import lifespan from './lifespan';
 
 const commands: SlashCommandSpec[] = [
 	init,
@@ -18,6 +19,7 @@ const commands: SlashCommandSpec[] = [
 	disqualified,
 	showStatus,
 	showConfig,
+	lifespan,
 	// Remember to update the readme
 ];
 

@@ -87,6 +87,9 @@ describe("isAdminOrTagJudge", () => {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set(),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		},
 		statusMessage: null,
 		state: {
@@ -128,6 +131,9 @@ describe("isAdminOrTagJudge", () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set([tagJudgeRole1, tagJudgeRole2]),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			statusMessage: null,
 			state: {
@@ -150,6 +156,9 @@ describe("isAdminOrTagJudge", () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set([tagJudgeRole1, tagJudgeRole2]),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			statusMessage: null,
 			state: {

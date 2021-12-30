@@ -106,6 +106,12 @@ declare global {
 	}
 
 	/**
+	 * A period over which the game can run and potentially automatically
+	 * restart.
+	 */
+	type Period = 'hour' | 'month' | null;
+
+	/**
 	 * Configuration for a particular tag game.
 	 */
 	type Config = {
@@ -124,6 +130,21 @@ declare global {
 		 * Channel in which chat and announcements about the game happen.
 		 */
 		chatChannel: TextChannel | null;
+
+		/**
+		 * Whether the game automatically restarts when a period wraps.
+		 */
+		autoRestart: boolean;
+
+		/**
+		 * Period on which the game takes place.
+		 */
+		period: Period;
+
+		/**
+		 * Locale in which to interpret the game period.
+		 */
+		locale: string;
 	}
 
 	/**
@@ -133,6 +154,9 @@ declare global {
 		nextTagTimeLimit: number | null;
 		tagJudgeRoleIds: string[];
 		chatChannelId: string | null;
+		autoRestart: boolean;
+		period: Period;
+		locale: string;
 	}
 
 	/**

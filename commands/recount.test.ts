@@ -29,6 +29,9 @@ function getGame(): Game {
 			nextTagTimeLimit: null,
 			tagJudgeRoles: new Set(),
 			chatChannel: null,
+			autoRestart: false,
+			period: null,
+			locale: 'UTC',
 		},
 		statusMessage,
 		state: {

@@ -70,6 +70,9 @@ export async function loadFromDisk(client: Client): Promise<void> {
 			nextTagTimeLimit: serializedGame.config.nextTagTimeLimit,
 			tagJudgeRoles: new Set(await Promise.all(serializedGame.config.tagJudgeRoleIds.map(async (id) => channel.guild.roles.fetch(id)))),
 			chatChannel: serializedGame.config.chatChannelId ? await client.channels.fetch(serializedGame.config.chatChannelId) as TextChannel : null,
+			autoRestart: serializedGame.config.autoRestart,
+			period: serializedGame.config.period,
+			locale: serializedGame.config.locale,
 		};
 
 		// Find the status message

@@ -14,6 +14,9 @@ describe("getDeadlineTimestamp", () => {
 				nextTagTimeLimit: 42e3,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'free',
@@ -31,6 +34,9 @@ describe("getDeadlineTimestamp", () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -51,6 +57,9 @@ describe("getDeadlineTimestamp", () => {
 				nextTagTimeLimit: 42e3,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -73,6 +82,9 @@ describe("getFormattedDeadline", () => {
 				nextTagTimeLimit: 42e3,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'free',
@@ -90,6 +102,9 @@ describe("getFormattedDeadline", () => {
 				nextTagTimeLimit: null,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -110,6 +125,9 @@ describe("getFormattedDeadline", () => {
 				nextTagTimeLimit: 42e3,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -130,6 +148,9 @@ describe("getFormattedDeadline", () => {
 				nextTagTimeLimit: 42e3,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -150,6 +171,9 @@ describe("getFormattedDeadline", () => {
 				nextTagTimeLimit: 42e3,
 				tagJudgeRoles: new Set(),
 				chatChannel: null,
+				autoRestart: false,
+				period: null,
+				locale: 'UTC',
 			},
 			state: {
 				status: 'awaiting-next',

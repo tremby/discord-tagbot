@@ -122,6 +122,21 @@ and by tag judges for the game in question.
 
 - **`/tag-chat-channel unset`:** disassociate a chat channel from this tag game.
 
+- **`/tag-lifespan period`:** set the period on which games run.
+  If set to `manual`, the game will not be on a timer, and must be manually
+  started and stopped.
+  If set to a measure of time,
+  it will be interpreted according to the configured locale,
+  and the game will automatically stop at the end of the period.
+
+- **`/tag-lifespan auto-restart`:** set whether a game configured to run on a period
+  will automatiaclly restart immediately after completing.
+
+- **`/tag-lifespan locale`:** configure the locale
+  under which the game's period will be interpreted.
+  Examples: `America/Vancouver`, `Europe/London`, `UTC`.
+  [See the list of locales](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+
 ### Inactive games
 
 If a game is finished without restarting,
@@ -207,3 +222,10 @@ Future
 - Finish tests
 - Extract clues (spoiler tags) and print in "new tag" and "tag matched" messages?
 - Awards at game end time (most-reacted, ???)
+- Default locale to system locale, or environment variable
+
+Near future:
+- persist ID of current game status message to disk, use that to find it
+- abstract timers with a setInterval running once an hour or whatever to keep them on track
+- add commands to stop and start manual games
+- add game scheduling

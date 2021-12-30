@@ -13,6 +13,21 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Perform a recount on a particular channel."),
 
 	handler: async (interaction, channel, game) => {
+		// If the game is inactive, do nothing
+		if (gameStateIsInactive(game.state)) {
+			await interaction.reply({
+				embeds: [{
+					title: "Error",
+					description: `Game in ${channel} is **inactive** so doesn't have anything to recount.`,
+					fields: [
+						getStatusEmbedField(game),
+					],
+				}],
+				ephemeral: true,
+			});
+			return;
+		}
+
 		// Inform the user that this could take time
 		const deferralPromise = interaction.deferReply({ ephemeral: true });
 
@@ -24,21 +39,6 @@ const commandSpec: SlashCommandSpec = {
 
 		// Did any scores change?
 		const changedScores = getChangedScores(oldScores, state.scores);
-
-		// If the game is inactive, do nothing
-		if (gameStateIsInactive(game.state)) {
-			await deferralPromise;
-			await interaction.editReply({
-				embeds: [{
-					title: "Recount results",
-					description: `Game in ${channel} is **inactive** so doesn't have anything to recount.`,
-					fields: [
-						getStatusEmbedField(game),
-					],
-				}],
-			});
-			return;
-		}
 
 		// Update the game state
 		await updateGameState(game, state);
