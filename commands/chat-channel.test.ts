@@ -1,4 +1,5 @@
 import commandSpec from './chat-channel';
+import type { CommandInteraction, TextChannel } from 'discord.js';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getMessage } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 import { Constants } from 'discord.js';
@@ -9,6 +10,10 @@ import { mocked } from 'ts-jest/utils';
 jest.mock('../lib/config');
 import { getConfigEmbedFields } from '../lib/config';
 
+jest.mock('./lib/helpers');
+import { getValidChannel, NoTextChannelError } from './lib/helpers';
+const mockGetValidChannel = mocked(getValidChannel);
+
 const guild = getGuild();
 const gameChannel = getTextChannel(guild);
 const chatChannel = getTextChannel(guild);
@@ -17,7 +22,14 @@ const user1 = getUser('user1');
 
 describe("chat-channel command", () => {
 	describe("set subcommand", () => {
+		beforeEach(() => {
+			mockGetValidChannel.mockReturnValue(chatChannel);
+		});
+
 		it("responds with an error and otherwise does nothing if no channel was given", async () => {
+			mockGetValidChannel.mockImplementation(() => {
+				throw new NoTextChannelError("no text channel");
+			});
 			const game = {
 				config: { chatChannel: null },
 			} as Game;
@@ -33,7 +45,28 @@ describe("chat-channel command", () => {
 			expect(game).toHaveProperty('config.chatChannel', null);
 		});
 
+		it("doesn't mistake a generic error for not having a text channel", async () => {
+			mockGetValidChannel.mockImplementation(() => {
+				throw new Error("some other error");
+			});
+			const game = {
+				config: { chatChannel: null },
+			} as Game;
+			const options = [
+				{
+					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					name: 'set',
+				},
+			] as APIApplicationCommandInteractionDataOption[];
+			const interaction = getCommandInteraction(gameChannel, user1, 'chat-channel', options, {});
+			await expect(async () => {
+				await commandSpec.handler(interaction, gameChannel, game);
+			}).rejects.toThrowError();
+			expect(game).toHaveProperty('config.chatChannel', null);
+		});
+
 		it("rejects the game channel", async () => {
+			mockGetValidChannel.mockReturnValue(gameChannel);
 			const game = {
 				config: { chatChannel: null },
 			} as Game;
