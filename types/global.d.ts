@@ -46,6 +46,7 @@ declare global {
 		status: GameState['status'];
 		config: SerializedConfig;
 		disqualifiedFromRound?: string[];
+		statusMessageId: string;
 	}
 
 	interface GameState {

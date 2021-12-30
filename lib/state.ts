@@ -34,6 +34,7 @@ export function serializeGame(game: Game): SerializedGame {
 		channelId: game.channel.id,
 		status: game.state.status,
 		config: serializeConfig(game.config),
+		statusMessageId: game.statusMessage?.id ?? null,
 	} as SerializedGame;
 
 	if (gameStateIsAwaitingNext(game.state) || gameStateIsAwaitingMatch(game.state)) {
@@ -76,7 +77,7 @@ export async function loadFromDisk(client: Client): Promise<void> {
 		};
 
 		// Find the status message
-		const statusMessage = await getStatusMessage(channel);
+		const statusMessage = await getStatusMessage(channel, serializedGame.statusMessageId);
 
 		// Set up a partial game state object
 		const partialGame = {

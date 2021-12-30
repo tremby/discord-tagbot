@@ -65,7 +65,7 @@ const game2: Game = {
 		period: null,
 		locale: 'UTC',
 	},
-	statusMessage: null,
+	statusMessage,
 	state: {
 		status: 'awaiting-match',
 		scores: new Map(),
@@ -83,7 +83,7 @@ const game3: Game = {
 		period: null,
 		locale: 'UTC',
 	},
-	statusMessage: null,
+	statusMessage,
 	state: {
 		status: 'inactive',
 	} as GameStateInactive,
@@ -115,6 +115,16 @@ describe("serializeGame", () => {
 		const serialized = m.serializeGame(game1);
 		expect(mockSerializeConfig).toHaveBeenCalledWith(game1.config);
 		expect(serialized).toHaveProperty('config', { foo: 'mocked-config' });
+	});
+
+	it("handles lack of status message", () => {
+		const serialized = m.serializeGame(game1);
+		expect(serialized).toHaveProperty('statusMessageId', null);
+	});
+
+	it("includes the status message ID if known", () => {
+		const serialized = m.serializeGame(game2);
+		expect(serialized).toHaveProperty('statusMessageId', game2.statusMessage.id);
 	});
 });
 
@@ -474,13 +484,14 @@ describe("loadFromDisk", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
 		mockGetStatusMessage.mockResolvedValue(statusMessage);
 		await m.loadFromDisk(client);
 		expect(mockGetStatusMessage).toHaveBeenCalledTimes(1);
-		expect(mockGetStatusMessage).toHaveBeenCalledWith(channel1);
+		expect(mockGetStatusMessage).toHaveBeenCalledWith(channel1, 'abc');
 		expect([...state.games][0]).toHaveProperty('statusMessage', statusMessage);
 	});
 

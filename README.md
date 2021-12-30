@@ -225,7 +225,6 @@ Future
 - Default locale to system locale, or environment variable
 
 Near future:
-- persist ID of current game status message to disk, use that to find it
 - abstract timers with a setInterval running once an hour or whatever to keep them on track
 - add commands to stop and start manual games
 - add game scheduling

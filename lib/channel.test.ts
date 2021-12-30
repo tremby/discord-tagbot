@@ -147,17 +147,40 @@ describe("getAllMessages", () => {
 });
 
 describe("getStatusMessage", () => {
-	it("searches the pinned messages", async () => {
+	it("searches by ID if given", async () => {
+		const spiedFetch = jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(
+			// @ts-expect-error: overloaded function; mocking it properly would be a pain
+			getMessage(channel1, botUser, [], false, true, new Date("2020Z"), "from bot user")
+		);
+		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([]));
+		await m.getStatusMessage(channel1, 'abc');
+		expect(spiedFetch).toHaveBeenCalledTimes(1);
+		expect(spiedFetch).toHaveBeenCalledWith('abc');
+		expect(spiedFetchPinned).not.toHaveBeenCalled();
+	});
+
+	it("falls back to pinned messages if search by ID returns nothing", async () => {
+		const spiedFetch = jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(null);
+		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([]));
+		await m.getStatusMessage(channel1, 'abc');
+		expect(spiedFetch).toHaveBeenCalledTimes(1);
+		expect(spiedFetch).toHaveBeenCalledWith('abc');
+		expect(spiedFetchPinned).toHaveBeenCalledTimes(1);
+	});
+
+	it("searches the pinned messages right away if no ID is given", async () => {
+		const spiedFetch = jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(null);
 		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([
 			['a', getMessage(channel1, user1, [], false, true, new Date("2020Z"), "from user1")],
 			['b', getMessage(channel1, user2, [], false, true, new Date("2020Z"), "from user2")],
 			['c', getMessage(channel1, botUser, [], false, true, new Date("2020Z"), "from bot user")],
 		]));
 		await m.getStatusMessage(channel1);
+		expect(spiedFetch).not.toHaveBeenCalled();
 		expect(spiedFetchPinned).toHaveBeenCalledTimes(1);
 	});
 
-	it("rejects messages not marked as pinned", async () => {
+	it("rejects messages from pinned search not marked as pinned", async () => {
 		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([
 			['a', getMessage(channel1, user1, [], false, false, new Date("2020Z"), "from user1")],
 			['b', getMessage(channel1, user2, [], false, false, new Date("2020Z"), "from user2")],
@@ -166,7 +189,16 @@ describe("getStatusMessage", () => {
 		expect(await m.getStatusMessage(channel1)).toBeNull();
 	});
 
-	it("rejects messages not posted by the bot user", async () => {
+	it("rejects messages from ID search not posted by the bot user", async () => {
+		const spiedFetch = jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(
+			// @ts-expect-error: overloaded function; mocking it properly would be a pain
+			getMessage(channel1, user1, [], false, true, new Date("2020Z"), "from user1")
+		);
+		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([]));
+		expect(await m.getStatusMessage(channel1, 'abc')).toBeNull();
+	});
+
+	it("rejects messages from pinned search not posted by the bot user", async () => {
 		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([
 			['a', getMessage(channel1, user1, [], false, true, new Date("2020Z"), "from user1")],
 			['b', getMessage(channel1, user2, [], false, true, new Date("2020Z"), "from user2")],
@@ -175,7 +207,18 @@ describe("getStatusMessage", () => {
 		expect(await m.getStatusMessage(channel1)).toBeNull();
 	});
 
-	it("returns a message matching the criteria", async () => {
+	it("returns a message matching the criteria if found in the ID search", async () => {
+		const botMessage = getMessage(channel1, botUser, [], false, true, new Date("2020Z"), "from bot user");
+		const spiedFetch = jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(
+			// @ts-expect-error: overloaded function; mocking it properly would be a pain
+			botMessage
+		);
+		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([]));
+		const match = await m.getStatusMessage(channel1, 'abc');
+		expect(match).toBe(botMessage);
+	});
+
+	it("returns a message matching the criteria if falling back to pinned search", async () => {
 		const botMessage = getMessage(channel1, botUser, [], false, true, new Date("2020Z"), "from bot user");
 		const spiedFetchPinned = jest.spyOn(channel1.messages, 'fetchPinned').mockResolvedValue(new Collection([
 			['a', getMessage(channel1, user1, [], false, true, new Date("2020Z"), "from user1")],

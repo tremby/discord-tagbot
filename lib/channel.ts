@@ -67,8 +67,9 @@ export async function* getAllMessages(channel: TextChannel, force: boolean = fal
  * Determine whether a message is the bot's game status message.
  *
  * This is naïve -- it only checks it was posted by the bot user and is pinned.
+ * When in non-strict mode it does not check the message is pinned.
  */
-function isStatusMessage(botUser: User, message: Message): boolean {
+function isStatusMessage(botUser: User, message: Message, strict: boolean = true): boolean {
 	return message.pinned && message.author.id === botUser.id;
 }
 
@@ -77,8 +78,16 @@ function isStatusMessage(botUser: User, message: Message): boolean {
  *
  * It is expected to be found in the pinned messages.
  */
-export async function getStatusMessage(channel: TextChannel): Promise<Message | null> {
+export async function getStatusMessage(channel: TextChannel, id: string | null = null): Promise<Message | null> {
+	if (id != null) {
+		// Find by ID
+		const message = await channel.messages.fetch(id);
+		if (message && isStatusMessage(channel.client.user, message, false)) return message;
+	}
+
 	// Find in the pinned messages
+	// These are supposed to come back in reverse chronological order,
+	// which is ideal.
 	for (const message of (await channel.messages.fetchPinned()).values()) {
 		if (isStatusMessage(channel.client.user, message)) return message;
 	}
