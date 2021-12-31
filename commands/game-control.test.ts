@@ -131,7 +131,7 @@ describe("game-control command", () => {
 			await commandSpec.handler(interaction, channel, game);
 			expect(mockGameStateIsInactive).toHaveBeenCalledTimes(2);
 			expectInteractionResponse(interaction, true);
-			expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+			expect(interaction.editReply).toHaveBeenCalledWith(expect.objectContaining({
 				embeds: expect.arrayContaining([
 					expect.objectContaining({
 						title: expect.stringContaining("finished"),
@@ -153,7 +153,7 @@ describe("game-control command", () => {
 			await commandSpec.handler(interaction, channel, game);
 			expect(mockGameStateIsInactive).toHaveBeenCalledTimes(2);
 			expectInteractionResponse(interaction, true);
-			expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+			expect(interaction.editReply).toHaveBeenCalledWith(expect.objectContaining({
 				embeds: expect.arrayContaining([
 					expect.objectContaining({
 						title: expect.stringContaining("restarted"),
