@@ -130,7 +130,7 @@ and by tag judges for the game in question.
   and the game will automatically stop at the end of the period.
 
 - **`/tag-lifespan auto-restart`:** set whether a game configured to run on a period
-  will automatiaclly restart immediately after completing.
+  will automatically restart immediately after completing.
 
 - **`/tag-lifespan locale`:** configure the locale
   under which the game's period will be interpreted.
