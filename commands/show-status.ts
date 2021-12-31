@@ -20,7 +20,7 @@ const commandSpec: SlashCommandSpec = {
 		await interaction.reply({
 			embeds: [{
 				title: "Tag game status",
-				description: `This is the current game status in ${channel}. See the [pinned status post](${game.statusMessage.url}) for the full list of scores.`,
+				description: `This is the current game status in ${channel}.`,
 				fields: [
 					getStatusEmbedField(game),
 					gameStateIsInactive(game.state) ? [] : getScoresEmbedField(game, 'brief'),
