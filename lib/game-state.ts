@@ -150,7 +150,7 @@ export async function start(game: Game): Promise<void> {
  * Pass true for the "endOfPeriod" parameter if this was triggered by the end of
  * the game's period coming around.
  */
-export async function finish(game: Game, endOfPeriod: boolean = false): Promise<void> {
+export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 	if (thisModule.gameStateIsInactive(game.state)) {
 		throw new Error("Game is not running");
 	}
