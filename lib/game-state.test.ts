@@ -19,6 +19,10 @@ jest.mock('./string');
 import { toList } from './string';
 const mockToList = mocked(toList);
 
+jest.mock('./state');
+import { persistToDisk } from './state';
+const mockPersistToDisk = mocked(persistToDisk);
+
 const guild = getGuild();
 const channel = getTextChannel(guild);
 const chatChannel = getTextChannel(guild);
@@ -360,6 +364,11 @@ describe("start", () => {
 		await expect(async () => {
 			await m.start(game);
 		}).rejects.toThrowError();
+		expect(m.updateGameState).not.toHaveBeenCalled();
+		expect(channel.send).not.toHaveBeenCalled();
+		expect(statusMessage.pin).not.toHaveBeenCalled();
+		expect(chatChannel.send).not.toHaveBeenCalled();
+		expect(mockPersistToDisk).not.toHaveBeenCalled();
 	});
 
 	it("updates the game state", async () => {
@@ -406,6 +415,12 @@ describe("start", () => {
 		await m.start(game);
 		expect(chatChannel.send).not.toHaveBeenCalled();
 	});
+
+	it("persists to disk on success", async () => {
+		const game = { channel, config: {} } as Game;
+		await m.start(game);
+		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+	});
 });
 
 describe("finish", () => {
@@ -430,6 +445,13 @@ describe("finish", () => {
 			await expect(async () => {
 				await m.finish(game, endOfPeriod);
 			}).rejects.toThrowError();
+			expect(m.updateGameState).not.toHaveBeenCalled();
+			expect(m.start).not.toHaveBeenCalled();
+			expect(channel.send).not.toHaveBeenCalled();
+			expect(chatChannel.send).not.toHaveBeenCalled();
+			expect(resultsMessage.pin).not.toHaveBeenCalled();
+			expect(statusMessage.unpin).not.toHaveBeenCalled();
+			expect(statusMessage.edit).not.toHaveBeenCalled();
 		});
 
 		it("posts a new results message in the game channel", async () => {
@@ -501,27 +523,30 @@ describe("finish", () => {
 		["the game is configured to be manual, and the game was manually stopped", null, false],
 		["the game is configured to be periodic, and the game was automatically stopped", 'month', true],
 		["the game is configured to be periodic, and the game was manually stopped", 'month', false],
-	])("does not automatically restart when auto-restart is off, %s", async (_, period, endOfPeriod) => {
+	])("does not automatically restart and does save to disk when auto-restart is off, %s", async (_, period, endOfPeriod) => {
 		const game = { channel, statusMessage, config: { period, autoRestart: false } } as Game;
 		await m.finish(game, endOfPeriod);
 		expect(m.start).not.toHaveBeenCalled();
+		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
 	});
 
 	it.each([
 		["the game is configured to be manual, and the game was manually stopped", null, false],
 		["the game is configured to be periodic, and the game was manually stopped", 'month', false],
-	])("does not automatically restart when auto-restart is on, %s", async (_, period, endOfPeriod) => {
+	])("does not automatically restart and does save to disk when auto-restart is on, %s", async (_, period, endOfPeriod) => {
 		const game = { channel, statusMessage, config: { period, autoRestart: true } } as Game;
 		await m.finish(game, endOfPeriod);
 		expect(m.start).not.toHaveBeenCalled();
+		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
 	});
 
 	it.each([
 		["the game is configured to be periodic, and the game was automatically stopped", 'month', true],
-	])("automatically restarts when auto-restart is on, %s", async (_, period, endOfPeriod) => {
+	])("automatically restarts and does not save to disk when auto-restart is on, %s", async (_, period, endOfPeriod) => {
 		const game = { channel, statusMessage, config: { period, autoRestart: true } } as Game;
 		await m.finish(game, endOfPeriod);
 		expect(m.start).toHaveBeenCalledTimes(1);
 		expect(m.start).toHaveBeenCalledWith(game);
+		expect(mockPersistToDisk).not.toHaveBeenCalled();
 	});
 });
