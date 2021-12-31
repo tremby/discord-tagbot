@@ -5,7 +5,7 @@ import type { TextChannel, User, Message, EmbedFieldData } from 'discord.js';
 import { gameStateIsFree, gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsInactive } from './game-state';
 import { messageHasImage, getMessageUsers, deleteMessage } from './message';
 import { pluralize, msToHumanReadable, toList } from './string';
-import { getAllMessages } from './channel';
+import { getAllMessagesSince } from './channel';
 import { getFormattedDeadline } from './deadline';
 import { setIntersection } from './set';
 
@@ -309,7 +309,7 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
 	}
 
 	// Step through all messages
-	for await (const message of getAllMessages(game.channel, true)) {
+	for await (const message of getAllMessagesSince(game.channel, game.statusMessage, true)) {
 		const newState = await thisModule.handleMessage({ ...game, state }, message, 'recount');
 		if (newState == null) continue;
 		state = newState;

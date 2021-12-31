@@ -5,10 +5,10 @@ import type { Message, User } from 'discord.js';
 import { mocked } from 'ts-jest/utils';
 
 jest.mock('./channel', () => ({
-	getAllMessages: jest.fn(),
+	getAllMessagesSince: jest.fn(),
 }));
-import { getAllMessages } from './channel';
-const mockGetAllMessages = mocked(getAllMessages);
+import { getAllMessagesSince } from './channel';
+const mockGetAllMessagesSince = mocked(getAllMessagesSince);
 
 jest.mock('./message');
 import { messageHasImage, getMessageUsers, deleteMessage } from './message';
@@ -833,7 +833,7 @@ describe("recount", () => {
 
 	it("starts with a free state", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldNothing);
+		mockGetAllMessagesSince.mockImplementation(yieldNothing);
 		jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		const result = await m.recount(game);
 		expect(result.status).toBe('free');
@@ -841,7 +841,7 @@ describe("recount", () => {
 
 	it("starts with an empty scoreboard", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldNothing);
+		mockGetAllMessagesSince.mockImplementation(yieldNothing);
 		jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		const result = await m.recount(game);
 		expect(result.scores.size).toBe(0);
@@ -849,7 +849,7 @@ describe("recount", () => {
 
 	it("doesn't touch the passed game object", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldNothing);
+		mockGetAllMessagesSince.mockImplementation(yieldNothing);
 		jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		await m.recount(game);
 		expect(game.state.status).toBe('awaiting-match');
@@ -858,7 +858,7 @@ describe("recount", () => {
 
 	it("passes each message through to the handleMessage method", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldMessages);
+		mockGetAllMessagesSince.mockImplementation(yieldMessages);
 		const mockHandleMessage = jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		await m.recount(game);
 		expect(mockHandleMessage).toHaveBeenCalledTimes(8);
@@ -874,7 +874,7 @@ describe("recount", () => {
 
 	it("calls the handleMessage method in 'recount' mode", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldMessages);
+		mockGetAllMessagesSince.mockImplementation(yieldMessages);
 		const mockHandleMessage = jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		await m.recount(game);
 		expect(mockHandleMessage).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), 'recount');
@@ -882,7 +882,7 @@ describe("recount", () => {
 
 	it("ignores nulls returned by handleMessage", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldMessages);
+		mockGetAllMessagesSince.mockImplementation(yieldMessages);
 		const mockHandleMessage = jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		await m.recount(game);
 		expect(mockHandleMessage).toHaveBeenCalledWith(expect.objectContaining({ state: expect.objectContaining({ status: 'free' }) }), matchByUser1, expect.anything());
@@ -890,7 +890,7 @@ describe("recount", () => {
 
 	it("passes through the new states to successive handleMessage calls", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldMessages);
+		mockGetAllMessagesSince.mockImplementation(yieldMessages);
 		const mockHandleMessage = jest.spyOn(m, 'handleMessage')
 			.mockResolvedValueOnce(states[0])
 			.mockResolvedValueOnce(states[1])
@@ -914,7 +914,7 @@ describe("recount", () => {
 
 	it("returns the eventual state", async () => {
 		const game = { ...gameAwaitingMatch, state: { ...gameAwaitingMatch.state } };
-		mockGetAllMessages.mockImplementation(yieldMessages);
+		mockGetAllMessagesSince.mockImplementation(yieldMessages);
 		const mockHandleMessage = jest.spyOn(m, 'handleMessage')
 			.mockResolvedValueOnce(states[0])
 			.mockResolvedValueOnce(states[1])

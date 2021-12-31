@@ -24,12 +24,14 @@ export function getGameOfChannel(channel: TextChannel): Game | null {
 }
 
 /**
- * Get an iterator for all messages in the channel in chronological order.
+ * Get an iterator for all messages in the channel in chronological order
+ * since a given message.
  *
  * @param {TextChannel} channel
+ * @param {Message} startMessage
  * @param {boolean} force - Force a cache skip. Default is false.
  */
-export async function* getAllMessages(channel: TextChannel, force: boolean = false): AsyncGenerator<Message> {
+export async function* getAllMessagesSince(channel: TextChannel, startMessage: Message, force: boolean = false): AsyncGenerator<Message> {
 	let justFetched: Collection<string, Message> = null;
 	const allMessages: Message[] = [];
 
@@ -40,14 +42,9 @@ export async function* getAllMessages(channel: TextChannel, force: boolean = fal
 		// Note that even with `after` they come in reverse chronological order
 		// so we need to fetch items "after" (chronologically) the "first"
 		// of the just-received batch (which is the chronologically last).
-		// The ID being given here, "0", is used as a timestamp. It works
-		// (and is acceptable as per the documentation)
-		// because these "snowflake" IDs are based on timestamps
-		// with extra information afterwards,
-		// i.e. there cannot be any before zero.
 		justFetched = await channel.messages.fetch({
 			limit: DISCORD_FETCH_MESSAGES_MAX,
-			after: justFetched == null ? "0" : justFetched.first().id,
+			after: justFetched == null ? startMessage.id : justFetched.first().id,
 		}, { force });
 
 		// Yield the messages in chronological order

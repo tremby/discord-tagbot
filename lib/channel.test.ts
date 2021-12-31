@@ -10,6 +10,7 @@ const channel3 = getTextChannel(guild);
 const user1 = getUser('user-1');
 const user2 = getUser('user-2');
 const botUser = getBotUser();
+const statusMessage = getMessage(channel1, botUser, [], false, true, new Date('2020Z'), "status");
 
 import appState from '../lib/state';
 
@@ -77,7 +78,7 @@ describe("getGameOfChannel", () => {
 	});
 });
 
-describe("getAllMessages", () => {
+describe("getAllMessagesSince", () => {
 	beforeEach(() => {
 		jest.spyOn(console, 'log').mockImplementation();
 	});
@@ -90,12 +91,12 @@ describe("getAllMessages", () => {
 
 	it("passes the force value through to the fetcher", async () => {
 		const mockFetch = jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(new Collection([]));
-		let results = await flushIterator(m.getAllMessages(channel1, false));
+		let results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage, false));
 		expect(mockFetch).toHaveBeenCalledTimes(1);
 		expect(mockFetch).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ force: false }));
 		mockFetch.mockClear();
-		results = await flushIterator(m.getAllMessages(channel1, true));
-		await m.getAllMessages(channel1, true);
+		results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage, true));
+		await m.getAllMessagesSince(channel1, statusMessage, true);
 		expect(mockFetch).toHaveBeenCalledTimes(1);
 		expect(mockFetch).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ force: true }));
 	});
@@ -113,7 +114,7 @@ describe("getAllMessages", () => {
 			.mockResolvedValueOnce(new Collection(page1))
 			.mockResolvedValueOnce(new Collection(page2))
 			.mockResolvedValue(new Collection([]));
-		const results = await flushIterator(m.getAllMessages(channel1));
+		const results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage));
 		expect(results[0].content).toBe("page 1 message 100");
 		expect(results[1].content).toBe("page 1 message 99");
 		expect(results[99].content).toBe("page 1 message 1");
@@ -140,7 +141,7 @@ describe("getAllMessages", () => {
 			.mockResolvedValueOnce(new Collection(page2))
 			.mockResolvedValueOnce(new Collection(page3))
 			.mockResolvedValue(new Collection([]));
-		const results = await flushIterator(m.getAllMessages(channel1));
+		const results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage));
 		expect(mockFetch).toHaveBeenCalledTimes(3);
 		expect(results).toHaveLength(230);
 	});

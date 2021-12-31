@@ -122,6 +122,9 @@ client.on('ready', async () => {
 		// Do nothing if the game is inactive
 		if (gameStateIsInactive(game.state)) return;
 
+		// Do nothing if the message was posted before the current game started
+		if (newMessage.id < game.statusMessage.id) return;
+
 		// Do nothing if the author and tagged users didn't change
 		// *and also* the presence of an image didn't change
 		if (
@@ -193,6 +196,9 @@ client.on('ready', async () => {
 		// Do nothing if the game is inactive
 		if (gameStateIsInactive(game.state)) return;
 
+		// Do nothing if the message was posted before the current game started
+		if (message.id < game.statusMessage.id) return;
+
 		// Trigger a full recount
 		console.log(`A message from ${message.author} which contained an image was deleted; recounting...`);
 		const newState = await recount(game);
@@ -259,6 +265,9 @@ client.on('ready', async () => {
 
 			// Do nothing if the game is inactive
 			if (gameStateIsInactive(game.state)) return;
+
+			// Do nothing if the message was posted before the current game started
+			if (message.id < game.statusMessage.id) return;
 
 			// Add this game to the set of those affected
 			affectedGames.add(game);
