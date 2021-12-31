@@ -9,8 +9,7 @@ import gameState, { persistToDisk } from '../lib/state';
 const mockPersistToDisk = mocked(persistToDisk);
 
 jest.mock('../lib/game-state');
-import { updateGameStatusMessage, getStatusEmbedField } from '../lib/game-state';
-const mockUpdateGameStatusMessage = mocked(updateGameStatusMessage);
+import { getStatusEmbedField } from '../lib/game-state';
 const mockGetStatusEmbedField = mocked(getStatusEmbedField);
 
 jest.mock('../lib/config');
@@ -19,8 +18,7 @@ const mockGetDefaultConfig = mocked(getDefaultConfig);
 const mockGetConfigEmbedFields = mocked(getConfigEmbedFields);
 
 jest.mock('../lib/scoring');
-import { recount, getScoresEmbedField } from '../lib/scoring';
-const mockRecount = mocked(recount);
+import { getScoresEmbedField } from '../lib/scoring';
 const mockGetScoresEmbedField = mocked(getScoresEmbedField);
 
 const configEmbedFields = [
@@ -51,7 +49,6 @@ describe("init command", () => {
 		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
 		await commandSpec.handler(interaction, channel, {} as Game);
 		expectInteractionResponse(interaction, true);
-		expect(mockRecount).not.toHaveBeenCalled();
 		expect(gameState.games.size).toBe(0); // We faked finding the active game; we're just testing no games got added
 	});
 
@@ -67,26 +64,6 @@ describe("init command", () => {
 		expect(gameState.games.size).toBe(1);
 		const game = [...gameState.games][0];
 		expect(game).toHaveProperty('channel', channel);
-	});
-
-	it("recounts, and uses the state produced by this", async () => {
-		mockRecount.mockResolvedValue({
-			status: 'awaiting-next',
-			match: matchMessage,
-		} as GameStateAwaitingNext);
-		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
-		await commandSpec.handler(interaction, channel);
-		expect(mockRecount).toHaveBeenCalledTimes(1);
-		const game = [...gameState.games][0];
-		expect(game).toHaveProperty('state.status', 'awaiting-next');
-		expect(game).toHaveProperty('state.match', matchMessage);
-	});
-
-	it("updates the game status message", async () => {
-		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
-		await commandSpec.handler(interaction, channel);
-		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
-		expect(mockUpdateGameStatusMessage).toHaveBeenCalledWith(expect.objectContaining({ channel }));
 	});
 
 	it("persists to disk", async () => {

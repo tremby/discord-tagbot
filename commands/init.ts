@@ -3,8 +3,8 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import appState, { persistToDisk } from '../lib/state';
 import { getDefaultConfig, getConfigEmbedFields } from '../lib/config';
-import { recount, getScoresEmbedField } from '../lib/scoring';
-import { updateGameStatusMessage, getStatusEmbedField } from '../lib/game-state';
+import { getScoresEmbedField } from '../lib/scoring';
+import { getStatusEmbedField } from '../lib/game-state';
 
 const commandSpec: SlashCommandSpec = {
 	permissions: 'admin',
@@ -33,26 +33,13 @@ const commandSpec: SlashCommandSpec = {
 		// We might take a bit of time counting scores so warn the user
 		const deferralPromise = interaction.deferReply({ ephemeral: true });
 
-		// Set up some initial configuration
-		const config = getDefaultConfig();
-		const partialGame = {
-			channel,
-			config,
-			statusMessage: null,
-		};
-
-		// Get the info we need
-		const state = await recount(partialGame);
-
-		// A more complete game object
+		// Set up the initial game object
 		const game: Game = {
-			...partialGame,
-			state,
+			channel,
+			config: getDefaultConfig(),
 			statusMessage: null,
+			state: { status: 'free' },
 		};
-
-		// Update or add game status message
-		await updateGameStatusMessage(game);
 
 		// Register the game
 		appState.games.add(game);
@@ -65,7 +52,7 @@ const commandSpec: SlashCommandSpec = {
 				title: "New tag game",
 				description: `Tag game initialized in ${channel}.`,
 				fields: [
-					...getConfigEmbedFields(config),
+					...getConfigEmbedFields(game.config),
 					getStatusEmbedField(game),
 					getScoresEmbedField(game, 'brief'),
 				],
