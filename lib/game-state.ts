@@ -218,9 +218,9 @@ export async function finish(game: Game, endOfPeriod: boolean = false): Promise<
 	// Update game state
 	await thisModule.updateGameState(game, { status: 'inactive' }, false);
 
-	if (game.config.autoRestart && (game.config.period == null || endOfPeriod)) {
+	if (game.config.autoRestart && endOfPeriod) {
 		// The game is configured to auto-restart,
-		// and either a period just finished, or the game was manually ended.
+		// and either a period just finished.
 		await thisModule.start(game);
 	}
 }

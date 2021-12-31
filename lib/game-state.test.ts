@@ -509,17 +509,19 @@ describe("finish", () => {
 
 	it.each([
 		["the game is configured to be manual, and the game was manually stopped", null, false],
+		["the game is configured to be periodic, and the game was manually stopped", 'month', false],
+	])("does not automatically restart when auto-restart is on, %s", async (_, period, endOfPeriod) => {
+		const game = { channel, statusMessage, config: { period, autoRestart: true } } as Game;
+		await m.finish(game, endOfPeriod);
+		expect(m.start).not.toHaveBeenCalled();
+	});
+
+	it.each([
 		["the game is configured to be periodic, and the game was automatically stopped", 'month', true],
 	])("automatically restarts when auto-restart is on, %s", async (_, period, endOfPeriod) => {
 		const game = { channel, statusMessage, config: { period, autoRestart: true } } as Game;
 		await m.finish(game, endOfPeriod);
 		expect(m.start).toHaveBeenCalledTimes(1);
 		expect(m.start).toHaveBeenCalledWith(game);
-	});
-
-	it("does not automatically restart when auto-restart is on, the game is configured to be periodic, and the game was manually stopped", async () => {
-		const game = { channel, statusMessage, config: { period: 'month', autoRestart: true } } as Game;
-		await m.finish(game, false);
-		expect(m.start).not.toHaveBeenCalled();
 	});
 });

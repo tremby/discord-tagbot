@@ -163,11 +163,10 @@ The game can be started and stopped with the `/tag-game-control` commands.
   A new message is posted in the game channel showing the final scores.
   If a chat channel is configured, an announcement is made here too.
 
-  A periodic game stopped in this way will not automatically restart
-  until the period rolls around.
-
-  On the other hand, a non-periodic (manual) game
-  *will* automatically restart.
+  Game stopped in this way will not automatically restart.
+  If configured to be periodic and to automatically restart,
+  a game stopped in this way will restart automatically
+  when the period rolls around.
 
 ### Managing disqualified players
 
