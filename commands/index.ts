@@ -8,6 +8,7 @@ import disqualified from './disqualified';
 import showStatus from './show-status';
 import showConfig from './show-config';
 import lifespan from './lifespan';
+import gameControl from './game-control';
 
 const commands: SlashCommandSpec[] = [
 	init,
@@ -20,6 +21,7 @@ const commands: SlashCommandSpec[] = [
 	showStatus,
 	showConfig,
 	lifespan,
+	gameControl,
 	// Remember to update the readme
 ];
 

@@ -4,7 +4,6 @@ import type { Client, TextChannel } from 'discord.js';
 import { writeFile, readFile } from 'fs/promises';
 
 import { serializeConfig } from './config';
-import { getStatusMessage } from './channel';
 import { recount } from './scoring';
 import { setTimers } from './timers';
 import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch } from './game-state';
@@ -77,7 +76,7 @@ export async function loadFromDisk(client: Client): Promise<void> {
 		};
 
 		// Find the status message
-		const statusMessage = await getStatusMessage(channel, serializedGame.statusMessageId);
+		const statusMessage = await channel.messages.fetch(serializedGame.statusMessageId);
 
 		// Set up a partial game state object
 		const partialGame = {

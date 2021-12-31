@@ -147,6 +147,28 @@ with a message reminding the author that the game is finished.
 
 The status message in the game channel with the latest scoreboard will remain pinned.
 
+### Starting and stopping the game
+
+The game can be started and stopped with the `/tag-game-control` commands.
+
+- **`/tag-game-control start`:** starts the game.
+  A message which will be kept up to date with scores and status
+  is posted in the game channel, and pinned.
+  If a chat channel in configured, an announcement is made here too.
+
+- **`/tag-game-control finish`:** finishes the game.
+  The start/status message posted when the game started is edited
+  to mark the start of the game and link to the end, and is unpinned;
+  it no longer shows the scores.
+  A new message is posted in the game channel showing the final scores.
+  If a chat channel is configured, an announcement is made here too.
+
+  A periodic game stopped in this way will not automatically restart
+  until the period rolls around.
+
+  On the other hand, a non-periodic (manual) game
+  *will* automatically restart.
+
 ### Managing disqualified players
 
 If players miss a time limit they are disqualified from the current round.
@@ -226,5 +248,4 @@ Future
 
 Near future:
 - abstract timers with a setInterval running once an hour or whatever to keep them on track
-- add commands to stop and start manual games
 - add game scheduling

@@ -1,5 +1,5 @@
 import * as m from './game-state';
-import type { User } from 'discord.js';
+import type { User, MessageOptions } from 'discord.js';
 import { getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
 import { DiscordAPIError, Constants } from 'discord.js';
@@ -15,16 +15,13 @@ import { clearTimers, setTimers } from './timers';
 const mockClearTimers = mocked(clearTimers);
 const mockSetTimers = mocked(setTimers);
 
-jest.mock('./channel');
-import { getStatusMessage } from './channel';
-const mockGetStatusMessage = mocked(getStatusMessage);
-
 jest.mock('./string');
 import { toList } from './string';
 const mockToList = mocked(toList);
 
 const guild = getGuild();
 const channel = getTextChannel(guild);
+const chatChannel = getTextChannel(guild);
 const user1 = getUser('100');
 const user2 = getUser('200');
 const user3 = getUser('300');
@@ -33,6 +30,8 @@ const botUser = getUser('bot-user');
 const tagMessage = getMessage(channel, user1, [user2, user3], true, false, new Date('2020Z'), "tag");
 const matchMessage = getMessage(channel, user1, [user2, user3], true, false, new Date('2020Z'), "tag match");
 const statusMessage = getMessage(channel, botUser, [], false, true, new Date('2020Z'), "status");
+const chatMessage = getMessage(chatChannel, botUser, [], false, false, new Date('2020Z'), "chat announcement");
+const resultsMessage = getMessage(channel, botUser, [], false, true, new Date('2020Z'), "results");
 
 const stateFree: GameStateFree = {
 	status: 'free',
@@ -232,75 +231,16 @@ describe("formatGameStatusMessage", () => {
 
 describe("updateGameStatusMessage", () => {
 	const game = gameWithState(stateAwaitingNext);
-	// @ts-expect-error -- private constructor
-	const error = new DiscordAPIError({ code: Constants.APIErrors.UNKNOWN_MESSAGE }, 400, { options: { data: {} }});
 
 	beforeEach(() => {
 		jest.spyOn(m, 'formatGameStatusMessage').mockReturnValue({ content: "mock-message" });
-		jest.spyOn(channel, 'send').mockResolvedValue(statusMessage);
-		jest.spyOn(statusMessage, 'pin').mockResolvedValue(null);
 		jest.spyOn(statusMessage, 'edit').mockResolvedValue(null);
 	});
 
-	it("tries to find the status message if it doesn't already have one", async () => {
-		await m.updateGameStatusMessage({ ...game });
-		expect(mockGetStatusMessage).toHaveBeenCalledTimes(1);
-		expect(mockGetStatusMessage).toHaveBeenCalledWith(channel);
-	});
-
-	it("does not try to find the status message if it already has one", async () => {
-		await m.updateGameStatusMessage({ ...game, statusMessage });
-		expect(mockGetStatusMessage).not.toHaveBeenCalled();
-	});
-
-	it("attempts to edit a status message to the new message if it has one", async () => {
+	it("edits the status message to the new message", async () => {
 		await m.updateGameStatusMessage({ ...game, statusMessage });
 		expect(statusMessage.edit).toHaveBeenCalledTimes(1);
 		expect(statusMessage.edit).toHaveBeenCalledWith({ content: "mock-message" });
-	});
-
-	it("attempts to edit a status message to the new message if it finds one", async () => {
-		mockGetStatusMessage.mockResolvedValue(statusMessage);
-		await m.updateGameStatusMessage({ ...game });
-		expect(statusMessage.edit).toHaveBeenCalledTimes(1);
-		expect(statusMessage.edit).toHaveBeenCalledWith({ content: "mock-message" });
-	});
-
-	it("silently ignores the error if Discord can't find the message to edit it", async () => {
-		jest.spyOn(statusMessage, 'edit').mockRejectedValue(error);
-		await expect(async () => {
-			await m.updateGameStatusMessage({ ...game, statusMessage });
-		}).not.toThrow();
-	});
-
-	it("throws Discord's error if it's anything but unknown message", async () => {
-		jest.spyOn(statusMessage, 'edit').mockRejectedValue(new Error());
-		await expect(async () => {
-			await m.updateGameStatusMessage({ ...game, statusMessage });
-		}).rejects.toThrowError();
-	});
-
-	it("sends and pins a new message if none was found", async () => {
-		await m.updateGameStatusMessage({ ...game });
-		expect(mockGetStatusMessage).toHaveBeenCalledTimes(1);
-		expect(channel.send).toHaveBeenCalledTimes(1);
-		expect(channel.send).toHaveBeenCalledWith({ content: "mock-message" });
-		expect(statusMessage.pin).toHaveBeenCalledTimes(1);
-	});
-
-	it("sends and pins a new message if it failed to edit an existing one", async () => {
-		jest.spyOn(statusMessage, 'edit').mockRejectedValue(error);
-		await m.updateGameStatusMessage({ ...game });
-		expect(channel.send).toHaveBeenCalledTimes(1);
-		expect(channel.send).toHaveBeenCalledWith({ content: "mock-message" });
-		expect(statusMessage.pin).toHaveBeenCalledTimes(1);
-	});
-
-	it("does not send a new message or pin anything if an edit succeeded", async () => {
-		mockGetStatusMessage.mockResolvedValue(statusMessage);
-		await m.updateGameStatusMessage({ ...game });
-		expect(channel.send).not.toHaveBeenCalled();
-		expect(statusMessage.pin).not.toHaveBeenCalled();
 	});
 });
 
@@ -326,7 +266,7 @@ describe("updateGameState", () => {
 		expect(game.state).toBe(stateAwaitingMatch);
 	});
 
-	it("updates the status message", async () => {
+	it("updates the status message by default", async () => {
 		const mockUpdateGameStatusMessage = jest.spyOn(m, 'updateGameStatusMessage').mockImplementation(async () => {});
 		mockClearTimers.mockImplementation(() => {});
 		mockSetTimers.mockImplementation(() => {});
@@ -334,6 +274,25 @@ describe("updateGameState", () => {
 		await m.updateGameState(game, stateAwaitingMatch);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledWith(game);
+	});
+
+	it("updates the status message if told to", async () => {
+		const mockUpdateGameStatusMessage = jest.spyOn(m, 'updateGameStatusMessage').mockImplementation(async () => {});
+		mockClearTimers.mockImplementation(() => {});
+		mockSetTimers.mockImplementation(() => {});
+		const game = gameWithState(stateAwaitingNext);
+		await m.updateGameState(game, stateAwaitingMatch, true);
+		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
+		expect(mockUpdateGameStatusMessage).toHaveBeenCalledWith(game);
+	});
+
+	it("does not update the status message if told not to", async () => {
+		const mockUpdateGameStatusMessage = jest.spyOn(m, 'updateGameStatusMessage').mockImplementation(async () => {});
+		mockClearTimers.mockImplementation(() => {});
+		mockSetTimers.mockImplementation(() => {});
+		const game = gameWithState(stateAwaitingNext);
+		await m.updateGameState(game, stateAwaitingMatch, false);
+		expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
 	});
 });
 
@@ -382,5 +341,185 @@ describe("getDisqualifiedPlayersEmbedField", () => {
 			} as typeof state));
 			expect(result.value).toEqual(expect.stringMatching(/none/i));
 		});
+	});
+});
+
+describe("start", () => {
+	beforeEach(() => {
+		jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(true);
+		jest.spyOn(m, 'updateGameState').mockResolvedValue(null);
+		jest.spyOn(m, 'formatGameStatusMessage').mockReturnValue({});
+		jest.spyOn(channel, 'send').mockResolvedValue(statusMessage);
+		jest.spyOn(chatChannel, 'send').mockResolvedValue(chatMessage);
+		jest.spyOn(statusMessage, 'pin').mockResolvedValue(null);
+	});
+
+	it("throws an error if the game is already running", async () => {
+		jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(false);
+		const game = { channel, config: {} } as Game;
+		await expect(async () => {
+			await m.start(game);
+		}).rejects.toThrowError();
+	});
+
+	it("updates the game state", async () => {
+		const game = { channel, config: {} } as Game;
+		await m.start(game);
+		expect(m.updateGameState).toHaveBeenCalledTimes(1);
+		expect(m.updateGameState).toHaveBeenCalledWith(game, expect.anything(), expect.anything());
+	});
+
+	it("updates the game state to free", async () => {
+		const game = { channel, config: {} } as Game;
+		await m.start(game);
+		expect(m.updateGameState).toHaveBeenCalledTimes(1);
+		expect(m.updateGameState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ status: 'free' }), expect.anything());
+	});
+
+	it("does not use updateGameState's status message updating function", async () => {
+		const game = { channel, config: {} } as Game;
+		await m.start(game);
+		expect(m.updateGameState).toHaveBeenCalledTimes(1);
+		expect(m.updateGameState).toHaveBeenCalledWith(expect.anything(), expect.anything(), false);
+	});
+
+	it("posts a new status message", async () => {
+		const game = { channel, config: {} } as Game;
+		await m.start(game);
+		expect(channel.send).toHaveBeenCalledTimes(1);
+	});
+
+	it("pins the new status message", async () => {
+		const game = { channel, config: {} } as Game;
+		await m.start(game);
+		expect(statusMessage.pin).toHaveBeenCalledTimes(1);
+	});
+
+	it("makes an announcement in the chat channel if one is configured", async () => {
+		const game = { channel, config: { chatChannel } } as Game;
+		await m.start(game);
+		expect(chatChannel.send).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not make an announcement in the chat channel if none is configured", async () => {
+		const game = { channel, config: {} } as Game;
+		await m.start(game);
+		expect(chatChannel.send).not.toHaveBeenCalled();
+	});
+});
+
+describe("finish", () => {
+	beforeEach(() => {
+		jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(false);
+		jest.spyOn(m, 'updateGameState').mockResolvedValue(null);
+		jest.spyOn(m, 'start').mockResolvedValue(null);
+		jest.spyOn(channel, 'send').mockResolvedValue(resultsMessage);
+		jest.spyOn(chatChannel, 'send').mockResolvedValue(chatMessage);
+		jest.spyOn(resultsMessage, 'pin').mockResolvedValue(null);
+		jest.spyOn(statusMessage, 'unpin').mockResolvedValue(null);
+		jest.spyOn(statusMessage, 'edit').mockResolvedValue(null);
+	});
+
+	describe.each([
+		["automatically called at end of period", true],
+		["manually stopped", false],
+	])("when %s", (_, endOfPeriod) => {
+		it("throws an error if the game is not running", async () => {
+			jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(true);
+			const game = { statusMessage } as Game;
+			await expect(async () => {
+				await m.finish(game, endOfPeriod);
+			}).rejects.toThrowError();
+		});
+
+		it("posts a new results message in the game channel", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(channel.send).toHaveBeenCalledTimes(1);
+		});
+
+		it("pins the new results message", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(resultsMessage.pin).toHaveBeenCalledTimes(1);
+		});
+
+		it("edits the old status message", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(statusMessage.edit).toHaveBeenCalledTimes(1);
+		});
+
+		it("unpins the old status message", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(statusMessage.unpin).toHaveBeenCalledTimes(1);
+		});
+
+		it("makes an announcement in the chat channel if one is configured", async () => {
+			const game = { channel, statusMessage, config: { chatChannel } } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(chatChannel.send).toHaveBeenCalledTimes(1);
+		});
+
+		it("does not make an announcement in the chat channel if none is configured", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(chatChannel.send).not.toHaveBeenCalled();
+		});
+
+		it("removes the reference to the old status message", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			expect(game.statusMessage).not.toBeNull();
+			await m.finish(game, endOfPeriod);
+			expect(game.statusMessage).toBeNull();
+		});
+
+		it("updates the game state", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(m.updateGameState).toHaveBeenCalledTimes(1);
+			expect(m.updateGameState).toHaveBeenCalledWith(game, expect.anything(), expect.anything());
+		});
+
+		it("updates the game state to inactive", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(m.updateGameState).toHaveBeenCalledTimes(1);
+			expect(m.updateGameState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ status: 'inactive' }), expect.anything());
+		});
+
+		it("does not use updateGameState's status message updating function", async () => {
+			const game = { channel, statusMessage, config: {} } as Game;
+			await m.finish(game, endOfPeriod);
+			expect(m.updateGameState).toHaveBeenCalledTimes(1);
+			expect(m.updateGameState).toHaveBeenCalledWith(expect.anything(), expect.anything(), false);
+		});
+	});
+
+	it.each([
+		["the game is configured to be manual, and the game was manually stopped", null, false],
+		["the game is configured to be periodic, and the game was automatically stopped", 'month', true],
+		["the game is configured to be periodic, and the game was manually stopped", 'month', false],
+	])("does not automatically restart when auto-restart is off, %s", async (_, period, endOfPeriod) => {
+		const game = { channel, statusMessage, config: { period, autoRestart: false } } as Game;
+		await m.finish(game, endOfPeriod);
+		expect(m.start).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		["the game is configured to be manual, and the game was manually stopped", null, false],
+		["the game is configured to be periodic, and the game was automatically stopped", 'month', true],
+	])("automatically restarts when auto-restart is on, %s", async (_, period, endOfPeriod) => {
+		const game = { channel, statusMessage, config: { period, autoRestart: true } } as Game;
+		await m.finish(game, endOfPeriod);
+		expect(m.start).toHaveBeenCalledTimes(1);
+		expect(m.start).toHaveBeenCalledWith(game);
+	});
+
+	it("does not automatically restart when auto-restart is on, the game is configured to be periodic, and the game was manually stopped", async () => {
+		const game = { channel, statusMessage, config: { period: 'month', autoRestart: true } } as Game;
+		await m.finish(game, false);
+		expect(m.start).not.toHaveBeenCalled();
 	});
 });

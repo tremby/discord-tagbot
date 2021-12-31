@@ -1,9 +1,8 @@
 import type { MessageOptions, EmbedFieldData, User } from 'discord.js';
 import { Constants } from 'discord.js';
 
-import { getScoresEmbedField } from './scoring';
+import { getScoresEmbedField, formatScores } from './scoring';
 import { getMessageUsers } from './message';
-import { getStatusMessage } from './channel';
 import { toList } from './string';
 import { clearTimers, setTimers } from './timers';
 import { getFormattedDeadline } from './deadline';
@@ -59,7 +58,7 @@ export function getStatusEmbedField(game: Game): EmbedFieldData {
 export function formatGameStatusMessage(game: Game): MessageOptions {
 	return {
 		embeds: [{
-			title: "Tag game status",
+			title: "Start of tag game",
 			fields: [
 				thisModule.getStatusEmbedField(game),
 				getScoresEmbedField(game, 'full'),
@@ -71,46 +70,19 @@ export function formatGameStatusMessage(game: Game): MessageOptions {
 /**
  * Update the game status message.
  *
- * This searches for the message if it is not known yet,
- * updates it it found,
- * or posts and pins a new message otherwise.
+ * Returns true or false based on whether the message was found and updated.
  */
 export async function updateGameStatusMessage(game: Game): Promise<void> {
-	const statusMessage = thisModule.formatGameStatusMessage(game);
-
-	// If we don't know of a status message, try to find it
-	if (game.statusMessage == null) {
-		game.statusMessage = await getStatusMessage(game.channel);
-	}
-
-	// Attempt to update an existing game status message
-	try {
-		if (game.statusMessage != null) {
-			await game.statusMessage.edit(statusMessage);
-			return;
-		}
-	} catch (error) {
-		// We handle only "Unknown Message"
-		if (error.code !== Constants.APIErrors.UNKNOWN_MESSAGE) {
-			throw error;
-		}
-	}
-
-	// If we're here we either caught "Unknown Message"
-	// when trying to edit the existing game status message,
-	// or we didn't find one at all,
-	// so we send and pin a new one.
-	game.statusMessage = await game.channel.send(statusMessage);
-	await game.statusMessage.pin();
+	await game.statusMessage.edit(thisModule.formatGameStatusMessage(game));
 }
 
 /**
  * Update the game state.
  *
  * This clears an old timer or sets a new reminder timer if appropriate.
- * This also updates the game status message.
+ * This also updates the game status message by default.
  */
-export async function updateGameState(game: Game, newState: GameState): Promise<void> {
+export async function updateGameState(game: Game, newState: GameState, updateStatus: boolean = true): Promise<void> {
 	// Clear old timers if appropriate
 	clearTimers(game);
 
@@ -121,7 +93,8 @@ export async function updateGameState(game: Game, newState: GameState): Promise<
 	game.state = newState;
 
 	// Update status message
-	await thisModule.updateGameStatusMessage(game);
+	if (updateStatus)
+		await thisModule.updateGameStatusMessage(game);
 }
 
 /**
@@ -135,4 +108,119 @@ export function getDisqualifiedPlayersEmbedField(game: Game): EmbedFieldData | n
 		name: "Users disqualified from this round",
 		value: game.state.disqualifiedFromRound.size ? toList(game.state.disqualifiedFromRound) : "None",
 	};
+}
+
+/**
+ * Start a game.
+ */
+export async function start(game: Game): Promise<void> {
+	if (!thisModule.gameStateIsInactive(game.state)) {
+		throw new Error("Game is already running");
+	}
+
+	// Update game state
+	await thisModule.updateGameState(game, { status: 'free' }, false);
+
+	// Post new game status message
+	game.statusMessage = await game.channel.send(thisModule.formatGameStatusMessage(game));
+	await game.statusMessage.pin();
+
+	// Announce in chat channel if there is one
+	if (game.config.chatChannel) {
+		await game.config.chatChannel.send({
+			embeds: [{
+				title: "Tag game started",
+				description: `The tag game in ${game.channel} has begun!`,
+				fields: [
+					{
+						name: "Links",
+						value: `[Jump to start of game](${game.statusMessage.url})`,
+					},
+				],
+			}],
+		});
+	}
+}
+
+/**
+ * Finish a game.
+ *
+ * Depending on game configuration it may immediately restart.
+ *
+ * Pass true for the "endOfPeriod" parameter if this was triggered by the end of
+ * the game's period coming around.
+ */
+export async function finish(game: Game, endOfPeriod: boolean = false): Promise<void> {
+	if (thisModule.gameStateIsInactive(game.state)) {
+		throw new Error("Game is not running");
+	}
+
+	// Post new message in game channel with game results
+	const resultsMessage = await game.channel.send({
+		embeds: [{
+			title: "Game results",
+			fields: [
+				getScoresEmbedField(game, 'full'),
+				{
+					name: "Links",
+					value: `[Jump to start of game](${game.statusMessage.url})`,
+				},
+			],
+		}],
+	});
+
+	// Collect things to do in parallel
+	const promises = [];
+
+	// Pin the results message
+	promises.push(resultsMessage.pin());
+
+	// Edit the status message to just mark the start of the game
+	promises.push(game.statusMessage.edit({
+		embeds: [{
+			title: "Start of tag game",
+			description: "This game has now finished.",
+			fields: [
+				{
+					name: "Links",
+					value: `[Jump to end of the game and scores](${resultsMessage.url})`,
+				},
+			],
+		}],
+	}));
+
+	// Unpin the start of game message
+	promises.push(game.statusMessage.unpin());
+
+	// Announce in chat channel
+	if (game.config.chatChannel) {
+		promises.push(game.config.chatChannel.send({
+			embeds: [{
+				title: "Tag game over",
+				description: `The tag game in ${game.channel} has finished!`,
+				fields: [
+					getScoresEmbedField(game, 'brief'),
+					{
+						name: "Links",
+						value: `[Jump to start of game](${game.statusMessage.url})\n[Jump to end of game and full scores](${game.statusMessage.url})`,
+					},
+				],
+			}],
+		}));
+	}
+
+	// Wait for them all to finish
+	await Promise.all(promises);
+
+	// Forget the status message, which is no longer the status message
+	game.statusMessage = null;
+
+	// Update game state
+	await thisModule.updateGameState(game, { status: 'inactive' }, false);
+
+	if (game.config.autoRestart && (game.config.period == null || endOfPeriod)) {
+		// The game is configured to auto-restart,
+		// and either a period just finished, or the game was manually ended.
+		await thisModule.start(game);
+	}
 }

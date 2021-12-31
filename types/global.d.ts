@@ -33,7 +33,8 @@ declare global {
 		state: GameState;
 
 		/**
-		 * The message tracking the game status.
+		 * The message tracking the game status
+		 * and indicating when the game began.
 		 */
 		statusMessage: Message | null;
 	};

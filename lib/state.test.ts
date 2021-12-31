@@ -12,10 +12,6 @@ import { writeFile, readFile } from 'fs/promises';
 const mockWriteFile = mocked(writeFile);
 const mockReadFile = mocked(readFile);
 
-jest.mock('./channel');
-import { getStatusMessage } from './channel';
-const mockGetStatusMessage = mocked(getStatusMessage);
-
 jest.mock('./scoring');
 import { recount } from './scoring';
 const mockRecount = mocked(recount);
@@ -163,6 +159,14 @@ describe("loadFromDisk", () => {
 		jest.spyOn(client.users, 'fetch').mockImplementation(async (id) => id === 'user-1' ? user1 : user2);
 		// @ts-ignore: bug in types? this method is certainly allowed to return single roles
 		jest.spyOn(guild.roles, 'fetch').mockImplementation(async (id) => id === 'role-1' ? role1 : role2);
+		jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(
+			// @ts-expect-error: overloaded function; mocking it properly would be a pain
+			statusMessage
+		);
+		jest.spyOn(channel2.messages, 'fetch').mockResolvedValue(
+			// @ts-expect-error: overloaded function; mocking it properly would be a pain
+			statusMessage
+		);
 
 		mockRecount.mockResolvedValue({
 			status: 'awaiting-match',
@@ -488,10 +492,9 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		mockGetStatusMessage.mockResolvedValue(statusMessage);
 		await m.loadFromDisk(client);
-		expect(mockGetStatusMessage).toHaveBeenCalledTimes(1);
-		expect(mockGetStatusMessage).toHaveBeenCalledWith(channel1, 'abc');
+		expect(channel1.messages.fetch).toHaveBeenCalledTimes(1);
+		expect(channel1.messages.fetch).toHaveBeenCalledWith('abc');
 		expect([...state.games][0]).toHaveProperty('statusMessage', statusMessage);
 	});
 
