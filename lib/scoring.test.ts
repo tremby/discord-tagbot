@@ -1058,6 +1058,18 @@ describe("getScoresEmbedField", () => {
 		expect(m.getScoresEmbedField(noScoresGame, 'full')).toHaveProperty('value', expect.stringMatching(/none/i));
 	});
 
+	it("notes that there are no scores if there is no scores set", () => {
+		const noScoresGame: Game = {
+			...game,
+			state: {
+				...game.state,
+				scores: null,
+			},
+		};
+		expect(m.getScoresEmbedField(noScoresGame, 'brief')).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedField(noScoresGame, 'full')).toHaveProperty('value', expect.stringMatching(/none/i));
+	});
+
 	it("notes that there are no scores if there are none", () => {
 		const noScoresGame: Game = {
 			...game,

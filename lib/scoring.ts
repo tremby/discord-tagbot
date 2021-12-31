@@ -377,7 +377,7 @@ function maybeMedal(position: number): string {
 function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
 	if (gameStateIsInactive(game.state))
 		return "None";
-	if (game.state.scores.size === 0)
+	if (game.state.scores == null || game.state.scores.size === 0)
 		return "None";
 	if (format === 'brief' && game.state.scores.size > 3)
 		return `${thisModule.formatScores(game.state.scores, 3)}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
