@@ -209,7 +209,7 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 					getScoresEmbedField(game, 'brief'),
 					{
 						name: "Links",
-						value: `[Jump to start of game](${game.statusMessage.url})\n[Jump to end of game and full scores](${game.statusMessage.url})`,
+						value: `[Jump to start of game](${game.statusMessage.url})\n[Jump to end of game and full scores](${resultsMessage.url})`,
 					},
 				],
 			}],
