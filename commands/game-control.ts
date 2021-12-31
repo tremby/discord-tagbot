@@ -92,7 +92,7 @@ const commandSpec: SlashCommandSpec = {
 				// Respond to user
 				await deferralPromise;
 				if (gameStateIsInactive(game.state)) {
-					await interaction.reply({
+					await interaction.editReply({
 						embeds: [{
 							title: "Tag game finished",
 							description: `Tag game in ${channel} has been finished. The game is now in an inactive state.`,
@@ -100,10 +100,9 @@ const commandSpec: SlashCommandSpec = {
 								getStatusEmbedField(game),
 							],
 						}],
-						ephemeral: true,
 					});
 				} else {
-					await interaction.reply({
+					await interaction.editReply({
 						embeds: [{
 							title: "Tag game restarted",
 							description: `Tag game in ${channel} has been finished and restarted.`,
@@ -111,7 +110,6 @@ const commandSpec: SlashCommandSpec = {
 								getStatusEmbedField(game),
 							],
 						}],
-						ephemeral: true,
 					});
 				}
 
