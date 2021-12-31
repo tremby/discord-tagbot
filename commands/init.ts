@@ -3,7 +3,6 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import appState, { persistToDisk } from '../lib/state';
 import { getDefaultConfig, getConfigEmbedFields } from '../lib/config';
-import { getScoresEmbedField } from '../lib/scoring';
 import { getStatusEmbedField } from '../lib/game-state';
 
 const commandSpec: SlashCommandSpec = {
@@ -30,15 +29,12 @@ const commandSpec: SlashCommandSpec = {
 			return;
 		}
 
-		// We might take a bit of time counting scores so warn the user
-		const deferralPromise = interaction.deferReply({ ephemeral: true });
-
 		// Set up the initial game object
 		const game: Game = {
 			channel,
 			config: getDefaultConfig(),
 			statusMessage: null,
-			state: { status: 'free' },
+			state: { status: 'inactive' },
 		};
 
 		// Register the game
@@ -46,17 +42,16 @@ const commandSpec: SlashCommandSpec = {
 		persistToDisk();
 
 		// Respond to user
-		await deferralPromise;
-		await interaction.editReply({
+		await interaction.reply({
 			embeds: [{
 				title: "New tag game",
-				description: `Tag game initialized in ${channel}.`,
+				description: `Tag game initialized in ${channel}. You may now want to configure and start it.`,
 				fields: [
 					...getConfigEmbedFields(game.config),
 					getStatusEmbedField(game),
-					getScoresEmbedField(game, 'brief'),
-				],
+				].flat(),
 			}],
+			ephemeral: true,
 		});
 	},
 };

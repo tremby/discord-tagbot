@@ -375,11 +375,8 @@ function maybeMedal(position: number): string {
  * Get a message about a game's scores.
  */
 function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
-	if (game.state.scores == null) {
-		if (game.statusMessage == null)
-			return "Not currently available (can't find pinned status message)";
-		return `See [pinned status post](${game.statusMessage.url})`;
-	}
+	if (gameStateIsInactive(game.state))
+		return "None";
 	if (game.state.scores.size === 0)
 		return "None";
 	if (format === 'brief' && game.state.scores.size > 3)

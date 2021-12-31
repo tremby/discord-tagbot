@@ -17,10 +17,6 @@ import { getDefaultConfig, getConfigEmbedFields } from '../lib/config';
 const mockGetDefaultConfig = mocked(getDefaultConfig);
 const mockGetConfigEmbedFields = mocked(getConfigEmbedFields);
 
-jest.mock('../lib/scoring');
-import { getScoresEmbedField } from '../lib/scoring';
-const mockGetScoresEmbedField = mocked(getScoresEmbedField);
-
 const configEmbedFields = [
 	{
 		name: "Config field 1",

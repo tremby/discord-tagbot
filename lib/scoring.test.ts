@@ -1047,29 +1047,15 @@ describe("getScoresEmbedField", () => {
 		expect(m.getScoresEmbedField(game, 'full')).toHaveProperty('name', "Scores");
 	});
 
-	it("points to the pinned post if scores is null", () => {
-		const nullScoresGame: Game = {
+	it("notes that there are no scores if the game is inactive", () => {
+		const noScoresGame: Game = {
 			...game,
 			state: {
-				...game.state,
-				scores: null,
+				...stateInactive,
 			},
 		};
-		expect(m.getScoresEmbedField(nullScoresGame, 'brief')).toHaveProperty('value', expect.stringContaining(statusMessage.url));
-		expect(m.getScoresEmbedField(nullScoresGame, 'full')).toHaveProperty('value', expect.stringContaining(statusMessage.url));
-	});
-
-	it("produces some error message if it wants to point to the status because there are no scores post but can't", () => {
-		const nullScoresGame: Game = {
-			...game,
-			statusMessage: null,
-			state: {
-				...game.state,
-				scores: null,
-			},
-		};
-		expect(m.getScoresEmbedField(nullScoresGame, 'brief')).toHaveProperty('value', expect.any(String));
-		expect(m.getScoresEmbedField(nullScoresGame, 'full')).toHaveProperty('value', expect.any(String));
+		expect(m.getScoresEmbedField(noScoresGame, 'brief')).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedField(noScoresGame, 'full')).toHaveProperty('value', expect.stringMatching(/none/i));
 	});
 
 	it("notes that there are no scores if there are none", () => {

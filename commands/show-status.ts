@@ -1,6 +1,10 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { getStatusEmbedField, getDisqualifiedPlayersEmbedField } from '../lib/game-state';
+import {
+	gameStateIsInactive,
+	getStatusEmbedField,
+	getDisqualifiedPlayersEmbedField,
+} from '../lib/game-state';
 import { getScoresEmbedField } from '../lib/scoring';
 
 const commandSpec: SlashCommandSpec = {
@@ -19,7 +23,7 @@ const commandSpec: SlashCommandSpec = {
 				description: `This is the current game status in ${channel}. See the [pinned status post](${game.statusMessage.url}) for the full list of scores.`,
 				fields: [
 					getStatusEmbedField(game),
-					getScoresEmbedField(game, 'brief'),
+					gameStateIsInactive(game.state) ? [] : getScoresEmbedField(game, 'brief'),
 					getDisqualifiedPlayersEmbedField(game) ?? [],
 				].flat(),
 			}],
