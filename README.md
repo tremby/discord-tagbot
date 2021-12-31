@@ -36,7 +36,7 @@ It also polices who can post images in the game channel:
 The bot can track multiple tag games at once,
 each with different configurations.
 
-Each tag game must be in its own Discord channel,
+Each concurrent tag game must be in its own Discord channel,
 and it must be a text-based channel.
 
 There can optionally be a chat channel associated with each game channel,
@@ -45,37 +45,24 @@ This can be the same chat channel for multiple game channels,
 or there can be a separate chat channel for each.
 
 The bot is sophisticated enough to notice edits, deletions, and bulk-deletions in game channels.
-In each case, a recount is triggered.
+In each case, a recount is triggered
+if the edited or deleted message is within the timeframe of the current game.
 If any scores change, it is announced in the chat channel, if one is set.
 
 The bot is set up and controlled via slash-commands.
-The commands can be run from any channel.
-If you want the command to affect a game running in a different channel,
-you need to specify the game channel as an option to the command.
-You can leave this out if you intend the command to take action on the current channel
-(where you type your slash command).
+The commands must be run in the channel the game is to take place in.
 
 ### Registering a game
 
-A tag game can be registered when already in motion
-(as long as the players stuck to the conventions the bot expects)
-or in an empty channel.
-
 To register a game, use the `/tag-init` command
 in the channel which will host the game.
-This will do a few things:
+This will register the channel as one hosting a game,
+set the game's status to "inactive",
+and start watching incoming messages.
 
-- Register that channel as one hosting a game
-- Look through all messages so far posted,
-  and determine the game state and current scores
-- Post and pin a status message to the game channel,
-  which will remain updated
-
-From now on, messages being sent to this channel will be watched.
-
-You can undo this, and unregister a game by using `/tag-forget`.
+You can undo this, and unregister the channel by using `/tag-forget`.
 This will stop tracking the game.
-It won't do anything else -- for example, the tagged status message is not removed;
+It won't do anything else -- for example, any messages posted by the bot are not removed;
 this can be done manually.
 
 These commands can only be performed by server admins.
@@ -139,31 +126,32 @@ and by tag judges for the game in question.
 
 ### Inactive games
 
-If a game is finished without restarting,
-it goes into the "inactive" state.
+When a channel is first registered via the `/tag-init` command,
+and if a game is finished without restarting,
+it is in the "inactive" state.
 
 This means any new messages with images coming in will be deleted immediately,
-with a message reminding the author that the game is finished.
-
-The status message in the game channel with the latest scoreboard will remain pinned.
+with a message reminding the author that the game is inactive.
 
 ### Starting and stopping the game
 
 The game can be started and stopped with the `/tag-game-control` commands.
 
 - **`/tag-game-control start`:** starts the game.
-  A message which will be kept up to date with scores and status
+  A message marking the start of the game
+  and which will be kept up to date with scores and status
   is posted in the game channel, and pinned.
   If a chat channel in configured, an announcement is made here too.
 
 - **`/tag-game-control finish`:** finishes the game.
-  The start/status message posted when the game started is edited
-  to mark the start of the game and link to the end, and is unpinned;
-  it no longer shows the scores.
+  The start/status message posted when the game started is
+  edited to link to the end,
+  unpinned,
+  and no longer shows the scores.
   A new message is posted in the game channel showing the final scores.
   If a chat channel is configured, an announcement is made here too.
 
-  Game stopped in this way will not automatically restart.
+  Games stopped in this way will not automatically restart right away.
   If configured to be periodic and to automatically restart,
   a game stopped in this way will restart automatically
   when the period rolls around.
@@ -244,6 +232,7 @@ Future
 - Extract clues (spoiler tags) and print in "new tag" and "tag matched" messages?
 - Awards at game end time (most-reacted, ???)
 - Default locale to system locale, or environment variable
+- Only allow specific players to post first tag at the start of the next game
 
 Near future:
 - abstract timers with a setInterval running once an hour or whatever to keep them on track
