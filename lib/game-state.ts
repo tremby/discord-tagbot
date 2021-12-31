@@ -119,7 +119,10 @@ export async function start(game: Game): Promise<void> {
 	}
 
 	// Update game state
-	await thisModule.updateGameState(game, { status: 'free' }, false);
+	await thisModule.updateGameState(game, {
+		status: 'free',
+		scores: new Map(),
+	}, false);
 
 	// Post new game status message
 	game.statusMessage = await game.channel.send(thisModule.formatGameStatusMessage(game));
