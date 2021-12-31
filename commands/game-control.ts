@@ -19,7 +19,7 @@ commandDescription.addSubcommand((sc) => sc
 
 commandDescription.addSubcommand((sc) => sc
 	.setName('finish')
-	.setDescription("Finish the game, and restart if configured to.")
+	.setDescription("Finish the game.")
 );
 
 const commandSpec: SlashCommandSpec = {
