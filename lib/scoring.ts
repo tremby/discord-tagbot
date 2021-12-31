@@ -381,7 +381,7 @@ function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
 		return `See [pinned status post](${game.statusMessage.url})`;
 	}
 	if (game.state.scores.size === 0)
-		return "None yet";
+		return "None";
 	if (format === 'brief' && game.state.scores.size > 3)
 		return `${thisModule.formatScores(game.state.scores, 3)}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
 	return thisModule.formatScores(game.state.scores);
