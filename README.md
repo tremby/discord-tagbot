@@ -214,7 +214,14 @@ Alternatively, set the bot's login token as `DISCORD_TOKEN` in your environment.
 
 ### Add the bot to a server
 
-`https://discord.com/api/oauth2/authorize?client_id=<APPLICATION_ID>&permissions=75776&scope=bot`
+`https://discord.com/api/oauth2/authorize?client_id=<APPLICATION_ID>&permissions=2147559424&scope=bot`
+
+Those permissions are:
+
+- Send messages
+- Manage messages
+- Read message history
+- Use slash commands
 
 ### Build the application
 
