@@ -56,15 +56,13 @@ client.on('ready', async () => {
 	}
 	finishedRestoring = true;
 
-	// Register slash commands with all servers
+	// Register slash commands
 	const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
-	for (const guild of client.guilds.cache.values()) {
-		console.log(`Registering slash commands with guild ${guild.id} (${guild.name})`);
-		await rest.put(Routes.applicationGuildCommands(client.application.id, guild.id), {
-			body: commands.map((command) => command.description),
-		});
-		console.log("...done");
-	}
+	console.log("Registering slash commands");
+	await rest.put(Routes.applicationCommands(client.application.id), {
+		body: commands.map((command) => command.description),
+	});
+	console.log("...done");
 
 	// Listen for and handle new messages
 	client.on('messageCreate', async (message) => {
