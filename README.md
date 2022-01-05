@@ -243,3 +243,4 @@ Future
 Near future:
 - abstract timers with a setInterval running once an hour or whatever to keep them on track
 - add game scheduling
+- store state either on disk (current behaviour) or document store (redis?) based on configuration
