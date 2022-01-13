@@ -1118,18 +1118,35 @@ describe("getScoresEmbedField", () => {
 
 	it("does not give a link to the full scoreboard if it showed all the scores", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("the top scores");
-		const result = m.getScoresEmbedField({
-			...game,
-			state: {
-				...game.state,
-				scores: new Map([
-					[user1, 1],
-					[user2, 2],
-					[user3, 3],
-				]),
-			},
-		}, 'brief');
-		expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage.url));
+		{
+			const result = m.getScoresEmbedField({
+				...game,
+				state: {
+					...game.state,
+					scores: new Map([
+						[user1, 1],
+						[user2, 2],
+						[user3, 3],
+					]),
+				},
+			}, 'brief');
+			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage.url));
+		}
+		{
+			const result = m.getScoresEmbedField({
+				...game,
+				state: {
+					...game.state,
+					scores: new Map([
+						[user1, 1],
+						[user2, 2],
+						[user3, 3],
+						[user4, 3],
+					]),
+				},
+			}, 'brief');
+			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage.url));
+		}
 	});
 
 	it("shows some string (doesn't crash) if trying to give a link no the status message when unable", () => {
