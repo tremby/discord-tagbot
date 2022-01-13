@@ -321,6 +321,18 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
 }
 
 /**
+ * Rejig a scores map to be keyed by score and point to a list of users
+ */
+function usersByScore(scores: Scores): Map<number, User[]> {
+	const byScore: Map<number, User[]> = new Map();
+	for (const [user, score] of scores) {
+		if (byScore.has(score)) byScore.get(score).push(user);
+		else byScore.set(score, [user]);
+	}
+	return byScore;
+}
+
+/**
  * Format a set of scores into a string.
  */
 export function formatScores(scores: Scores, max: number | null = null): string {
@@ -330,12 +342,8 @@ export function formatScores(scores: Scores, max: number | null = null): string 
 	// Sort by score descending
 	records.sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
 
-	// Rejig the scores map to be keyed by score and point to a list of users
-	const byScore: Map<number, User[]> = new Map();
-	for (const [user, score] of scores) {
-		if (byScore.has(score)) byScore.get(score).push(user);
-		else byScore.set(score, [user]);
-	}
+	// Get users by score
+	const byScore = usersByScore(scores);
 
 	// Sort all the user lists by ID, just for stability
 	for (const [, users] of byScore) {
