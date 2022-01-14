@@ -160,7 +160,6 @@ client.on('ready', async () => {
 					description: `Scores were just recounted in ${game.channel} due to an edited message.`,
 					fields: [
 						{ ...getScoreChangesEmbedField(changedScores), inline: true },
-						{ ...getScoresEmbedField(game, 'brief'), inline: true },
 					],
 				}],
 			});
@@ -227,7 +226,6 @@ client.on('ready', async () => {
 					description: `Scores were just recounted in ${game.channel} due to a deleted message.`,
 					fields: [
 						{ ...getScoreChangesEmbedField(changedScores), inline: true },
-						{ ...getScoresEmbedField(game, 'brief'), inline: true },
 					],
 				}],
 			});
@@ -300,7 +298,6 @@ client.on('ready', async () => {
 						description: `Scores were just recounted in ${game.channel} due to one or more deleted messages.`,
 						fields: [
 							{ ...getScoreChangesEmbedField(changedScores), inline: true },
-							{ ...getScoresEmbedField(game, 'brief'), inline: true },
 						],
 					}],
 				});

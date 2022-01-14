@@ -101,28 +101,8 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 					embeds: [
 						...[...message.attachments.values()].map((attachment) => ({
 							title: "New tag",
-							description: `New tag in ${game.channel}!`,
+							description: `New tag in ${game.channel} by ${toList(authors)}. [See tag post](${message.url})`,
 							thumbnail: { url: attachment.url },
-							fields: [
-								{
-									name: "Tagged by",
-									value: toList(authors),
-								},
-								{
-									name: "Date",
-									value: `<t:${Math.round(message.createdTimestamp / 1e3)}>`,
-									inline: true,
-								},
-								gameStateIsAwaitingNext(game.state) ? {
-									name: "Time taken",
-									value: msToHumanReadable(message.createdTimestamp - game.state.match.createdTimestamp),
-									inline: true,
-								} : undefined,
-								{
-									name: "Link",
-									value: `[See tag post](${message.url})`,
-								},
-							].filter((field) => field),
 						})),
 					],
 				});
@@ -230,34 +210,10 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 				embeds: [
 					...[...message.attachments.values()].map((attachment) => ({
 						title: "New tag match",
-						description: `Tag matched in ${game.channel}!`,
+						description: `Tag matched in ${game.channel} by ${toList(authors)}. [See tag match post](${message.url})`,
 						thumbnail: { url: attachment.url },
 						fields: [
-							{
-								name: "Matched by",
-								value: toList(authors),
-							},
-							{
-								name: "Date",
-								value: `<t:${Math.round(message.createdTimestamp / 1e3)}>`,
-								inline: true,
-							},
-							{
-								name: "Time taken",
-								value: msToHumanReadable(message.createdTimestamp - state.tag.createdTimestamp),
-								inline: true,
-							},
-							{
-								name: "Deadline for next tag",
-								value: getFormattedDeadline({ ...game, state: newState }, 'R'),
-								inline: true,
-							},
 							{ ...thisModule.getScoreChangesEmbedField(thisModule.getChangedScores(game.state.scores, newState.scores)), inline: true },
-							{ ...thisModule.getScoresEmbedField({ ...game, state: newState }, 'brief'), inline: true },
-							{
-								name: "Links",
-								value: `[See tag match post](${message.url})\n[See original tag](${state.tag.url})`,
-							},
 						],
 					})),
 				],
