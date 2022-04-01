@@ -16,6 +16,8 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Show the current status for the tag game in this channel."),
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("show-status command should always have game set");
+
 		// Reply to user with status
 		await interaction.reply({
 			embeds: [{

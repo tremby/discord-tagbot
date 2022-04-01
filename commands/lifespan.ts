@@ -49,6 +49,8 @@ const commandSpec: SlashCommandSpec = {
 	description: commandDescription,
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("lifespan commands should always have game set");
+
 		switch (interaction.options.getSubcommand()) {
 			case 'period': {
 				// Inform the user this may take time
@@ -91,7 +93,7 @@ const commandSpec: SlashCommandSpec = {
 				const deferralPromise = interaction.deferReply({ ephemeral: true });
 
 				// Get the specified setting
-				const autoRestart = interaction.options.getBoolean('auto-restart');
+				const autoRestart = interaction.options.getBoolean('auto-restart') ?? false;
 
 				// Set the new configuration
 				game.config = {
@@ -124,6 +126,17 @@ const commandSpec: SlashCommandSpec = {
 
 				// Get the specified setting
 				const locale = interaction.options.getString('locale');
+
+				if (locale == null) {
+					await interaction.reply({
+						embeds: [{
+							title: "Error",
+							description: "Locale was not specified.",
+						}],
+						ephemeral: true,
+					});
+					return;
+				}
 
 				// Set the new configuration
 				game.config = {

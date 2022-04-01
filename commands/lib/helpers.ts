@@ -18,6 +18,8 @@ export class NoTextChannelError extends BotError {};
  * @throws {ProblemCheckingPermissionsError}
  */
 export function isAdmin(interaction: CommandInteraction): boolean {
+	if (interaction.member == null) throw new ProblemCheckingPermissionsError("Couldn't get member from interaction");
+
 	// FIXME: Issue with types? Docs say GuildMember.permissions is a
 	// ReadOnly<Permissions> but the types currently say it could also
 	// be a string.
@@ -41,6 +43,8 @@ export function isAdminOrTagJudge(interaction: CommandInteraction, game: Game): 
 	// If the user is an admin we're done
 	if (thisModule.isAdmin(interaction)) return true;
 
+	if (interaction.member == null) throw new ProblemCheckingPermissionsError("Couldn't get member from interaction");
+
 	// Allow tag judges
 	const memberRoles = interaction.member.roles;
 	if (!isGuildMemberRoleManager(memberRoles)) {
@@ -62,15 +66,11 @@ export function isAdminOrTagJudge(interaction: CommandInteraction, game: Game): 
  * @returns {Channel} The channel associated with the interaction.
  * @throws {NoTextChannelError}
  */
-export function getValidChannel(interaction: CommandInteraction, optionName: string = null): TextChannel {
+export function getValidChannel(interaction: CommandInteraction, optionName?: string): TextChannel {
 	const channel = optionName ? interaction.options.getChannel(optionName) : interaction.channel;
 
 	if (optionName && channel == null) {
 		throw new NoTextChannelError(`A channel was required for ${optionName}`);
-	}
-
-	if (("deleted" in channel) && channel.deleted) {
-		throw new NoTextChannelError("This only works on channels which have not been deleted.");
 	}
 
 	if (!channelIsTextChannel(channel)) {

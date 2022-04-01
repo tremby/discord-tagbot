@@ -9,7 +9,7 @@ import { channelIsTextChannel, getGameOfChannel } from './channel';
  * Videos are also accepted.
  */
 export function messageHasImage(message: Message | PartialMessage): boolean {
-	return message.attachments.some((attachment) => attachment.contentType?.startsWith('image/') || attachment.contentType?.startsWith('video/'));
+	return message.attachments.some((attachment) => (attachment.contentType?.startsWith('image/') || attachment.contentType?.startsWith('video/')) ?? false);
 }
 
 /**
@@ -18,7 +18,7 @@ export function messageHasImage(message: Message | PartialMessage): boolean {
  * That is, the user who posted it, plus anyone mentioned.
  */
 export function getMessageUsers(message: Message | PartialMessage): Set<User> {
-	return new Set<User>([message.author, ...message.mentions.users.values()]);
+	return new Set<User>([message.author!, ...message.mentions.users.values()]);
 }
 
 /**

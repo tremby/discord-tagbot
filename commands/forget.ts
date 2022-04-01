@@ -13,6 +13,8 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Make the bot forget this channel."),
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("forget command should always have game set");
+
 		// Stop any timers
 		clearTimers(game);
 

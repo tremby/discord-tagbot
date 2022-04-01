@@ -44,6 +44,8 @@ const commandSpec: SlashCommandSpec = {
 	description: commandDescription,
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("disqualified commands should always have game set");
+
 		// Handle the case where the current game state
 		// cannot have a list of disqualified users
 		if (!gameStateIsAwaitingNext(game.state) && !gameStateIsAwaitingMatch(game.state)) {
@@ -63,13 +65,25 @@ const commandSpec: SlashCommandSpec = {
 				// Get the specified user
 				const user = interaction.options.getUser('user');
 
+				if (user == null) {
+					await interaction.reply({
+						embeds: [{
+							title: "Error",
+							description: `Couldn't find user ${user}.`,
+						}],
+						ephemeral: true,
+					});
+					return;
+				}
+
 				// Handle the case where the user is already in the exclusion list
 				if (game.state.disqualifiedFromRound.has(user)) {
+					const field = getDisqualifiedPlayersEmbedField(game);
 					await interaction.reply({
 						embeds: [{
 							title: "Error",
 							description: `${user} is already disqualified from the current round in ${channel}.`,
-							fields: [getDisqualifiedPlayersEmbedField(game)],
+							fields: field ? [field] : [],
 						}],
 						ephemeral: true,
 					});
@@ -80,11 +94,12 @@ const commandSpec: SlashCommandSpec = {
 				game.state.disqualifiedFromRound.add(user);
 
 				// Respond to user
+				const field = getDisqualifiedPlayersEmbedField(game);
 				await interaction.reply({
 					embeds: [{
 						title: "Current round player exclusion list updated",
 						description: `${user} added to the list of players disqualified from the current round in ${channel}.`,
-						fields: [getDisqualifiedPlayersEmbedField(game)],
+						fields: field ? [field] : [],
 					}],
 					ephemeral: true,
 				});
@@ -96,13 +111,26 @@ const commandSpec: SlashCommandSpec = {
 				// Get the specified user
 				const user = interaction.options.getUser('user');
 
+				if (user == null) {
+					await interaction.reply({
+						embeds: [{
+							title: "Error",
+							description: `Couldn't find user ${user}.`,
+						}],
+						ephemeral: true,
+					});
+					return;
+				}
+
+				const field = getDisqualifiedPlayersEmbedField(game);
+
 				// Handle the case where the user is not in the exclusion list
 				if (!game.state.disqualifiedFromRound.has(user)) {
 					await interaction.reply({
 						embeds: [{
 							title: "Error",
 							description: `${user} is not disqualified from the current round in ${channel}.`,
-							fields: [getDisqualifiedPlayersEmbedField(game)],
+							fields: field ? [field] : [],
 						}],
 						ephemeral: true,
 					});
@@ -117,7 +145,7 @@ const commandSpec: SlashCommandSpec = {
 					embeds: [{
 						title: "Current round player exclusion list updated",
 						description: `${user} removed from the list of players disqualified from the current round in ${channel}.`,
-						fields: [getDisqualifiedPlayersEmbedField(game)],
+						fields: field ? [field] : [],
 					}],
 					ephemeral: true,
 				});
@@ -126,13 +154,15 @@ const commandSpec: SlashCommandSpec = {
 			}
 
 			case 'clear':
+				const field = getDisqualifiedPlayersEmbedField(game);
+
 				// Handle the case where the list is already empty
 				if (game.state.disqualifiedFromRound.size === 0) {
 					await interaction.reply({
 						embeds: [{
 							title: "Error",
 							description: `No users are disqualified from the current round in ${channel}.`,
-							fields: [getDisqualifiedPlayersEmbedField(game)],
+							fields: field ? [field] : [],
 						}],
 						ephemeral: true,
 					});
@@ -147,7 +177,7 @@ const commandSpec: SlashCommandSpec = {
 					embeds: [{
 						title: "Current round player exclusion list updated",
 						description: `All players removed from the list of players disqualified from the current round in ${channel}.`,
-						fields: [getDisqualifiedPlayersEmbedField(game)],
+						fields: field ? [field] : [],
 					}],
 					ephemeral: true,
 				});

@@ -4,7 +4,7 @@ import { getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures'
 
 import { DiscordAPIError, Constants } from 'discord.js';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('./scoring');
 import { getScoresEmbedField } from './scoring';
@@ -131,7 +131,7 @@ describe("formatGameStatus", () => {
 		jest.spyOn(m, 'gameStateIsAwaitingMatch').mockReturnValue(false);
 		jest.spyOn(m, 'gameStateIsAwaitingNext').mockReturnValue(false);
 		jest.spyOn(m, 'gameStateIsFree').mockReturnValue(false);
-		mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
+		mockToList.mockImplementation((strings: User[] | Set<User>) => [...strings].join(", "));
 	});
 
 	it("detects an inactive game", () => {
@@ -238,7 +238,7 @@ describe("updateGameStatusMessage", () => {
 
 	beforeEach(() => {
 		jest.spyOn(m, 'formatGameStatusMessage').mockReturnValue({ content: "mock-message" });
-		jest.spyOn(statusMessage, 'edit').mockResolvedValue(null);
+		jest.spyOn(statusMessage, 'edit').mockResolvedValue(statusMessage);
 	});
 
 	it("edits the status message to the new message", async () => {
@@ -251,7 +251,7 @@ describe("updateGameStatusMessage", () => {
 describe("updateGameState", () => {
 	it("clears timers then sets new timers, in that order", async () => {
 		const mockUpdateGameStatusMessage = jest.spyOn(m, 'updateGameStatusMessage').mockImplementation(async () => {});
-		const calls = [];
+		const calls: string[] = [];
 		mockClearTimers.mockImplementation(() => calls.push('clear'));
 		mockSetTimers.mockImplementation(() => calls.push('set'));
 		await m.updateGameState(gameWithState(stateAwaitingNext), stateAwaitingMatch);
@@ -329,13 +329,13 @@ describe("getDisqualifiedPlayersEmbedField", () => {
 		});
 
 		it("lists each passed user", () => {
-			mockToList.mockImplementation((strings: Set<User>) => [...strings].join(", "));
+			mockToList.mockImplementation((strings: User[] | Set<User>) => [...strings].join(", "));
 			const result = m.getDisqualifiedPlayersEmbedField(gameWithState({
 				...state,
 				disqualifiedFromRound: new Set([user1, user2]),
 			} as typeof state));
-			expect(result.value).toEqual(expect.stringContaining("<@100>"));
-			expect(result.value).toEqual(expect.stringContaining("<@200>"));
+			expect(result!.value).toEqual(expect.stringContaining("<@100>"));
+			expect(result!.value).toEqual(expect.stringContaining("<@200>"));
 		});
 
 		it("says 'none' if there were no users", () => {
@@ -343,7 +343,7 @@ describe("getDisqualifiedPlayersEmbedField", () => {
 				...state,
 				disqualifiedFromRound: new Set(),
 			} as typeof state));
-			expect(result.value).toEqual(expect.stringMatching(/none/i));
+			expect(result!.value).toEqual(expect.stringMatching(/none/i));
 		});
 	});
 });
@@ -351,11 +351,11 @@ describe("getDisqualifiedPlayersEmbedField", () => {
 describe("start", () => {
 	beforeEach(() => {
 		jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(true);
-		jest.spyOn(m, 'updateGameState').mockResolvedValue(null);
+		jest.spyOn(m, 'updateGameState').mockResolvedValue();
 		jest.spyOn(m, 'formatGameStatusMessage').mockReturnValue({});
 		jest.spyOn(channel, 'send').mockResolvedValue(statusMessage);
 		jest.spyOn(chatChannel, 'send').mockResolvedValue(chatMessage);
-		jest.spyOn(statusMessage, 'pin').mockResolvedValue(null);
+		jest.spyOn(statusMessage, 'pin').mockResolvedValue(statusMessage);
 	});
 
 	it("throws an error if the game is already running", async () => {
@@ -426,13 +426,13 @@ describe("start", () => {
 describe("finish", () => {
 	beforeEach(() => {
 		jest.spyOn(m, 'gameStateIsInactive').mockReturnValue(false);
-		jest.spyOn(m, 'updateGameState').mockResolvedValue(null);
-		jest.spyOn(m, 'start').mockResolvedValue(null);
+		jest.spyOn(m, 'updateGameState').mockResolvedValue();
+		jest.spyOn(m, 'start').mockResolvedValue();
 		jest.spyOn(channel, 'send').mockResolvedValue(resultsMessage);
 		jest.spyOn(chatChannel, 'send').mockResolvedValue(chatMessage);
-		jest.spyOn(resultsMessage, 'pin').mockResolvedValue(null);
-		jest.spyOn(statusMessage, 'unpin').mockResolvedValue(null);
-		jest.spyOn(statusMessage, 'edit').mockResolvedValue(null);
+		jest.spyOn(resultsMessage, 'pin').mockResolvedValue(resultsMessage);
+		jest.spyOn(statusMessage, 'unpin').mockResolvedValue(statusMessage);
+		jest.spyOn(statusMessage, 'edit').mockResolvedValue(statusMessage);
 	});
 
 	describe.each([

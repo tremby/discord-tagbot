@@ -2,9 +2,9 @@ import commandSpec from './judge-role';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getRole } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 import { Constants } from 'discord.js';
-import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types';
+import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('../lib/state');
 import gameState, { persistToDisk } from '../lib/state';

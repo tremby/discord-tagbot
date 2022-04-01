@@ -27,7 +27,7 @@ function setReminderTimer(game: Game, state: GameState): void {
 	if (game.config.nextTagTimeLimit == null) return;
 
 	// No reminder if the deadline is in the past
-	if (getDeadlineTimestamp({ ...game, state }) < Date.now()) return;
+	if (getDeadlineTimestamp({ ...game, state })! < Date.now()) return;
 
 	// No reminder if the time limit is less than twice the interval
 	if (game.config.nextTagTimeLimit < 2 * REMINDER_INTERVAL_MS) return;
@@ -63,7 +63,7 @@ function setTimeUpTimer(game: Game, state: GameState): void {
 	if (game.config.nextTagTimeLimit == null) return;
 
 	// No timer if the deadline is in the past
-	const timeUntilDeadline = getDeadlineTimestamp({ ...game, state }) - Date.now();
+	const timeUntilDeadline = getDeadlineTimestamp({ ...game, state })! - Date.now();
 	if (timeUntilDeadline < 0) return;
 
 	// Set the timer
@@ -129,16 +129,17 @@ function getTimeUpHandler(game: Game): (() => Promise<void>) {
 		}
 
 		// Announce that the time limit was missed
+		const disqualifiedPlayersEmbedField = getDisqualifiedPlayersEmbedField(game);
 		await (game.config.chatChannel ?? game.channel).send({
 			content: `${toList(matchUsers)}, time has run out.`,
 			embeds: [{
 				title: "Tag match expired",
 				description: `${toList(matchUsers)} didn't post a new tag in ${game.channel} before the time ran out. Their match was deleted. The previous tag is open for matching again!`,
-				thumbnail: { url: attachment.url },
+				thumbnail: { url: attachment!.url },
 				fields: [
 					{ ...getScoreChangesEmbedField(getChangedScores(oldState.scores, newState.scores)), inline: true },
 					{ ...getScoresEmbedField(game, 'brief'), inline: true },
-					{ ...getDisqualifiedPlayersEmbedField(game), inline: true },
+					disqualifiedPlayersEmbedField != null ? { ...disqualifiedPlayersEmbedField, inline: true } : [],
 					{
 						name: "Links",
 						value: [
@@ -165,7 +166,7 @@ export function clearTimers(game: Game): void {
  */
 function clearReminderTimer(game: Game): void {
 	if (!gameStateIsAwaitingNext(game.state)) return;
-	clearTimeout(game.state.reminderTimer);
+	if (game.state.reminderTimer) clearTimeout(game.state.reminderTimer);
 	game.state.reminderTimer = null;
 }
 
@@ -174,6 +175,6 @@ function clearReminderTimer(game: Game): void {
  */
 function clearTimeUpTimer(game: Game): void {
 	if (!gameStateIsAwaitingNext(game.state)) return;
-	clearTimeout(game.state.timeUpTimer);
+	if (game.state.timeUpTimer) clearTimeout(game.state.timeUpTimer);
 	game.state.timeUpTimer = null;
 }

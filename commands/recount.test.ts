@@ -2,7 +2,7 @@ import commandSpec from './recount';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getMessage, getBotUser } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('../lib/scoring');
 import { recount, getChangedScores, getScoreChangesEmbedField } from '../lib/scoring';
@@ -46,7 +46,7 @@ describe("recount command", () => {
 	beforeEach(() => {
 		mockGameStateIsInactive.mockReturnValue(false);
 		mockGetChangedScores.mockReturnValue(new Map());
-		mockRecount.mockImplementation(async (game) => ({ ...game.state }));
+		mockRecount.mockImplementation(async (game) => ({ ...game.state } as GameState));
 	});
 
 	it("warns the user it may take time", async () => {

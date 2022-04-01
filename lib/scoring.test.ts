@@ -2,7 +2,7 @@ import * as m from './scoring';
 import { getBotUser, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 import type { Message, User } from 'discord.js';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('./channel', () => ({
 	getAllMessagesSince: jest.fn(),
@@ -142,13 +142,13 @@ describe("handleMessage", () => {
 	beforeEach(() => {
 		jest.spyOn(console, 'log').mockImplementation();
 		mockMessageHasImage.mockReturnValue(true);
-		mockGetMessageUsers.mockImplementation((message) => new Set([message.author, ...message.mentions.users.values()]));
-		mockDeleteMessage.mockResolvedValue(null);
+		mockGetMessageUsers.mockImplementation((message) => new Set([message.author!, ...message.mentions.users.values()]));
+		mockDeleteMessage.mockResolvedValue();
 	});
 
 	describe("recount mode", () => {
 		it("throws an error if it finds itself starting from an inactive state", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(textMessage);
 			expect(async () => {
 				await m.handleMessage(gameWithState(stateInactive), textMessage, 'recount');
 			}).rejects.toThrowError();
@@ -157,7 +157,7 @@ describe("handleMessage", () => {
 		});
 
 		it("ignores messages sent by the bot", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(textMessage);
 			expect(await m.handleMessage(gameWithState(stateFree), botMessage, 'recount')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingMatch), botMessage, 'recount')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingNext), botMessage, 'recount')).toBeNull();
@@ -166,7 +166,7 @@ describe("handleMessage", () => {
 		});
 
 		it("ignores messages with no images", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(textMessage);
 			mockMessageHasImage.mockReturnValue(false);
 			expect(await m.handleMessage(gameWithState(stateFree), textMessage, 'recount')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingMatch), textMessage, 'recount')).toBeNull();
@@ -182,23 +182,23 @@ describe("handleMessage", () => {
 		});
 
 		it("handles an initial tag", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState(stateFree), tagByUser1, 'recount');
 			expect(result).toHaveProperty('status', 'awaiting-match');
-			expect(result.scores.size).toBe(0);
+			expect(result!.scores!.size).toBe(0);
 			expect(result).toHaveProperty('tag', tagByUser1);
 			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
 
 		it("makes no announcement on an initial tag", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState(stateFree), tagByUser1, 'recount');
 			expect(result).toHaveProperty('status', 'awaiting-match');
 			expect(mockSend).not.toHaveBeenCalled();
 		});
 
 		it("allows and handles a match from anybody", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const data: [Message, Message, Set<User>][] = [
 				// Usually allowed
 				[tagByUser1, matchByUser2, new Set()],
@@ -229,14 +229,14 @@ describe("handleMessage", () => {
 					disqualifiedFromRound,
 				} as GameStateAwaitingMatch), match, 'recount');
 				expect(result).toHaveProperty('status', 'awaiting-next');
-				expect(result.scores.size).toBeGreaterThan(0);
+				expect(result!.scores!.size).toBeGreaterThan(0);
 				expect(result).toHaveProperty('match', match);
 				expect(mockDeleteMessage).not.toHaveBeenCalled();
 			}
 		});
 
 		it("awards points to the correct users", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			for (const [tag, match] of [
 				// Usually allowed
 				[tagByUser1, matchByUser2],
@@ -262,15 +262,15 @@ describe("handleMessage", () => {
 				} as GameStateAwaitingMatch), match, 'recount');
 				expect(result).toHaveProperty('status', 'awaiting-next');
 				const expectedAwarded = [match.author, ...match.mentions.users.values()]
-				expect(result.scores.size).toBe(expectedAwarded.length);
+				expect(result!.scores!.size).toBe(expectedAwarded.length);
 				for (const user of expectedAwarded) {
-					expect(result.scores.get(user)).toBe(1);
+					expect(result!.scores!.get(user)).toBe(1);
 				}
 			}
 		});
 
 		it("increments score where users already have score", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser2);
 			const game = gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
@@ -278,12 +278,12 @@ describe("handleMessage", () => {
 			game.state.scores = new Map([[user2, 1]]);
 			const result = await m.handleMessage(game, matchByUser2, 'recount');
 			expect(result).toHaveProperty('status', 'awaiting-next');
-			expect(result.scores.size).toBe(1);
-			expect(result.scores.get(user2)).toBe(2);
+			expect(result!.scores!.size).toBe(1);
+			expect(result!.scores!.get(user2)).toBe(2);
 		});
 
 		it("makes no announcement on a match", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser2);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
@@ -293,7 +293,7 @@ describe("handleMessage", () => {
 		});
 
 		it("allows and handles a followup tag from anybody", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
 			for (const [match, tag] of [
 				// Always allowed
 				[matchByUser1, tagByUser1],
@@ -318,14 +318,14 @@ describe("handleMessage", () => {
 					match,
 				} as GameStateAwaitingNext), tag, 'recount');
 				expect(result).toHaveProperty('status', 'awaiting-match');
-				expect(result.scores.size).toBe(0); // The state we passed in has a clean scoreboard; if it's still empty no new scores have been given
+				expect(result!.scores!.size).toBe(0); // The state we passed in has a clean scoreboard; if it's still empty no new scores have been given
 				expect(result).toHaveProperty('tag', tag);
 				expect(mockDeleteMessage).not.toHaveBeenCalled();
 			}
 		});
 
 		it("makes no announcement on a followup tag", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
 			for (const [match, tag] of [
 				[matchByUser1, tagByUser1], // Always allowed
 				[matchByUser1, tagByUser2], // Usually disallowed
@@ -340,7 +340,7 @@ describe("handleMessage", () => {
 		});
 
 		it("doesn't care if the followup tag is late or not", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
 			for (const [match, tag] of [
 				[matchByUser1, tagByUser1],
 				[matchByUser1, lateTagByUser1],
@@ -359,7 +359,7 @@ describe("handleMessage", () => {
 
 	describe("live mode", () => {
 		it("ignores messages sent by the bot", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(botMessage);
 			expect(await m.handleMessage(gameWithState(stateFree), botMessage, 'live')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingMatch), botMessage, 'live')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingNext), botMessage, 'live')).toBeNull();
@@ -369,7 +369,7 @@ describe("handleMessage", () => {
 		});
 
 		it("ignores messages with no images", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(textMessage);
 			mockMessageHasImage.mockReturnValue(false);
 			expect(await m.handleMessage(gameWithState(stateFree), textMessage, 'live')).toBeNull();
 			expect(await m.handleMessage(gameWithState(stateAwaitingMatch), textMessage, 'live')).toBeNull();
@@ -386,24 +386,24 @@ describe("handleMessage", () => {
 		});
 
 		it("handles an initial tag", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState(stateFree), tagByUser1, 'live');
 			expect(result).toHaveProperty('status', 'awaiting-match');
-			expect(result.scores.size).toBe(0);
+			expect(result!.scores!.size).toBe(0);
 			expect(result).toHaveProperty('tag', tagByUser1);
 			expect(mockDeleteMessage).not.toHaveBeenCalled();
 		});
 
 		it("makes no announcement on an initial tag if there is no chat channel", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState(stateFree, false), tagByUser1, 'live');
 			expect(result).toHaveProperty('status', 'awaiting-match');
 			expect(mockSend).not.toHaveBeenCalled();
 		});
 
 		it("makes an announcement on an initial tag if there is a chat channel", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const result = await m.handleMessage(gameWithState(stateFree, true), tagByUser1, 'live');
 			expect(result).toHaveProperty('status', 'awaiting-match');
 			expect(mockSendToGame).not.toHaveBeenCalled();
@@ -411,7 +411,7 @@ describe("handleMessage", () => {
 		});
 
 		it("allows and handles a match from anyone not disqualified who didn't author or get mentioned in the tag", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			for (const [tag, match] of [
 				[tagByUser1, matchByUser2],
 				[tagByUser1, matchByUser2FtUser3],
@@ -422,14 +422,14 @@ describe("handleMessage", () => {
 					tag,
 				} as GameStateAwaitingMatch), match, 'live');
 				expect(result).toHaveProperty('status', 'awaiting-next');
-				expect(result.scores.size).toBeGreaterThan(0);
+				expect(result!.scores!.size).toBeGreaterThan(0);
 				expect(result).toHaveProperty('match', match);
 				expect(mockDeleteMessage).not.toHaveBeenCalled();
 			}
 		});
 
 		it("rejects and deletes a match from someone or mentioning someone who authored or mentioned the tag", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			for (const [tag, match] of [
 				[tagByUser1, matchByUser1],
 				[tagByUser1, matchByUser1FtUser2],
@@ -454,7 +454,7 @@ describe("handleMessage", () => {
 		});
 
 		it("rejects and deletes a match from someone or mentioning someone disqualified from the current round", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
 			const data: [Set<User>, Message][] = [
 				[new Set([user1]), matchByUser1],
 				[new Set([user1]), matchByUser1FtUser2],
@@ -481,7 +481,7 @@ describe("handleMessage", () => {
 		});
 
 		it("warns a user if their match post was rejected for being by a tag author, in the game channel if there is no chat channel", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
@@ -491,8 +491,8 @@ describe("handleMessage", () => {
 		});
 
 		it("warns a user if their match post was rejected for being by a tag author, in the chat channel if there is one", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
@@ -503,7 +503,7 @@ describe("handleMessage", () => {
 		});
 
 		it("warns a user if their match post was rejected for being disqualified, in the game channel if there is no chat channel", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser4,
@@ -514,8 +514,8 @@ describe("handleMessage", () => {
 		});
 
 		it("warns a user if their match post was rejected for being disqualified, in the chat channel if there is one", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser4,
@@ -527,7 +527,7 @@ describe("handleMessage", () => {
 		});
 
 		it("persists the list of disqualified players on a new match", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser1);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser2,
@@ -538,7 +538,7 @@ describe("handleMessage", () => {
 		});
 
 		it("awards points to the correct users", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			for (const [tag, match] of [
 				[tagByUser1, matchByUser2],
 				[tagByUser1, matchByUser2FtUser3],
@@ -550,15 +550,15 @@ describe("handleMessage", () => {
 				} as GameStateAwaitingMatch), match, 'live');
 				expect(result).toHaveProperty('status', 'awaiting-next');
 				const expectedAwarded = [match.author, ...match.mentions.users.values()]
-				expect(result.scores.size).toBe(expectedAwarded.length);
+				expect(result!.scores!.size).toBe(expectedAwarded.length);
 				for (const user of expectedAwarded) {
-					expect(result.scores.get(user)).toBe(1);
+					expect(result!.scores!.get(user)).toBe(1);
 				}
 			}
 		});
 
 		it("increments score where users already have score", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser2);
 			const game = gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
@@ -566,12 +566,12 @@ describe("handleMessage", () => {
 			game.state.scores = new Map([[user2, 1]]);
 			const result = await m.handleMessage(game, matchByUser2, 'live');
 			expect(result).toHaveProperty('status', 'awaiting-next');
-			expect(result.scores.size).toBe(1);
-			expect(result.scores.get(user2)).toBe(2);
+			expect(result!.scores!.size).toBe(1);
+			expect(result!.scores!.get(user2)).toBe(2);
 		});
 
 		it("makes no announcement on a match if there is no chat channel", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser2);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
@@ -581,8 +581,8 @@ describe("handleMessage", () => {
 		});
 
 		it("makes an announcement on a match if there is a chat channel", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(matchByUser2);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingMatch,
 				tag: tagByUser1,
@@ -593,7 +593,7 @@ describe("handleMessage", () => {
 		});
 
 		it("allows and handles a followup tag as long as it is posted by or mentions anyone who posted or was mentioned in the match", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			for (const [match, tag] of [
 				[matchByUser1, tagByUser1],
 				[matchByUser1, tagByUser1FtUser2],
@@ -612,14 +612,14 @@ describe("handleMessage", () => {
 					match,
 				} as GameStateAwaitingNext), tag, 'live');
 				expect(result).toHaveProperty('status', 'awaiting-match');
-				expect(result.scores.size).toBe(0); // The state we passed in has a clean scoreboard; if it's still empty no new scores have been given
+				expect(result!.scores!.size).toBe(0); // The state we passed in has a clean scoreboard; if it's still empty no new scores have been given
 				expect(result).toHaveProperty('tag', tag);
 				expect(mockDeleteMessage).not.toHaveBeenCalled();
 			}
 		});
 
 		it("makes no announcement of a followup tag if there is no chat channel", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
@@ -629,8 +629,8 @@ describe("handleMessage", () => {
 		});
 
 		it("makes an announcement of a followup tag if there is a chat channel", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
@@ -641,7 +641,7 @@ describe("handleMessage", () => {
 		});
 
 		it("clears the list of disqualified players on a new tag", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
@@ -651,7 +651,7 @@ describe("handleMessage", () => {
 		});
 
 		it("rejects and deletes a new tag if it's a disallowed author", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser2);
 			for (const [match, tag] of [
 				[matchByUser1, tagByUser2],
 				[matchByUser1FtUser2, tagByUser3],
@@ -669,7 +669,7 @@ describe("handleMessage", () => {
 		});
 
 		it("sends a message to the game channel if a new tag was disallowed and there is no chat channel", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser2);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
@@ -679,8 +679,8 @@ describe("handleMessage", () => {
 		});
 
 		it("sends a message to the chat channel instead of the game channel if a new tag was disallowed and there is a chat channel", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser2);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const result = await m.handleMessage(gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
@@ -691,7 +691,7 @@ describe("handleMessage", () => {
 		});
 
 		it("deletes images posted to a game in the inactive state", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState(stateInactive), tagByUser1, 'live');
 			expect(result).toBeNull();
 			expect(mockDeleteMessage).toHaveBeenCalledTimes(1);
@@ -699,15 +699,15 @@ describe("handleMessage", () => {
 		});
 
 		it("informs (in the game channel if there is no chat channel) a user who posted an image to a game in the inactive state", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const result = await m.handleMessage(gameWithState(stateInactive, false), tagByUser1, 'live');
 			expect(result).toBeNull();
 			expect(mockSend).toHaveBeenCalledTimes(1);
 		});
 
 		it("informs (in the chat channel if it is set) a user who posted an image to a game in the inactive state", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const result = await m.handleMessage(gameWithState(stateInactive, true), tagByUser1, 'live');
 			expect(result).toBeNull();
 			expect(mockSendToGame).not.toHaveBeenCalled();
@@ -715,7 +715,7 @@ describe("handleMessage", () => {
 		});
 
 		it("accepts the tag if it's within the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(tagByUser1);
 			const game = gameWithState({
 				...stateAwaitingNext,
 				match: matchByUser1,
@@ -727,7 +727,7 @@ describe("handleMessage", () => {
 		});
 
 		it("deletes the new tag if it's outside of the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -739,7 +739,7 @@ describe("handleMessage", () => {
 		});
 
 		it("deletes the previous match if the new tag is outside of the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -751,7 +751,7 @@ describe("handleMessage", () => {
 		});
 
 		it("triggers a recount if the tag is outside of the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -763,7 +763,7 @@ describe("handleMessage", () => {
 		});
 
 		it("posts a message (in the game channel if there is no chat channel) saying what happened if the tag was outside of the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -775,8 +775,8 @@ describe("handleMessage", () => {
 		});
 
 		it("posts a message (in the chat channel if there is one) saying what happened if the tag was outside of the time limit", async () => {
-			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(null);
-			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(null);
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -789,7 +789,7 @@ describe("handleMessage", () => {
 		});
 
 		it("disqualifies everyone involved from the round if the tag was outside of the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue(stateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -801,7 +801,7 @@ describe("handleMessage", () => {
 		});
 
 		it("preserves previously-disqualified players if the tag was outside of the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue({ ...stateAwaitingMatch, disqualifiedFromRound: new Set([user2]) } as GameStateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -813,7 +813,7 @@ describe("handleMessage", () => {
 		});
 
 		it("combines newly-disqualified players if the tag was outside of the time limit", async () => {
-			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(null);
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(lateTagByUser1);
 			const mockRecount = jest.spyOn(m, 'recount').mockResolvedValue({ ...stateAwaitingMatch, disqualifiedFromRound: new Set([user2]) } as GameStateAwaitingMatch);
 			const game = gameWithState({
 				...stateAwaitingNext,
@@ -844,7 +844,7 @@ describe("recount", () => {
 		mockGetAllMessagesSince.mockImplementation(yieldNothing);
 		jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		const result = await m.recount(game);
-		expect(result.scores.size).toBe(0);
+		expect(result!.scores!.size).toBe(0);
 	});
 
 	it("doesn't touch the passed game object", async () => {
@@ -853,7 +853,7 @@ describe("recount", () => {
 		jest.spyOn(m, 'handleMessage').mockResolvedValue(null);
 		await m.recount(game);
 		expect(game.state.status).toBe('awaiting-match');
-		expect(game.state.scores.size).toBe(4);
+		expect(game!.state!.scores!.size).toBe(4);
 	});
 
 	it("passes each message through to the handleMessage method", async () => {
@@ -931,7 +931,7 @@ describe("recount", () => {
 
 describe("formatScores", () => {
 	beforeEach(() => {
-		mockToList.mockImplementation((strings: string[]) => strings.join(", "));
+		mockToList.mockImplementation((strings: Set<string> | string[]) => [...strings].join(", "));
 	});
 
 	it("returns a different line for each score", () => {
@@ -1063,7 +1063,7 @@ describe("getScoresEmbedField", () => {
 			...game,
 			state: {
 				...game.state,
-				scores: null,
+				scores: undefined,
 			},
 		};
 		expect(m.getScoresEmbedField(noScoresGame, 'brief')).toHaveProperty('value', expect.stringMatching(/none/i));
@@ -1113,7 +1113,7 @@ describe("getScoresEmbedField", () => {
 	it("gives a link to the full scoreboard if it did not show all the scores", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("the top scores");
 		const result = m.getScoresEmbedField(game, 'brief');
-		expect(result).toHaveProperty('value', expect.stringContaining(game.statusMessage.url));
+		expect(result).toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
 	});
 
 	it("does not give a link to the full scoreboard if it showed all the scores", () => {
@@ -1130,7 +1130,7 @@ describe("getScoresEmbedField", () => {
 					]),
 				},
 			}, 'brief');
-			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage.url));
+			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
 		}
 		{
 			const result = m.getScoresEmbedField({
@@ -1145,7 +1145,7 @@ describe("getScoresEmbedField", () => {
 					]),
 				},
 			}, 'brief');
-			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage.url));
+			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
 		}
 	});
 

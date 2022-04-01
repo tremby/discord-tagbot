@@ -31,11 +31,25 @@ const commandSpec: SlashCommandSpec = {
 	description: commandDescription,
 
 	handler: async (interaction, channel, game) => {
-		let newTimeLimitInMinutes: number;
+		if (game == null) throw new Error("time-limit commands should always have game set");
+
+		let newTimeLimitInMinutes: number | null;
 
 		switch (interaction.options.getSubcommand()) {
 			case 'set':
 				newTimeLimitInMinutes = interaction.options.getInteger('time-limit');
+
+				if (newTimeLimitInMinutes == null) {
+					await interaction.reply({
+						embeds: [{
+							title: "Error",
+							description: "Time limit was not specified.",
+							fields: getConfigEmbedFields(game.config),
+						}],
+						ephemeral: true,
+					});
+					return;
+				}
 
 				if (newTimeLimitInMinutes <= 0) {
 					await interaction.reply({

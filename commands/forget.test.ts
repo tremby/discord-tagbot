@@ -2,7 +2,7 @@ import commandSpec from './forget';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getMessage } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('../lib/state');
 import gameState, { persistToDisk } from '../lib/state';

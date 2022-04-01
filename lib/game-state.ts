@@ -74,6 +74,10 @@ export function formatGameStatusMessage(game: Game): MessageOptions {
  * Returns true or false based on whether the message was found and updated.
  */
 export async function updateGameStatusMessage(game: Game): Promise<void> {
+	if (game.statusMessage == null) {
+		console.warn("Wanted to update the game status message but there's no reference to it.");
+		return;
+	}
 	await game.statusMessage.edit(thisModule.formatGameStatusMessage(game));
 }
 
@@ -170,7 +174,7 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 				getScoresEmbedField(game, 'full'),
 				{
 					name: "Links",
-					value: `[Jump to start of game](${game.statusMessage.url})`,
+					value: game.statusMessage != null ? `[Jump to start of game](${game.statusMessage.url})` : '',
 				},
 			],
 		}],
@@ -183,21 +187,25 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 	promises.push(resultsMessage.pin());
 
 	// Edit the status message to just mark the start of the game
-	promises.push(game.statusMessage.edit({
-		embeds: [{
-			title: "Start of tag game",
-			description: "This game has now finished.",
-			fields: [
-				{
-					name: "Links",
-					value: `[Jump to end of the game and scores](${resultsMessage.url})`,
-				},
-			],
-		}],
-	}));
+	if (game.statusMessage == null) {
+		console.warn("Wanted to update the status message to mark the start of the game and unpin it, but there's no reference to it");
+	} else {
+		promises.push(game.statusMessage.edit({
+			embeds: [{
+				title: "Start of tag game",
+				description: "This game has now finished.",
+				fields: [
+					{
+						name: "Links",
+						value: `[Jump to end of the game and scores](${resultsMessage.url})`,
+					},
+				],
+			}],
+		}));
 
-	// Unpin the start of game message
-	promises.push(game.statusMessage.unpin());
+		// Unpin the start of game message
+		promises.push(game.statusMessage.unpin());
+	}
 
 	// Announce in chat channel
 	if (game.config.chatChannel) {
@@ -209,7 +217,7 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 					getScoresEmbedField(game, 'brief'),
 					{
 						name: "Links",
-						value: `[Jump to start of game](${game.statusMessage.url})\n[Jump to end of game and full scores](${resultsMessage.url})`,
+						value: (game.statusMessage != null ? `[Jump to start of game](${game.statusMessage.url})\n` : '') + `[Jump to end of game and full scores](${resultsMessage.url})`,
 					},
 				],
 			}],

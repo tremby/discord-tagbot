@@ -206,7 +206,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /time limit/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/none/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/none/i));
 	});
 
 	it("gives the time limit in minutes", () => {
@@ -220,7 +220,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /time limit/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/\b60\b/));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/\b60\b/));
 	});
 
 	it("says there are no judge roles if there are not", () => {
@@ -234,7 +234,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /judge/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/none/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/none/i));
 	});
 
 	it("gives the judge roles if some are set", () => {
@@ -249,8 +249,8 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /judge/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringContaining("<@&role1>"));
-		expect(field.value).toStrictEqual(expect.stringContaining("<@&role2>"));
+		expect(field!.value).toStrictEqual(expect.stringContaining("<@&role1>"));
+		expect(field!.value).toStrictEqual(expect.stringContaining("<@&role2>"));
 	});
 
 	it("says there is no chat channel if there is not", () => {
@@ -264,7 +264,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /chat channel/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/none/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/none/i));
 	});
 
 	it("gives the chat channel if one is set", () => {
@@ -278,7 +278,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /chat channel/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringContaining("<#channel-1>"));
+		expect(field!.value).toStrictEqual(expect.stringContaining("<#channel-1>"));
 	});
 
 	it("says the game is on a manual timeline if that is the case", () => {
@@ -292,7 +292,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/manual/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/manual/i));
 	});
 
 	it("mentions the period on which the game is running and negative auto-restart status (month)", () => {
@@ -306,7 +306,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/stops at the end of the month/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/stops at the end of the month/i));
 	});
 
 	it("mentions the period on which the game is running and positive auto-restart status (month)", () => {
@@ -320,7 +320,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/restarts at the end of the month/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/restarts at the end of the month/i));
 	});
 
 	it("mentions the period on which the game is running and negative auto-restart status (hour)", () => {
@@ -334,7 +334,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/stops at the end of the hour/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/stops at the end of the hour/i));
 	});
 
 	it("mentions the period on which the game is running and positive auto-restart status (hour)", () => {
@@ -348,7 +348,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringMatching(/restarts at the end of the hour/i));
+		expect(field!.value).toStrictEqual(expect.stringMatching(/restarts at the end of the hour/i));
 	});
 
 	it("shows the configured locale", () => {
@@ -362,7 +362,7 @@ describe("getConfigEmbedFields", () => {
 		});
 		const field = result.find((field) => /locale/i.test(field.name));
 		expect(field).not.toBeUndefined();
-		expect(field.value).toStrictEqual(expect.stringContaining('America/Vancouver'));
+		expect(field!.value).toStrictEqual(expect.stringContaining('America/Vancouver'));
 	});
 
 	it("doesn't show a locale if on a manual schedule", () => {

@@ -36,10 +36,13 @@ const commandSpec: SlashCommandSpec = {
 	description: commandDescription,
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("judge-role commands should always have game set");
+
 		// Get the specified role
 		const role = interaction.options.getRole('role');
-		if (!isRole(role)) {
-			console.error(`Got something which might be an APIRole rather than Role: ${role}`);
+
+		if (role == null || !isRole(role)) {
+			console.error(`Got null or something which might be an APIRole rather than Role: ${role}`);
 			await interaction.reply({
 				embeds: [{
 					title: "Error",

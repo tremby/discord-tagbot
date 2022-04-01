@@ -1,7 +1,7 @@
 import state, * as m from './state';
 import { getClient, getGuild, getTextChannel, getUser, getRole, getMessage } from '../test/fixtures';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('./config');
 import { serializeConfig } from './config';
@@ -120,7 +120,7 @@ describe("serializeGame", () => {
 
 	it("includes the status message ID if known", () => {
 		const serialized = m.serializeGame(game2);
-		expect(serialized).toHaveProperty('statusMessageId', game2.statusMessage.id);
+		expect(serialized).toHaveProperty('statusMessageId', game2.statusMessage!.id);
 	});
 });
 

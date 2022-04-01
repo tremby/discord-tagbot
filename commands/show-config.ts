@@ -12,6 +12,8 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Show the configuration for the tag game in this channel."),
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("show-config command should always have game set");
+
 		// Reply with config
 		await interaction.reply({
 			embeds: [{

@@ -2,9 +2,9 @@ import commandSpec from './time-limit';
 import { getCommandInteraction, getTextChannel, getGuild, getUser } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 import { Constants } from 'discord.js';
-import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types';
+import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('../lib/config');
 import { getConfigEmbedFields } from '../lib/config';
@@ -20,7 +20,7 @@ const user1 = getUser('user1');
 
 describe("time-limit command", () => {
 	beforeEach(() => {
-		mockUpdateGameStatusMessage.mockResolvedValue(null);
+		mockUpdateGameStatusMessage.mockResolvedValue();
 	});
 
 	describe("set subcommand", () => {

@@ -1,6 +1,6 @@
 import * as m from './channel';
 import { ClientUser, Collection } from 'discord.js';
-import type { MessageManager } from 'discord.js';
+import type { Message, MessageManager } from 'discord.js';
 import { getBotUser, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
 const guild = getGuild();
@@ -83,7 +83,7 @@ describe("getAllMessagesSince", () => {
 		jest.spyOn(console, 'log').mockImplementation();
 	});
 
-	async function flushIterator(it) {
+	async function flushIterator(it: AsyncGenerator<Message>): Promise<Message[]> {
 		const results = [];
 		for await (const x of it) results.push(x);
 		return results;
@@ -111,8 +111,8 @@ describe("getAllMessagesSince", () => {
 			page2.push([i.toString(), getMessage(channel1, user1, [], false, false, new Date("2020Z"), `page 2 message ${i}`)]);
 		}
 		const mockFetch = jest.spyOn(channel1.messages, 'fetch')
-			.mockResolvedValueOnce(new Collection(page1))
-			.mockResolvedValueOnce(new Collection(page2))
+			.mockResolvedValueOnce(new Collection(page1 as Iterable<[string, Message<boolean>]>))
+			.mockResolvedValueOnce(new Collection(page2 as Iterable<[string, Message<boolean>]>))
 			.mockResolvedValue(new Collection([]));
 		const results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage));
 		expect(results[0].content).toBe("page 1 message 100");
@@ -137,9 +137,9 @@ describe("getAllMessagesSince", () => {
 			page3.push([i.toString(), getMessage(channel1, user1, [], false, false, new Date("2020Z"), `page 3 message ${i}`)]);
 		}
 		const mockFetch = jest.spyOn(channel1.messages, 'fetch')
-			.mockResolvedValueOnce(new Collection(page1))
-			.mockResolvedValueOnce(new Collection(page2))
-			.mockResolvedValueOnce(new Collection(page3))
+			.mockResolvedValueOnce(new Collection(page1 as Iterable<[string, Message<boolean>]>))
+			.mockResolvedValueOnce(new Collection(page2 as Iterable<[string, Message<boolean>]>))
+			.mockResolvedValueOnce(new Collection(page3 as Iterable<[string, Message<boolean>]>))
 			.mockResolvedValue(new Collection([]));
 		const results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage));
 		expect(mockFetch).toHaveBeenCalledTimes(3);

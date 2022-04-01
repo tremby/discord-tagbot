@@ -3,9 +3,9 @@ import type { CommandInteraction, TextChannel } from 'discord.js';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getMessage } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 import { Constants } from 'discord.js';
-import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types';
+import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('../lib/config');
 import { getConfigEmbedFields } from '../lib/config';

@@ -30,6 +30,8 @@ const commandSpec: SlashCommandSpec = {
 	description: commandDescription,
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("chat-channel commands should always have game set");
+
 		switch (interaction.options.getSubcommand()) {
 			case 'set': {
 				// Check input

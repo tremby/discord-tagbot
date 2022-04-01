@@ -29,6 +29,8 @@ const commandSpec: SlashCommandSpec = {
 	description: commandDescription,
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("game-control commands should always have game set");
+
 		switch (interaction.options.getSubcommand()) {
 			case 'start': {
 				// Handle case where the game is already running

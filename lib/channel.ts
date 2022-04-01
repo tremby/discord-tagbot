@@ -9,7 +9,7 @@ import appState from '../lib/state';
  */
 const DISCORD_FETCH_MESSAGES_MAX = 100;
 
-export function channelIsTextChannel(channel: object): channel is TextChannel {
+export function channelIsTextChannel(channel: any): channel is TextChannel {
 	return ('type' in channel) && (channel as TextChannel).type === 'GUILD_TEXT';
 }
 
@@ -32,7 +32,7 @@ export function getGameOfChannel(channel: TextChannel): Game | null {
  * @param {boolean} force - Force a cache skip. Default is false.
  */
 export async function* getAllMessagesSince(channel: TextChannel, startMessage: Message, force: boolean = false): AsyncGenerator<Message> {
-	let justFetched: Collection<string, Message> = null;
+	let justFetched: Collection<string, Message> | null = null;
 	const allMessages: Message[] = [];
 
 	while (true) {
@@ -44,7 +44,7 @@ export async function* getAllMessagesSince(channel: TextChannel, startMessage: M
 		// of the just-received batch (which is the chronologically last).
 		justFetched = await channel.messages.fetch({
 			limit: DISCORD_FETCH_MESSAGES_MAX,
-			after: justFetched == null ? startMessage.id : justFetched.first().id,
+			after: justFetched == null ? startMessage.id : justFetched!.first()?.id,
 		}, { force });
 
 		// Yield the messages in chronological order

@@ -1,6 +1,6 @@
 import * as thisModule from './state';
 
-import type { Client, TextChannel } from 'discord.js';
+import type { Role, Client, TextChannel } from 'discord.js';
 import { writeFile, readFile } from 'fs/promises';
 
 import { serializeConfig } from './config';
@@ -68,7 +68,10 @@ export async function loadFromDisk(client: Client): Promise<void> {
 		// Recover the game configuration
 		const config: Config = {
 			nextTagTimeLimit: serializedGame.config.nextTagTimeLimit,
-			tagJudgeRoles: new Set(await Promise.all(serializedGame.config.tagJudgeRoleIds.map(async (id) => channel.guild.roles.fetch(id)))),
+			tagJudgeRoles: new Set(
+				(await Promise.all(serializedGame.config.tagJudgeRoleIds.map(async (id) => channel.guild.roles.fetch(id))))
+					.filter((r): r is Role => r != null)
+			),
 			chatChannel: serializedGame.config.chatChannelId ? await client.channels.fetch(serializedGame.config.chatChannelId) as TextChannel : null,
 			autoRestart: serializedGame.config.autoRestart,
 			period: serializedGame.config.period,
@@ -76,7 +79,7 @@ export async function loadFromDisk(client: Client): Promise<void> {
 		};
 
 		// Find the status message
-		const statusMessage = await channel.messages.fetch(serializedGame.statusMessageId);
+		const statusMessage = serializedGame.statusMessageId ? await channel.messages.fetch(serializedGame.statusMessageId) : null;
 
 		// Set up a partial game state object
 		const partialGame = {
@@ -90,7 +93,7 @@ export async function loadFromDisk(client: Client): Promise<void> {
 
 		// If necessary, get currently-disqualified users
 		if (gameStateIsAwaitingMatch(state) || gameStateIsAwaitingNext(state)) {
-			state.disqualifiedFromRound = new Set(await Promise.all(serializedGame.disqualifiedFromRound.map((id) => client.users.fetch(id))));
+			state.disqualifiedFromRound = new Set(await Promise.all((serializedGame.disqualifiedFromRound ?? []).map((id) => client.users.fetch(id))));
 		}
 
 		// Put together the final game object

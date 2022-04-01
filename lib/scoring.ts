@@ -19,7 +19,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 	console.log(`Channel ${game.channel} (${game.state.status}): message ${message.url}`);
 
 	// Ignore anything sent by this bot
-	if (message.author.id === message.client.user.id) {
+	if (message.client.user != null && message.author.id === message.client.user.id) {
 		console.log(`  Authored by this bot; ignore`);
 		return null;
 	}
@@ -183,7 +183,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		const newScores = new Map(game.state.scores);
 		for (const user of authors) {
 			if (newScores.has(user)) {
-				const oldScore = newScores.get(user);
+				const oldScore = newScores.get(user) ?? 0;
 				const newScore = oldScore + score;
 				console.log(`    ${user}: ${oldScore} -> ${newScore}`);
 				newScores.set(user, newScore);
@@ -256,6 +256,11 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
  * required (it'll be ignored)
  */
 export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState> {
+	// Can't do this if we have no start of game reference
+	if (game.statusMessage == null) {
+		throw new Error("Tried to recount but we have no reference to the start of the game.");
+	}
+
 	console.log("Started recalculating");
 
 	// Initial state
@@ -282,7 +287,7 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
 function usersByScore(scores: Scores): Map<number, User[]> {
 	const byScore: Map<number, User[]> = new Map();
 	for (const [user, score] of scores) {
-		if (byScore.has(score)) byScore.get(score).push(user);
+		if (byScore.has(score)) byScore.get(score)!.push(user);
 		else byScore.set(score, [user]);
 	}
 	return byScore;
@@ -361,7 +366,10 @@ export function getScoresEmbedField(game: Game, format: 'brief' | 'full'): Embed
 /**
  * Get changed scores.
  */
-export function getChangedScores(oldScores: Scores, newScores: Scores): ScoreChanges {
+export function getChangedScores(oldScores: Scores | undefined, newScores: Scores | undefined): ScoreChanges {
+	if (oldScores == null) oldScores = new Map<User, number>();
+	if (newScores == null) newScores = new Map<User, number>();
+
 	const changes: ScoreChanges = new Map();
 
 	// Look through old scores and find the same users' entries in new scores

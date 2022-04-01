@@ -4,7 +4,7 @@ import { CommandInteraction, Permissions, Constants, Collection } from 'discord.
 import { BotError } from "../../lib/bot-error";
 import { getClient, getGuild, getTextChannel, getUser, getMember, getRole } from '../../test/fixtures';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('../../lib/user');
 import { isGuildMemberRoleManager } from '../../lib/user';
@@ -16,8 +16,6 @@ const mockChannelIsTextChannel = mocked(channelIsTextChannel);
 
 const guild = getGuild();
 const channel = getTextChannel(guild);
-const deletedChannel = getTextChannel(guild);
-deletedChannel.deleted = true;
 const user1 = getUser('user-1');
 const role1 = getRole(guild, 'role-1');
 const role2 = getRole(guild, 'role-2');
@@ -193,13 +191,6 @@ describe("getValidChannel", () => {
 
 	describe("with a given option name", () => {
 		it("throws an error if no channel was passed", () => {
-			expect(() => {
-				m.getValidChannel(interaction, 'channel');
-			}).toThrow(expect.any(m.NoTextChannelError));
-		});
-
-		it("throws an error if the channel has been deleted", () => {
-			jest.spyOn(interaction.options, 'getChannel').mockReturnValue(deletedChannel);
 			expect(() => {
 				m.getValidChannel(interaction, 'channel');
 			}).toThrow(expect.any(m.NoTextChannelError));

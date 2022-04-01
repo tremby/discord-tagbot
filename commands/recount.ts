@@ -1,3 +1,4 @@
+import type { User } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from '../lib/scoring';
@@ -13,6 +14,8 @@ const commandSpec: SlashCommandSpec = {
 		.setDescription("Perform a recount of the current game."),
 
 	handler: async (interaction, channel, game) => {
+		if (game == null) throw new Error("recount command should always have game set");
+
 		// If the game is inactive, do nothing
 		if (gameStateIsInactive(game.state)) {
 			await interaction.reply({

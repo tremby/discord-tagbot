@@ -1,6 +1,6 @@
 import { Client, Intents, TextChannel } from 'discord.js';
 import { REST } from '@discordjs/rest';
-import { Routes } from 'discord-api-types/v9';
+import { Routes } from 'discord-api-types/v10';
 
 import commands from './commands';
 import { ProblemCheckingPermissionsError, NoTextChannelError, isAdmin, isAdminOrTagJudge, getValidChannel } from './commands/lib/helpers';
@@ -38,6 +38,9 @@ const client = new Client({
 
 // Actions to take on login
 client.on('ready', async () => {
+	if (client.user == null) throw new Error("Logged in but client.user is null");
+	if (client.application == null) throw new Error("Logged in but client.application is null");
+
 	console.log(`Logged in as ${client.user.tag}`);
 
 	// Set activity status
@@ -47,7 +50,7 @@ client.on('ready', async () => {
 	try {
 		await loadFromDisk(client);
 	} catch (error) {
-		if (error.code === 'ENOENT') {
+		if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
 			// No saved state; nothing needs to be done
 			console.log("No saved state");
 		} else {
@@ -57,7 +60,7 @@ client.on('ready', async () => {
 	finishedRestoring = true;
 
 	// Register slash commands
-	const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
+	const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
 	console.log("Registering slash commands");
 	await rest.put(Routes.applicationCommands(client.application.id), {
 		body: commands.map((command) => command.description),
@@ -121,7 +124,7 @@ client.on('ready', async () => {
 		if (gameStateIsInactive(game.state)) return;
 
 		// Do nothing if the message was posted before the current game started
-		if (newMessage.id < game.statusMessage.id) return;
+		if (game.statusMessage != null && newMessage.id < game.statusMessage.id) return;
 
 		// Do nothing if the author and tagged users didn't change
 		// *and also* the presence of an image didn't change
@@ -194,7 +197,7 @@ client.on('ready', async () => {
 		if (gameStateIsInactive(game.state)) return;
 
 		// Do nothing if the message was posted before the current game started
-		if (message.id < game.statusMessage.id) return;
+		if (game.statusMessage != null && message.id < game.statusMessage.id) return;
 
 		// Trigger a full recount
 		console.log(`A message from ${message.author} which contained an image was deleted; recounting...`);
@@ -263,7 +266,7 @@ client.on('ready', async () => {
 			if (gameStateIsInactive(game.state)) return;
 
 			// Do nothing if the message was posted before the current game started
-			if (message.id < game.statusMessage.id) return;
+			if (game.statusMessage != null && message.id < game.statusMessage.id) return;
 
 			// Add this game to the set of those affected
 			affectedGames.add(game);
@@ -353,7 +356,7 @@ client.on('ready', async () => {
 		try {
 			switch (command.permissions) {
 				case 'judge':
-					if (!isAdminOrTagJudge(interaction, game)) {
+					if (!isAdminOrTagJudge(interaction, game!)) {
 						await interaction.reply({
 							embeds: [{
 								title: "Error",

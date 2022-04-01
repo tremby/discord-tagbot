@@ -2,7 +2,7 @@ import commandSpec from './init';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getMessage } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('../lib/state');
 import gameState, { persistToDisk } from '../lib/state';
@@ -50,13 +50,13 @@ describe("init command", () => {
 
 	it("gives an ephemeral response on success", async () => {
 		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
-		await commandSpec.handler(interaction, channel);
+		await commandSpec.handler(interaction, channel, null);
 		expectInteractionResponse(interaction, true);
 	});
 
 	it("adds the game to the global state", async () => {
 		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
-		await commandSpec.handler(interaction, channel);
+		await commandSpec.handler(interaction, channel, null);
 		expect(gameState.games.size).toBe(1);
 		const game = [...gameState.games][0];
 		expect(game).toHaveProperty('channel', channel);
@@ -64,13 +64,13 @@ describe("init command", () => {
 
 	it("persists to disk", async () => {
 		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
-		await commandSpec.handler(interaction, channel);
+		await commandSpec.handler(interaction, channel, null);
 		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
 	});
 
 	it("uses the default configuration", async () => {
 		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
-		await commandSpec.handler(interaction, channel);
+		await commandSpec.handler(interaction, channel, null);
 		expect(mockGetDefaultConfig).toHaveBeenCalledTimes(1);
 	});
 });

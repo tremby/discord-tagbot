@@ -1,8 +1,9 @@
 import * as m from './message';
 import { SnowflakeUtil, Message } from 'discord.js';
+import type { APIAttachment } from 'discord-api-types/v10';
 import { getClient, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
-import { mocked } from 'ts-jest/utils';
+import { mocked } from 'jest-mock';
 
 jest.mock('./state');
 import appState from './state';
@@ -15,7 +16,7 @@ const user2 = getUser('user-2');
 const user3 = getUser('user-3');
 
 describe("messageHasImage", () => {
-	function messageWithAttachments(attachments): Message {
+	function messageWithAttachments(attachments: APIAttachment[]): Message {
 		// @ts-expect-error -- private constructor
 		return new Message(getClient(), {
 			id: SnowflakeUtil.generate(new Date('2020Z')),
@@ -51,7 +52,7 @@ describe("messageHasImage", () => {
 			{
 				id: SnowflakeUtil.generate(),
 				filename: 'foo.dng',
-				content_type: null,
+				content_type: undefined,
 				size: 3333,
 				url: 'http://example.com/foo.dng',
 				proxy_url: 'http://example.com/foo.dng',
@@ -189,14 +190,14 @@ describe("deleteMessage", () => {
 
 	it("calls the message's delete method", async () => {
 		const message = getMessage(channel, user1, [], false, false, new Date('2020Z'), "test message");
-		const spiedDelete = jest.spyOn(message, 'delete').mockResolvedValue(null);
+		const spiedDelete = jest.spyOn(message, 'delete').mockResolvedValue(message);
 		await m.deleteMessage(message);
 		expect(spiedDelete).toHaveBeenCalledTimes(1);
 	});
 
 	it("adds the message's ID to the list of deleted messages", async () => {
 		const message = getMessage(channel, user1, [], false, false, new Date('2020Z'), "test message");
-		const spiedDelete = jest.spyOn(message, 'delete').mockResolvedValue(null);
+		const spiedDelete = jest.spyOn(message, 'delete').mockResolvedValue(message);
 		expect(appState.deletedMessageIds.has(message.id)).toBe(false);
 		await m.deleteMessage(message);
 		expect(appState.deletedMessageIds.has(message.id)).toBe(true);
