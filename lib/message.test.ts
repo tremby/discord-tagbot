@@ -46,6 +46,19 @@ describe("messageHasImage", () => {
 		expect(m.messageHasImage(messageWithAttachments([]))).toBe(false);
 	});
 
+	it("returns false for a message with an attachment which has no content type", () => {
+		expect(m.messageHasImage(messageWithAttachments([
+			{
+				id: SnowflakeUtil.generate(),
+				filename: 'foo.dng',
+				content_type: null,
+				size: 3333,
+				url: 'http://example.com/foo.dng',
+				proxy_url: 'http://example.com/foo.dng',
+			},
+		]))).toBe(false);
+	});
+
 	it("returns false for a message with an attachment which is not an image or video", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{

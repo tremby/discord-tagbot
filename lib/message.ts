@@ -9,7 +9,7 @@ import { channelIsTextChannel, getGameOfChannel } from './channel';
  * Videos are also accepted.
  */
 export function messageHasImage(message: Message | PartialMessage): boolean {
-	return message.attachments.some((attachment) => attachment.contentType.startsWith('image/') || attachment.contentType.startsWith('video/'));
+	return message.attachments.some((attachment) => attachment.contentType?.startsWith('image/') || attachment.contentType?.startsWith('video/'));
 }
 
 /**
