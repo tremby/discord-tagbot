@@ -6,7 +6,7 @@ import { writeFile, readFile } from 'fs/promises';
 import { serializeConfig } from './config';
 import { recount } from './scoring';
 import { setTimers } from './timers';
-import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch } from './game-state';
+import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, updateGameStatusMessage } from './game-state';
 
 const STATE_FILE = 'state.json';
 
@@ -103,6 +103,9 @@ export async function loadFromDisk(client: Client): Promise<void> {
 			state,
 			statusMessage,
 		};
+
+		// If we did a recount, update game status message
+		if (serializedGame.status !== 'inactive') await updateGameStatusMessage(game);
 
 		// Start timers if necessary
 		setTimers(game, state);

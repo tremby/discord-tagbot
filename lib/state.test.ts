@@ -20,6 +20,12 @@ jest.mock('./timers');
 import { setTimers } from './timers';
 const mockSetTimers = mocked(setTimers);
 
+jest.mock('./game-state');
+import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, updateGameStatusMessage } from './game-state';
+const mockGameStateIsAwaitingNext = mocked(gameStateIsAwaitingNext);
+const mockGameStateIsAwaitingMatch = mocked(gameStateIsAwaitingMatch);
+const mockUpdateGameStatusMessage = mocked(updateGameStatusMessage);
+
 const guild = getGuild();
 const channel1 = getTextChannel(guild);
 const channel2 = getTextChannel(guild);
@@ -87,26 +93,36 @@ const game3: Game = {
 
 describe("serializeGame", () => {
 	it("includes the channel ID", () => {
+		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(false);
 		const serialized = m.serializeGame(game1);
 		expect(serialized).toHaveProperty('channelId', channel1.id);
 	});
 
 	it("includes the status", () => {
+		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(false);
 		const serialized = m.serializeGame(game1);
 		expect(serialized).toHaveProperty('status', 'awaiting-next');
 	});
 
 	it("includes the disqualified users", () => {
+		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(false);
 		const serialized = m.serializeGame(game1);
 		expect(serialized).toHaveProperty('disqualifiedFromRound', ['user-1', 'user-2']);
 	});
 
 	it("handles game states with no disqualified users", () => {
+		mockGameStateIsAwaitingNext.mockReturnValue(false);
+		mockGameStateIsAwaitingMatch.mockReturnValue(false);
 		const serialized = m.serializeGame(game3);
 		expect(serialized).not.toHaveProperty('disqualifiedFromRound');
 	});
 
 	it("includes the configuration", () => {
+		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(false);
 		mockSerializeConfig.mockReturnValue({ foo: 'mocked-config' } as unknown as SerializedConfig);
 		const serialized = m.serializeGame(game1);
 		expect(mockSerializeConfig).toHaveBeenCalledWith(game1.config);
@@ -114,11 +130,15 @@ describe("serializeGame", () => {
 	});
 
 	it("handles lack of status message", () => {
+		mockGameStateIsAwaitingNext.mockReturnValue(true);
+		mockGameStateIsAwaitingMatch.mockReturnValue(false);
 		const serialized = m.serializeGame(game1);
 		expect(serialized).toHaveProperty('statusMessageId', null);
 	});
 
 	it("includes the status message ID if known", () => {
+		mockGameStateIsAwaitingNext.mockReturnValue(false);
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
 		const serialized = m.serializeGame(game2);
 		expect(serialized).toHaveProperty('statusMessageId', game2.statusMessage!.id);
 	});
@@ -174,6 +194,7 @@ describe("loadFromDisk", () => {
 			tag: getMessage(channel2, user1, [user2], true, false, new Date('2020Z'), "tag"),
 			disqualifiedFromRound: new Set(),
 		} as GameStateAwaitingMatch);
+		mockUpdateGameStatusMessage.mockResolvedValue();
 	});
 
 	afterAll(() => {
@@ -231,6 +252,8 @@ describe("loadFromDisk", () => {
 	});
 
 	it("restores players disqualified for the current round", async () => {
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGameStateIsAwaitingNext.mockReturnValue(false);
 		mockReadFile.mockResolvedValue(JSON.stringify({
 			games: [
 				{
@@ -254,6 +277,8 @@ describe("loadFromDisk", () => {
 	});
 
 	it("restores lack of players disqualified for the current round", async () => {
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGameStateIsAwaitingNext.mockReturnValue(false);
 		mockReadFile.mockResolvedValue(JSON.stringify({
 			games: [
 				{
@@ -515,5 +540,81 @@ describe("loadFromDisk", () => {
 		}));
 		await m.loadFromDisk(client);
 		expect(mockSetTimers).toHaveBeenCalledTimes(1);
+	});
+
+	it("updates the game status message if the game state was awaiting-next", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: [],
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
+	});
+
+	it("updates the game status message if the game state was awaiting-match", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-match',
+					disqualifiedFromRound: [],
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
+	});
+
+	it("updates the game status message if the game state was free", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'free',
+					disqualifiedFromRound: [],
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not update the game status message if the game state was inactive", async () => {
+		mockReadFile.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'inactive',
+					disqualifiedFromRound: [],
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: null,
+					},
+				},
+			],
+		}));
+		await m.loadFromDisk(client);
+		expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
 	});
 });
