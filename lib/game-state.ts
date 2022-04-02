@@ -194,7 +194,7 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 		promises.push(game.statusMessage.edit({
 			embeds: [{
 				title: "Start of tag game",
-				description: "This game has now finished.",
+				description: "This message marks the start of a tag game which has now finished.",
 				fields: [
 					{
 						name: "Links",
