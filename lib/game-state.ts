@@ -59,7 +59,8 @@ export function getStatusEmbedField(game: Game): EmbedFieldData {
 export function formatGameStatusMessage(game: Game): MessageOptions {
 	return {
 		embeds: [{
-			title: "Start of tag game",
+			title: "Tag game status",
+			description: "The current tag game started here at this message. The status and scoreboard below will be kept updated throughout the game.",
 			fields: [
 				thisModule.getStatusEmbedField(game),
 				getScoresEmbedField(game, 'full'),
