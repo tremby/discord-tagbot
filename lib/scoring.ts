@@ -127,7 +127,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		const authors = getMessageUsers(message);
 
 		// Get intersection of authors of the match with authors of the tag
-		const commonAuthors = setIntersection<User | string>(authors, tagAuthors);
+		const commonAuthors = setIntersection<User | "you">(authors, tagAuthors);
 		if (commonAuthors.has(message.author)) {
 			commonAuthors.delete(message.author);
 			commonAuthors.add("you");
@@ -153,7 +153,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 		}
 
 		// Get intersection of authors of the match with disqualified users
-		const disqualifiedAuthors = setIntersection<User | string>(game.state.disqualifiedFromRound, authors);
+		const disqualifiedAuthors = setIntersection<User | "you">(game.state.disqualifiedFromRound, authors);
 		if (disqualifiedAuthors.has(message.author)) {
 			disqualifiedAuthors.delete(message.author);
 			disqualifiedAuthors.add("you");
