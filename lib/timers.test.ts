@@ -593,34 +593,6 @@ describe("setTimers", () => {
 			}));
 		});
 
-		it("includes the status message link if it is known", async () => {
-			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
-			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());
-			const mockGameChannelSend = jest.spyOn(gameChannel, 'send').mockResolvedValue(botMessage);
-			const mockChatChannelSend = jest.spyOn(chatChannel, 'send').mockResolvedValue(botMessage);
-			mockGameStateIsAwaitingNext.mockReturnValue(true);
-			mockGameStateIsAwaitingMatch.mockReturnValue(true);
-			mockGetMessageUsers.mockReturnValue(new Set());
-			mockGetDeadlineTimestamp.mockReturnValue(Date.now() + 1e3 * 60 * 20);
-			const state = { ...stateAwaitingNext };
-			const tmpGame = { ...game, statusMessage };
-			m.setTimers(tmpGame, state);
-			jest.runAllTimers();
-			await flushPromises();
-			await flushPromises(); // FIXME: no idea why I need to call this twice
-			expect(mockChatChannelSend).toHaveBeenCalledWith(expect.objectContaining({
-				embeds: expect.arrayContaining([
-					expect.objectContaining({
-						fields: expect.arrayContaining([
-							expect.objectContaining({
-								value: expect.stringContaining(statusMessage.url),
-							}),
-						]),
-					}),
-				]),
-			}));
-		});
-
 		it("triggers a recount", async () => {
 			const mockSetTimeout = jest.spyOn(global, 'setTimeout');
 			jest.setSystemTime(new Date('2020-01-01T00:40Z').getTime());

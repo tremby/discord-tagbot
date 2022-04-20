@@ -138,15 +138,7 @@ function getTimeUpHandler(game: Game): (() => Promise<void>) {
 				thumbnail: { url: attachment!.url },
 				fields: [
 					{ ...getScoreChangesEmbedField(getChangedScores(oldState.scores, newState.scores)), inline: true },
-					{ ...getScoresEmbedField(game, 'brief'), inline: true },
 					disqualifiedPlayersEmbedField != null ? { ...disqualifiedPlayersEmbedField, inline: true } : [],
-					{
-						name: "Links",
-						value: [
-							`[See current tag](${newState.tag.url})`,
-							game.statusMessage != null ? `[See pinned game status post](${game.statusMessage.url})` : [],
-						].flat().join("\n"),
-					},
 				].flat(),
 			}],
 		});
