@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
+import { persistToDisk } from '../lib/state';
 import { pluralize } from '../lib/string';
 import { updateGameStatusMessage } from '../lib/game-state';
 import { getConfigEmbedFields } from '../lib/config';
@@ -97,6 +98,9 @@ const commandSpec: SlashCommandSpec = {
 		// If necessary, restart the reminder timeout
 		clearTimers(game);
 		setTimers(game, game.state);
+
+		// Save the change
+		persistToDisk();
 
 		// Respond to the user
 		await deferralPromise;
