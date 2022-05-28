@@ -6,6 +6,10 @@ import type { APIApplicationCommandInteractionDataOption } from 'discord-api-typ
 
 import { mocked } from 'jest-mock';
 
+jest.mock('../lib/state');
+import gameState, { persistToDisk } from '../lib/state';
+const mockPersistToDisk = mocked(persistToDisk);
+
 jest.mock('../lib/config');
 import { getConfigEmbedFields } from '../lib/config';
 const mockGetConfigEmbedFields = mocked(getConfigEmbedFields);
@@ -45,6 +49,7 @@ describe("time-limit command", () => {
 			expectInteractionResponse(interaction, true);
 			expect(game).toHaveProperty('config.nextTagTimeLimit', 42);
 			expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
+			expect(mockPersistToDisk).not.toHaveBeenCalled();
 		});
 
 		it("rejects negative values and does not change existing config", async () => {
@@ -68,6 +73,7 @@ describe("time-limit command", () => {
 			expectInteractionResponse(interaction, true);
 			expect(game).toHaveProperty('config.nextTagTimeLimit', 42);
 			expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
+			expect(mockPersistToDisk).not.toHaveBeenCalled();
 		});
 
 		it("can change the time limit from none", async () => {
@@ -197,6 +203,27 @@ describe("time-limit command", () => {
 			await commandSpec.handler(interaction, channel, game);
 			expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
 			expect(mockUpdateGameStatusMessage).toHaveBeenCalledWith(game);
+		});
+
+		it("persists to disk", async () => {
+			const config = { nextTagTimeLimit: null } as Config;
+			const game = { config } as Game;
+			const options = [
+				{
+					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					name: 'set',
+					options: [
+						{
+							name: 'time-limit',
+							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							value: 10,
+						},
+					],
+				},
+			] as APIApplicationCommandInteractionDataOption[];
+			const interaction = getCommandInteraction(channel, user1, 'time-limit', options, {});
+			await commandSpec.handler(interaction, channel, game);
+			expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
 		});
 	});
 
