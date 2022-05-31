@@ -239,6 +239,10 @@ Future
 - Awards at game end time (most-reacted, ???)
 - Default locale to system locale, or environment variable
 - Only allow specific players to post first tag at the start of the next game
+- Allow docking arbitrary points without actually deleting pics etc
+- Notifications when people take the lead, change positions etc
+- Allow webhook subscriptions so people can get SMSes via "if this then that" or whatever they want
+- Change logic for nth place, with respect to ties (A in 1st place, then B and C tied for 3rd place, etc)
 
 Near future:
 - abstract timers with a setInterval running once an hour or whatever to keep them on track
