@@ -242,6 +242,7 @@ Future
 - Allow docking arbitrary points without actually deleting pics etc
 - Notifications when people take the lead, change positions etc
 - Allow webhook subscriptions so people can get SMSes via "if this then that" or whatever they want
+- Allow a message on tag matches to be enforced (eg location), probably just with a warning in the chat channel
 
 Near future:
 - abstract timers with a setInterval running once an hour or whatever to keep them on track
