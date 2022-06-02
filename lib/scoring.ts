@@ -9,6 +9,16 @@ import { getAllMessagesSince } from './channel';
 import { getFormattedDeadline } from './deadline';
 import { setIntersection } from './set';
 
+const ordinalRules = new Intl.PluralRules("en", { type: "ordinal" });
+const ordinalSuffixes = {
+	zero: "th",
+	one: "st",
+	two: "nd",
+	few: "rd",
+	many: "th",
+	other: "th",
+};
+
 /**
  * Given a game's configuration and current state and an incoming message,
  * determine what its new state should be.
@@ -321,23 +331,33 @@ export function formatScores(scores: Scores, max: number | null = null): string 
 	}
 
 	// Format
-	return displayable.map(([score, users]: [number, User[]], index) => `${maybeMedal(index + 1)}${toList(users)}: ${score}`).join("\n");
+	return displayable.map(([score, users]: [number, User[]], index) => {
+		const prevUsersCount = displayable.slice(0, index).reduce((acc, [score, users]) => acc + users.length, 0);
+		const rank = prevUsersCount + 1;
+		return `${rankPrefix(rank, users.length)} with ${score}: ${toList(users)}`;
+	}).join("\n");
 }
 
 /**
- * Return a medal emoji based on a position, if it's in the top 3.
- *
- * Optionally add a suffix if a medal is returned.
+ * Return a rank prefix based on a rank position
  */
-function maybeMedal(position: number): string {
-	let output = "";
+function rankPrefix(position: number, playerCount: number): string {
+	const outputParts: string[] = [];
+	if (playerCount > 1) outputParts.push("Tied for ");
 	switch (position) {
-		case 1: output = '🥇'; break;
-		case 2: output = '🥈'; break;
-		case 3: output = '🥉'; break;
+		case 1: outputParts.push('🥇'); break;
+		case 2: outputParts.push('🥈'); break;
+		case 3: outputParts.push('🥉'); break;
+		default: outputParts.push(withOrdinalSuffix(position)); break;
 	}
-	if (output.length) output += " ";
-	return output;
+	return outputParts.join('');
+}
+
+/**
+ * Get a number with its ordinal suffix
+ */
+function withOrdinalSuffix(num: number): string {
+	return `${num}${ordinalSuffixes[ordinalRules.select(num)]}`;
 }
 
 /**

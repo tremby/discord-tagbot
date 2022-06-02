@@ -941,9 +941,9 @@ describe("formatScores", () => {
 			[user3, 2],
 		]));
 		const lines = result.split('\n');
-		expect(lines).toContainEqual(expect.stringContaining(": 1"));
-		expect(lines).toContainEqual(expect.stringContaining(": 2"));
-		expect(lines.findIndex((line) => /: 1/.test(line))).not.toEqual(lines.findIndex((line) => /: 2/.test(line)));
+		expect(lines).toContainEqual(expect.stringContaining("with 1:"));
+		expect(lines).toContainEqual(expect.stringContaining("with 2:"));
+		expect(lines.findIndex((line) => /with 1:/.test(line))).not.toEqual(lines.findIndex((line) => /with 2:/.test(line)));
 	});
 
 	it("returns each score's users on its line", () => {
@@ -953,9 +953,9 @@ describe("formatScores", () => {
 			[user3, 2],
 		]));
 		const lines = result.split('\n');
-		const score1Line = lines.find((line) => /: 1/.test(line));
+		const score1Line = lines.find((line) => /with 1:/.test(line));
 		expect(score1Line).toContain("<@100>");
-		const score2Line = lines.find((line) => /: 2/.test(line));
+		const score2Line = lines.find((line) => /with 2:/.test(line));
 		expect(score2Line).toContain("<@200>");
 		expect(score2Line).toContain("<@300>");
 	});
@@ -969,10 +969,10 @@ describe("formatScores", () => {
 			[botUser, 42],
 		]));
 		const lines = result.split('\n');
-		expect(lines).toContainEqual(expect.stringContaining(": 1"));
-		expect(lines).toContainEqual(expect.stringContaining(": 2"));
-		expect(lines).toContainEqual(expect.stringContaining(": 4"));
-		expect(lines).toContainEqual(expect.stringContaining(": 42"));
+		expect(lines).toContainEqual(expect.stringContaining("with 1:"));
+		expect(lines).toContainEqual(expect.stringContaining("with 2:"));
+		expect(lines).toContainEqual(expect.stringContaining("with 4:"));
+		expect(lines).toContainEqual(expect.stringContaining("with 42:"));
 	});
 
 	it("sorts by score descending", () => {
@@ -983,9 +983,9 @@ describe("formatScores", () => {
 			[user4, 4],
 		]));
 		const lines = result.split('\n');
-		const score1Index = lines.findIndex((line) => line.includes(": 1"));
-		const score2Index = lines.findIndex((line) => line.includes(": 2"));
-		const score4Index = lines.findIndex((line) => line.includes(": 4"));
+		const score1Index = lines.findIndex((line) => line.includes("with 1:"));
+		const score2Index = lines.findIndex((line) => line.includes("with 2:"));
+		const score4Index = lines.findIndex((line) => line.includes("with 4:"));
 		expect(score4Index).toBeLessThan(score2Index);
 		expect(score4Index).toBeLessThan(score1Index);
 		expect(score2Index).toBeLessThan(score1Index);
@@ -999,9 +999,9 @@ describe("formatScores", () => {
 			[user4, 4],
 		]), 2);
 		const lines = result.split('\n');
-		expect(lines).not.toContainEqual(expect.stringContaining(": 1"));
-		expect(lines).toContainEqual(expect.stringContaining(": 2"));
-		expect(lines).toContainEqual(expect.stringContaining(": 4"));
+		expect(lines).not.toContainEqual(expect.stringContaining("with 1:"));
+		expect(lines).toContainEqual(expect.stringContaining("with 2:"));
+		expect(lines).toContainEqual(expect.stringContaining("with 4:"));
 	});
 
 	it("outputs users with the same score in ID order", () => {
@@ -1015,6 +1015,25 @@ describe("formatScores", () => {
 			[user1, 1],
 		]));
 		expect(result2).toEqual(expect.stringContaining("<@100>, <@200>"));
+	});
+
+	it("uses standard competition ranking", () => {
+		const result = m.formatScores(new Map([
+			[user1, 1],
+			[user2, 2],
+			[user3, 2],
+			[user4, 3],
+		]));
+		const lines = result.split('\n');
+		const score1Line = lines.find((line) => line.includes("with 1:"));
+		const score2Line = lines.find((line) => line.includes("with 2:"));
+		const score3Line = lines.find((line) => line.includes("with 3:"));
+		expect(score1Line).not.toMatch(/^Tied/);
+		expect(score2Line).toMatch(/^Tied/);
+		expect(score3Line).not.toMatch(/^Tied/);
+		expect(score3Line).toMatch(/🥇 with/);
+		expect(score2Line).toMatch(/🥈 with/);
+		expect(score1Line).toMatch(/\b4th with/);
 	});
 });
 
