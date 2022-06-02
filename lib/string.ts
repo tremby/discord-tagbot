@@ -19,7 +19,7 @@ export function msToHumanReadable(ms: number): string {
 }
 
 export function toList(input: Set<any> | any[], joiningWord: string = "and"): string {
-	const arr = input instanceof Set ? [...input] : input;
+	const arr = [...input];
 	if (arr.length === 0) return "";
 	if (arr.length === 1) return arr[0].toString();
 	if (arr.length === 2) return `${arr[0]} ${joiningWord} ${arr[1]}`;
