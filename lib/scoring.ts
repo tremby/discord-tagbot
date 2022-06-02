@@ -332,7 +332,7 @@ export function formatScores(scores: Scores, max: number | null = null): string 
 
 	// Format
 	return displayable.map(([score, users]: [number, User[]], index) => {
-		const prevUsersCount = displayable.slice(0, index).reduce((acc, [score, users]) => acc + users.length, 0);
+		const prevUsersCount = displayable.slice(0, index).reduce((acc, [_, users]) => acc + users.length, 0);
 		const rank = prevUsersCount + 1;
 		return `${rankPrefix(rank, users.length)} with ${score}: ${toList(users)}`;
 	}).join("\n");
