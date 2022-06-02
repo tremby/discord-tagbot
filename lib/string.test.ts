@@ -137,4 +137,19 @@ describe("toList", () => {
 		];
 		expect(acceptable).toContain(m.toList(["foo", "bar"]));
 	});
+
+	it("doesn't modify the array passed in", () => {
+		{
+			const input = ["foo", "bar"];
+			expect(input).toHaveLength(2);
+			m.toList(input);
+			expect(input).toHaveLength(2);
+		}
+		{
+			const input = ["foo", "bar", "baz"];
+			expect(input).toHaveLength(3);
+			m.toList(input);
+			expect(input).toHaveLength(3);
+		}
+	});
 });
