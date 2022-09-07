@@ -1,7 +1,7 @@
 import * as thisModule from './helpers';
 
-import type { CommandInteraction, TextChannel } from 'discord.js';
-import { Permissions } from 'discord.js';
+import type { ChatInputCommandInteraction, TextChannel } from 'discord.js';
+import { PermissionsBitField } from 'discord.js';
 
 import { BotError } from '../../lib/bot-error';
 import { channelIsTextChannel, getGameOfChannel } from '../../lib/channel';
@@ -13,11 +13,11 @@ export class NoTextChannelError extends BotError {};
 /**
  * Require admin for a particular interaction.
  *
- * @param {CommandInteraction} interaction - The interaction taking place.
+ * @param {ChatInputCommandInteraction} interaction - The interaction taking place.
  * @returns {boolean} True if the user is an admin.
  * @throws {ProblemCheckingPermissionsError}
  */
-export function isAdmin(interaction: CommandInteraction): boolean {
+export function isAdmin(interaction: ChatInputCommandInteraction): boolean {
 	if (interaction.member == null) throw new ProblemCheckingPermissionsError("Couldn't get member from interaction");
 
 	// FIXME: Issue with types? Docs say GuildMember.permissions is a
@@ -25,21 +25,21 @@ export function isAdmin(interaction: CommandInteraction): boolean {
 	// be a string.
 	if (typeof interaction.member.permissions === 'string') {
 		// Haven't yet seen this come back as a string
-		throw new ProblemCheckingPermissionsError(`Came across a GuildMember whose permissions property is a string; expected a ReadOnly<Permissions>. Value: "${interaction.member.permissions}"`);
+		throw new ProblemCheckingPermissionsError(`Came across a GuildMember whose permissions property is a string; expected a ReadOnly<PermissionsBitField>. Value: "${interaction.member.permissions}"`);
 	}
 
-	return interaction.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
+	return interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
 }
 
 /**
  * Require admin or tag judge.
  *
- * @param {CommandInteraction} interaction - The interaction taking place.
+ * @param {ChatInputCommandInteraction} interaction - The interaction taking place.
  * @param {Game} game - The game associated with the interaction.
  * @returns {boolean} True if the user is either an admin or a tag judge for this game.
  * @throws {ProblemCheckingPermissionsError}
  */
-export function isAdminOrTagJudge(interaction: CommandInteraction, game: Game): boolean {
+export function isAdminOrTagJudge(interaction: ChatInputCommandInteraction, game: Game): boolean {
 	// If the user is an admin we're done
 	if (thisModule.isAdmin(interaction)) return true;
 
@@ -61,12 +61,12 @@ export function isAdminOrTagJudge(interaction: CommandInteraction, game: Game): 
  *
  * If there's no such channel, or it's not a text channel, throw an error.
  *
- * @param {CommandInteraction} interaction - The interaction taking place.
+ * @param {ChatInputCommandInteraction} interaction - The interaction taking place.
  * @param {?string} [optionName] - Name of the option from which to take the channel. If not given, use the channel the interaction took place in.
  * @returns {Channel} The channel associated with the interaction.
  * @throws {NoTextChannelError}
  */
-export function getValidChannel(interaction: CommandInteraction, optionName?: string): TextChannel {
+export function getValidChannel(interaction: ChatInputCommandInteraction, optionName?: string): TextChannel {
 	const channel = optionName ? interaction.options.getChannel(optionName) : interaction.channel;
 
 	if (optionName && channel == null) {

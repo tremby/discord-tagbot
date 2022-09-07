@@ -2,7 +2,7 @@ import commandSpec from './chat-channel';
 import type { CommandInteraction, TextChannel } from 'discord.js';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getMessage } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
-import { Constants } from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
 import { mocked } from 'jest-mock';
@@ -35,7 +35,7 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -54,7 +54,7 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -72,12 +72,12 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'channel',
-							type: Constants.ApplicationCommandOptionTypes.CHANNEL as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Channel,
 							value: gameChannel.id,
 						},
 					],
@@ -97,12 +97,12 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'channel',
-							type: Constants.ApplicationCommandOptionTypes.CHANNEL as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Channel,
 							value: chatChannel.id,
 						},
 					],
@@ -121,12 +121,12 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'channel',
-							type: Constants.ApplicationCommandOptionTypes.CHANNEL as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Channel,
 							value: chatChannel.id,
 						},
 					],
@@ -145,12 +145,12 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'channel',
-							type: Constants.ApplicationCommandOptionTypes.CHANNEL as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Channel,
 							value: chatChannel.id,
 						},
 					],
@@ -169,12 +169,12 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'channel',
-							type: Constants.ApplicationCommandOptionTypes.CHANNEL as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Channel,
 							value: chatChannel.id,
 						},
 					],
@@ -195,7 +195,7 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'unset',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -211,7 +211,7 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'unset',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -226,7 +226,7 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'unset',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -241,7 +241,7 @@ describe("chat-channel command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'unset',
 				},
 			] as APIApplicationCommandInteractionDataOption[];

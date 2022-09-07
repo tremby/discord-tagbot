@@ -19,7 +19,7 @@ describe("messageHasImage", () => {
 	function messageWithAttachments(attachments: APIAttachment[]): Message {
 		// @ts-expect-error -- private constructor
 		return new Message(getClient(), {
-			id: SnowflakeUtil.generate(new Date('2020Z')),
+			id: SnowflakeUtil.generate({ timestamp: new Date('2020Z')}),
 			channel_id: channel.id,
 			guild_id: channel.guildId,
 			author: {
@@ -50,7 +50,7 @@ describe("messageHasImage", () => {
 	it("returns false for a message with an attachment which has no content type", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.dng',
 				content_type: undefined,
 				size: 3333,
@@ -63,7 +63,7 @@ describe("messageHasImage", () => {
 	it("returns false for a message with an attachment which is not an image or video", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.txt',
 				content_type: 'text/plain',
 				size: 3333,
@@ -76,7 +76,7 @@ describe("messageHasImage", () => {
 	it("returns true for a message with a jpeg attachment", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.jpg',
 				content_type: 'image/jpeg',
 				size: 3333,
@@ -91,7 +91,7 @@ describe("messageHasImage", () => {
 	it("returns true for a message with a PNG attachment", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.png',
 				content_type: 'image/png',
 				size: 3333,
@@ -106,7 +106,7 @@ describe("messageHasImage", () => {
 	it("returns true for a message with a WebP attachment", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.webp',
 				content_type: 'image/webp',
 				size: 3333,
@@ -121,7 +121,7 @@ describe("messageHasImage", () => {
 	it("returns true for a message with a video attachment", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.mp4',
 				content_type: 'video/mp4',
 				size: 3333,
@@ -136,7 +136,7 @@ describe("messageHasImage", () => {
 	it("returns true for a message whose image/video attachment is not first or last", () => {
 		expect(m.messageHasImage(messageWithAttachments([
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.txt',
 				content_type: 'text/plain',
 				size: 3333,
@@ -144,7 +144,7 @@ describe("messageHasImage", () => {
 				proxy_url: 'http://example.com/foo.txt',
 			},
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.png',
 				content_type: 'image/png',
 				size: 3333,
@@ -154,7 +154,7 @@ describe("messageHasImage", () => {
 				height: 1000,
 			},
 			{
-				id: SnowflakeUtil.generate(),
+				id: SnowflakeUtil.generate().toString(),
 				filename: 'foo.htm',
 				content_type: 'text/html',
 				size: 3333,

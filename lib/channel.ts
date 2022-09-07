@@ -1,3 +1,4 @@
+import { ChannelType } from 'discord.js';
 import type { Collection, User, Message, TextChannel } from 'discord.js';
 
 import appState from '../lib/state';
@@ -10,7 +11,7 @@ import appState from '../lib/state';
 const DISCORD_FETCH_MESSAGES_MAX = 100;
 
 export function channelIsTextChannel(channel: any): channel is TextChannel {
-	return ('type' in channel) && (channel as TextChannel).type === 'GUILD_TEXT';
+	return ('type' in channel) && (channel as TextChannel).type === ChannelType.GuildText;
 }
 
 /**
@@ -29,9 +30,8 @@ export function getGameOfChannel(channel: TextChannel): Game | null {
  *
  * @param {TextChannel} channel
  * @param {Message} startMessage
- * @param {boolean} force - Force a cache skip. Default is false.
  */
-export async function* getAllMessagesSince(channel: TextChannel, startMessage: Message, force: boolean = false): AsyncGenerator<Message> {
+export async function* getAllMessagesSince(channel: TextChannel, startMessage: Message): AsyncGenerator<Message> {
 	let justFetched: Collection<string, Message> | null = null;
 	const allMessages: Message[] = [];
 
@@ -45,7 +45,7 @@ export async function* getAllMessagesSince(channel: TextChannel, startMessage: M
 		justFetched = await channel.messages.fetch({
 			limit: DISCORD_FETCH_MESSAGES_MAX,
 			after: justFetched == null ? startMessage.id : justFetched!.first()?.id,
-		}, { force });
+		});
 
 		// Yield the messages in chronological order
 		for (const message of [...justFetched.values()].reverse()) {

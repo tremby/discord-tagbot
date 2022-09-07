@@ -1,7 +1,7 @@
 import commandSpec from './disqualified';
 import { getCommandInteraction, getTextChannel, getGuild, getUser } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
-import { Constants } from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
 import { mocked } from 'jest-mock';
@@ -31,12 +31,12 @@ describe("disqualified command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -59,12 +59,12 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -88,12 +88,12 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -117,12 +117,12 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -143,12 +143,12 @@ describe("disqualified command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -171,12 +171,12 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -200,12 +200,12 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -228,12 +228,12 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -257,12 +257,12 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'user',
-							type: Constants.ApplicationCommandOptionTypes.USER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.User,
 							value: user1.id,
 						},
 					],
@@ -283,7 +283,7 @@ describe("disqualified command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -302,7 +302,7 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -322,7 +322,7 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -341,7 +341,7 @@ describe("disqualified command", () => {
 			} as unknown as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];

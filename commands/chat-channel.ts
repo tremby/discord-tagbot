@@ -1,3 +1,4 @@
+import { InteractionType } from 'discord.js';
 import type { TextChannel } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 

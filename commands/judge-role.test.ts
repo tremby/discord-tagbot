@@ -1,7 +1,7 @@
 import commandSpec from './judge-role';
 import { getCommandInteraction, getTextChannel, getGuild, getUser, getRole } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
-import { Constants } from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
 import { mocked } from 'jest-mock';
@@ -40,7 +40,7 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -58,12 +58,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],
@@ -84,12 +84,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],
@@ -108,12 +108,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],
@@ -132,12 +132,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'add',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],
@@ -162,7 +162,7 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -180,12 +180,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],
@@ -206,12 +206,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],
@@ -230,12 +230,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],
@@ -254,12 +254,12 @@ describe("judge-role command", () => {
 			} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'remove',
 					options: [
 						{
 							name: 'role',
-							type: Constants.ApplicationCommandOptionTypes.ROLE as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Role,
 							value: role1.id,
 						}
 					],

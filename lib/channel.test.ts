@@ -1,5 +1,5 @@
 import * as m from './channel';
-import { ClientUser, Collection } from 'discord.js';
+import { ChannelType, ClientUser, Collection } from 'discord.js';
 import type { Message, MessageManager } from 'discord.js';
 import { getBotUser, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
@@ -19,9 +19,9 @@ describe("channelIsTextChannel", () => {
 		expect(m.channelIsTextChannel({})).toBe(false);
 	});
 
-	it("expects type to be `GUILD_TEXT`", () => {
+	it("expects type to be `ChannelType.GuildText`", () => {
 		expect(m.channelIsTextChannel({ type: 'foo' })).toBe(false);
-		expect(m.channelIsTextChannel({ type: 'GUILD_TEXT' })).toBe(true);
+		expect(m.channelIsTextChannel({ type: ChannelType.GuildText })).toBe(true);
 	});
 });
 
@@ -89,18 +89,6 @@ describe("getAllMessagesSince", () => {
 		return results;
 	}
 
-	it("passes the force value through to the fetcher", async () => {
-		const mockFetch = jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(new Collection([]));
-		let results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage, false));
-		expect(mockFetch).toHaveBeenCalledTimes(1);
-		expect(mockFetch).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ force: false }));
-		mockFetch.mockClear();
-		results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage, true));
-		await m.getAllMessagesSince(channel1, statusMessage, true);
-		expect(mockFetch).toHaveBeenCalledTimes(1);
-		expect(mockFetch).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ force: true }));
-	});
-
 	it("reverses each page of results into chronological order", async () => {
 		const page1 = [];
 		for (let i = 1; i <= 100; i++) {
@@ -111,8 +99,8 @@ describe("getAllMessagesSince", () => {
 			page2.push([i.toString(), getMessage(channel1, user1, [], false, false, new Date("2020Z"), `page 2 message ${i}`)]);
 		}
 		const mockFetch = jest.spyOn(channel1.messages, 'fetch')
-			.mockResolvedValueOnce(new Collection(page1 as Iterable<[string, Message<boolean>]>))
-			.mockResolvedValueOnce(new Collection(page2 as Iterable<[string, Message<boolean>]>))
+			.mockResolvedValueOnce(new Collection(page1 as Iterable<[string, Message<true>]>))
+			.mockResolvedValueOnce(new Collection(page2 as Iterable<[string, Message<true>]>))
 			.mockResolvedValue(new Collection([]));
 		const results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage));
 		expect(results[0].content).toBe("page 1 message 100");
@@ -137,9 +125,9 @@ describe("getAllMessagesSince", () => {
 			page3.push([i.toString(), getMessage(channel1, user1, [], false, false, new Date("2020Z"), `page 3 message ${i}`)]);
 		}
 		const mockFetch = jest.spyOn(channel1.messages, 'fetch')
-			.mockResolvedValueOnce(new Collection(page1 as Iterable<[string, Message<boolean>]>))
-			.mockResolvedValueOnce(new Collection(page2 as Iterable<[string, Message<boolean>]>))
-			.mockResolvedValueOnce(new Collection(page3 as Iterable<[string, Message<boolean>]>))
+			.mockResolvedValueOnce(new Collection(page1 as Iterable<[string, Message<true>]>))
+			.mockResolvedValueOnce(new Collection(page2 as Iterable<[string, Message<true>]>))
+			.mockResolvedValueOnce(new Collection(page3 as Iterable<[string, Message<true>]>))
 			.mockResolvedValue(new Collection([]));
 		const results = await flushIterator(m.getAllMessagesSince(channel1, statusMessage));
 		expect(mockFetch).toHaveBeenCalledTimes(3);

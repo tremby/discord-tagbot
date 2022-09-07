@@ -1,7 +1,7 @@
 import commandSpec from './lifespan';
 import { getCommandInteraction, getTextChannel, getGuild, getUser } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
-import { Constants } from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
 import { mocked } from 'jest-mock';
@@ -33,12 +33,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'period',
 					options: [
 						{
 							name: 'period',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'manual',
 						},
 					],
@@ -53,12 +53,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'period',
 					options: [
 						{
 							name: 'period',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'month',
 						},
 					],
@@ -73,12 +73,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'period',
 					options: [
 						{
 							name: 'period',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'month',
 						},
 					],
@@ -93,12 +93,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'period',
 					options: [
 						{
 							name: 'period',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'month',
 						},
 					],
@@ -114,12 +114,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'period',
 					options: [
 						{
 							name: 'period',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'month',
 						},
 					],
@@ -137,12 +137,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'period',
 					options: [
 						{
 							name: 'period',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'month',
 						},
 					],
@@ -159,12 +159,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'auto-restart',
 					options: [
 						{
 							name: 'auto-restart',
-							type: Constants.ApplicationCommandOptionTypes.BOOLEAN as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Boolean,
 							value: true,
 						},
 					],
@@ -179,12 +179,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'auto-restart',
 					options: [
 						{
 							name: 'auto-restart',
-							type: Constants.ApplicationCommandOptionTypes.BOOLEAN as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Boolean,
 							value: false,
 						},
 					],
@@ -199,12 +199,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'auto-restart',
 					options: [
 						{
 							name: 'auto-restart',
-							type: Constants.ApplicationCommandOptionTypes.BOOLEAN as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Boolean,
 							value: true,
 						},
 					],
@@ -219,12 +219,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'auto-restart',
 					options: [
 						{
 							name: 'auto-restart',
-							type: Constants.ApplicationCommandOptionTypes.BOOLEAN as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Boolean,
 							value: true,
 						},
 					],
@@ -240,12 +240,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'auto-restart',
 					options: [
 						{
 							name: 'auto-restart',
-							type: Constants.ApplicationCommandOptionTypes.BOOLEAN as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Boolean,
 							value: true,
 						},
 					],
@@ -262,12 +262,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'locale',
 					options: [
 						{
 							name: 'locale',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'America/Chicago',
 						},
 					],
@@ -282,12 +282,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'locale',
 					options: [
 						{
 							name: 'locale',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'America/Chicago',
 						},
 					],
@@ -302,12 +302,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'locale',
 					options: [
 						{
 							name: 'locale',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'America/Chicago',
 						},
 					],
@@ -323,12 +323,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'locale',
 					options: [
 						{
 							name: 'locale',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'America/Chicago',
 						},
 					],
@@ -346,12 +346,12 @@ describe("lifespan command", () => {
 			const game = {} as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'locale',
 					options: [
 						{
 							name: 'locale',
-							type: Constants.ApplicationCommandOptionTypes.STRING as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.String,
 							value: 'America/Chicago',
 						},
 					],

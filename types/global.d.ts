@@ -1,4 +1,4 @@
-import type { CommandInteraction, TextChannel, Message, User, GuildMember, Role } from 'discord.js';
+import type { ChatInputCommandInteraction, TextChannel, Message, User, GuildMember, Role } from 'discord.js';
 import type { SlashCommandBuilder } from '@discordjs/builders';
 
 declare global {
@@ -7,7 +7,7 @@ declare global {
 	// Is there a way to get this straight from the upstream types?
 	type SlashCommandDescription = Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 
-	type SlashCommandHandler = (interaction: CommandInteraction, channel: TextChannel, game: Game | null) => Promise<void>;
+	type SlashCommandHandler = (interaction: ChatInputCommandInteraction, channel: TextChannel, game: Game | null) => Promise<void>;
 
 	type SlashCommandSpec = {
 		description: SlashCommandDescription;

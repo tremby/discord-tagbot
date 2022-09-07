@@ -1,4 +1,4 @@
-import { Client, Intents, TextChannel } from 'discord.js';
+import { Client, GatewayIntentBits, TextChannel, ActivityType } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 
@@ -30,9 +30,9 @@ for (const varname of ['DISCORD_TOKEN']) {
 // Set up Discord client
 const client = new Client({
 	intents: [
-		Intents.FLAGS.GUILDS,
-		Intents.FLAGS.GUILD_MESSAGES,
-		Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMessageReactions,
 	],
 });
 
@@ -313,6 +313,7 @@ client.on('ready', async () => {
 	client.on('interactionCreate', async (interaction) => {
 		// Only handle slash commands
 		if (!interaction.isCommand()) return;
+		if (!interaction.isChatInputCommand()) return;
 
 		// Look up this command
 		const command = commands.find((command) => command.description.name === interaction.commandName);
@@ -397,7 +398,7 @@ client.on('ready', async () => {
 	});
 
 	// Set activity status
-	client.user.setPresence({ activities: [{ name: "tag", type: 'WATCHING' }], status: 'online' });
+	client.user.setPresence({ activities: [{ name: "tag", type: ActivityType.Watching }], status: 'online' });
 });
 
 /**

@@ -1,7 +1,7 @@
 import commandSpec from './time-limit';
 import { getCommandInteraction, getTextChannel, getGuild, getUser } from '../test/fixtures';
 import { expectInteractionResponse } from '../test/util';
-import { Constants } from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
 import { mocked } from 'jest-mock';
@@ -33,12 +33,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 0,
 						},
 					],
@@ -57,12 +57,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: -10,
 						},
 					],
@@ -81,12 +81,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 10,
 						},
 					],
@@ -102,12 +102,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 10,
 						},
 					],
@@ -124,12 +124,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 10,
 						},
 					],
@@ -145,12 +145,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 10,
 						},
 					],
@@ -166,12 +166,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 10,
 						},
 					],
@@ -188,12 +188,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 10,
 						},
 					],
@@ -210,12 +210,12 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'set',
 					options: [
 						{
 							name: 'time-limit',
-							type: Constants.ApplicationCommandOptionTypes.INTEGER as number, // FIXME: broken types?
+							type: ApplicationCommandOptionType.Integer,
 							value: 10,
 						},
 					],
@@ -233,7 +233,7 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -247,7 +247,7 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -261,7 +261,7 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -276,7 +276,7 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'clear',
 				},
 			] as APIApplicationCommandInteractionDataOption[];
@@ -293,7 +293,7 @@ describe("time-limit command", () => {
 			const game = { config } as Game;
 			const options = [
 				{
-					type: Constants.ApplicationCommandOptionTypes.SUB_COMMAND as number, // FIXME: broken types?
+					type: ApplicationCommandOptionType.Subcommand,
 					name: 'x',
 				},
 			] as APIApplicationCommandInteractionDataOption[];

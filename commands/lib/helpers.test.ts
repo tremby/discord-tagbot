@@ -1,6 +1,6 @@
 import * as m from './helpers';
-import type { Role, GuildMemberRoleManager } from 'discord.js';
-import { CommandInteraction, Permissions, Constants, Collection } from 'discord.js';
+import type { Role, GuildMemberRoleManager, ChatInputApplicationCommandData } from 'discord.js';
+import { ChatInputCommandInteraction, PermissionsBitField, Constants, Collection } from 'discord.js';
 import { BotError } from "../../lib/bot-error";
 import { getClient, getGuild, getTextChannel, getUser, getMember, getRole } from '../../test/fixtures';
 
@@ -49,32 +49,32 @@ describe("NoTextChannelError", () => {
 describe("isAdmin", () => {
 	it("throws an error if the permissions property is not the expected type", () => {
 		expect(() => {
-			m.isAdmin({ member: { permissions: "some string" } } as CommandInteraction);
+			m.isAdmin({ member: { permissions: "some string" } } as ChatInputCommandInteraction);
 		}).toThrowError(expect.any(m.ProblemCheckingPermissionsError));
 	});
 
 	it("returns true if the user has the administrator flag", () => {
 		expect(m.isAdmin({
 			member: {
-				permissions: new Permissions(Permissions.FLAGS.ADMINISTRATOR),
+				permissions: new PermissionsBitField(PermissionsBitField.Flags.Administrator),
 			},
-		} as CommandInteraction)).toBe(true);
+		} as ChatInputCommandInteraction)).toBe(true);
 	});
 
 	it("returns true if the user has the administrator flag among others", () => {
 		expect(m.isAdmin({
 			member: {
-				permissions: new Permissions(Permissions.FLAGS.ADMINISTRATOR | Permissions.FLAGS.CONNECT),
+				permissions: new PermissionsBitField(PermissionsBitField.Flags.Administrator | PermissionsBitField.Flags.Connect),
 			},
-		} as CommandInteraction)).toBe(true);
+		} as ChatInputCommandInteraction)).toBe(true);
 	});
 
 	it("returns false if the user does not have the administrator flag", () => {
 		expect(m.isAdmin({
 			member: {
-				permissions: new Permissions(Permissions.FLAGS.SPEAK | Permissions.FLAGS.CONNECT),
+				permissions: new PermissionsBitField(PermissionsBitField.Flags.Speak | PermissionsBitField.Flags.Connect),
 			},
-		} as CommandInteraction)).toBe(false);
+		} as ChatInputCommandInteraction)).toBe(false);
 	});
 });
 
@@ -98,7 +98,7 @@ describe("isAdminOrTagJudge", () => {
 
 	it("first calls isAdmin and returns immediately if true", () => {
 		const mockIsAdmin = jest.spyOn(m, 'isAdmin').mockReturnValue(true);
-		expect(m.isAdminOrTagJudge({} as CommandInteraction, game)).toBe(true);
+		expect(m.isAdminOrTagJudge({} as ChatInputCommandInteraction, game)).toBe(true);
 		expect(mockIsGuildMemberRoleManager).not.toHaveBeenCalled();
 	});
 
@@ -106,14 +106,14 @@ describe("isAdminOrTagJudge", () => {
 		const mockIsAdmin = jest.spyOn(m, 'isAdmin').mockReturnValue(false);
 		mockIsGuildMemberRoleManager.mockReturnValue(false);
 		expect(() => {
-			m.isAdminOrTagJudge({ member: { roles: true } } as unknown as CommandInteraction, game);
+			m.isAdminOrTagJudge({ member: { roles: true } } as unknown as ChatInputCommandInteraction, game);
 		}).toThrow(expect.any(m.ProblemCheckingPermissionsError));
 	});
 
 	it("returns false if the user is not an admin and there are no judge roles", () => {
 		const mockIsAdmin = jest.spyOn(m, 'isAdmin').mockReturnValue(false);
 		mockIsGuildMemberRoleManager.mockReturnValue(true);
-		expect(m.isAdminOrTagJudge({ member: { roles: true } } as unknown as CommandInteraction, game)).toBe(false);
+		expect(m.isAdminOrTagJudge({ member: { roles: true } } as unknown as ChatInputCommandInteraction, game)).toBe(false);
 	});
 
 	it("returns false if the user does not have any of the judge roles", () => {
@@ -123,7 +123,7 @@ describe("isAdminOrTagJudge", () => {
 		const mockRoleManager = jest.spyOn(member, 'roles', 'get').mockReturnValue({
 			cache: new Set([role1.id, role2.id]),
 		} as unknown as GuildMemberRoleManager);
-		expect(m.isAdminOrTagJudge({ member } as CommandInteraction, {
+		expect(m.isAdminOrTagJudge({ member } as ChatInputCommandInteraction, {
 		channel,
 			config: {
 				nextTagTimeLimit: null,
@@ -148,7 +148,7 @@ describe("isAdminOrTagJudge", () => {
 		const mockRoleManager = jest.spyOn(member, 'roles', 'get').mockReturnValue({
 			cache: new Set([role1.id, role2.id, tagJudgeRole1.id]),
 		} as unknown as GuildMemberRoleManager);
-		expect(m.isAdminOrTagJudge({ member } as CommandInteraction, {
+		expect(m.isAdminOrTagJudge({ member } as ChatInputCommandInteraction, {
 		channel,
 			config: {
 				nextTagTimeLimit: null,
@@ -169,7 +169,7 @@ describe("isAdminOrTagJudge", () => {
 
 describe("getValidChannel", () => {
 	// @ts-expect-error -- private constructor
-	const interaction = new CommandInteraction(getClient(), {
+	const interaction = new ChatInputCommandInteraction(getClient(), {
 		id: '',
 		application_id: '',
 		type: 2,

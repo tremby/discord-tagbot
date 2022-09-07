@@ -203,7 +203,7 @@ describe("getStatusEmbedField", () => {
 
 describe("formatGameStatusMessage", () => {
 	beforeEach(() => {
-		jest.spyOn(m, 'getStatusEmbedField').mockReturnValue({ name: "mock-name", value: "mock-value" });
+		jest.spyOn(m, 'getStatusEmbedField').mockReturnValue({ inline: false, name: "mock-name", value: "mock-value" });
 	});
 
 	it("gives a single embed", () => {
@@ -220,11 +220,11 @@ describe("formatGameStatusMessage", () => {
 	it("has a field for the status", () => {
 		const game = gameWithState(stateAwaitingNext);
 		const response = m.formatGameStatusMessage(game);
-		expect(response).toHaveProperty('embeds.0.fields', expect.arrayContaining([{ name: "mock-name", value: "mock-value" }]));
+		expect(response).toHaveProperty('embeds.0.fields', expect.arrayContaining([{ inline: false, name: "mock-name", value: "mock-value" }]));
 	});
 
 	it("has a field for the scores", () => {
-		mockGetScoresEmbedField.mockImplementation((game, type) => ({ name: 'n', value: 'v' }));
+		mockGetScoresEmbedField.mockImplementation((game, type) => ({ inline: false, name: 'n', value: 'v' }));
 		const game = gameWithState(stateAwaitingNext);
 		const response = m.formatGameStatusMessage(game);
 		expect(getScoresEmbedField).toHaveBeenCalledTimes(1);

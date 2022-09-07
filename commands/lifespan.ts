@@ -16,9 +16,9 @@ commandDescription.addSubcommand((sc) => sc
 		.setName('period')
 		.setDescription("Period for the game.")
 		.setRequired(true)
-		.addChoice('manual', 'manual')
-		.addChoice('hour', 'hour')
-		.addChoice('month', 'month')
+		.addChoices({ name: 'manual', value: 'manual' })
+		.addChoices({ name: 'hour', value: 'hour' })
+		.addChoices({ name: 'month', value: 'month' })
 	)
 );
 

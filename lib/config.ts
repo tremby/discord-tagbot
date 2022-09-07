@@ -1,4 +1,4 @@
-import type { Message, EmbedFieldData } from 'discord.js';
+import type { Message, EmbedField } from 'discord.js';
 
 import { pluralize, toList } from './string';
 
@@ -33,7 +33,7 @@ export function serializeConfig(config: Config): SerializedConfig {
 /**
  * Get the configuration embed field.
  */
-export function getConfigEmbedFields(config: Config): EmbedFieldData[] {
+export function getConfigEmbedFields(config: Config): EmbedField[] {
 	const minutes = config.nextTagTimeLimit == null ? null : config.nextTagTimeLimit / 1e3 / 60;
 	return [
 		{

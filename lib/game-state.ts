@@ -1,4 +1,4 @@
-import type { MessageOptions, EmbedFieldData, User } from 'discord.js';
+import type { MessageOptions, MessageEditOptions, EmbedField, User } from 'discord.js';
 import { Constants } from 'discord.js';
 
 import { getScoresEmbedField, formatScores } from './scoring';
@@ -46,8 +46,9 @@ export function formatGameStatus(game: Game): string {
 /**
  * Get the status embed field.
  */
-export function getStatusEmbedField(game: Game): EmbedFieldData {
+export function getStatusEmbedField(game: Game): EmbedField {
 	return {
+		inline: false,
 		name: "Status",
 		value: thisModule.formatGameStatus(game),
 	};
@@ -56,7 +57,7 @@ export function getStatusEmbedField(game: Game): EmbedFieldData {
 /**
  * Format a game status message.
  */
-export function formatGameStatusMessage(game: Game): MessageOptions {
+export function formatGameStatusMessage(game: Game): MessageOptions & MessageEditOptions {
 	return {
 		embeds: [{
 			title: "Tag game status",
@@ -106,11 +107,12 @@ export async function updateGameState(game: Game, newState: GameState, updateSta
 /**
  * Get the disqualified players embed field.
  */
-export function getDisqualifiedPlayersEmbedField(game: Game): EmbedFieldData | null {
+export function getDisqualifiedPlayersEmbedField(game: Game): EmbedField | null {
 	if (!gameStateIsAwaitingNext(game.state) && !gameStateIsAwaitingMatch(game.state)) {
 		return null;
 	}
 	return {
+		inline: false,
 		name: "Users disqualified from this round",
 		value: game.state.disqualifiedFromRound.size ? toList(game.state.disqualifiedFromRound) : "None",
 	};

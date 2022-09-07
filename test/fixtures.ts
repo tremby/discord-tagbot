@@ -10,9 +10,9 @@ import {
 	Message,
 	User,
 	GuildMember,
-	Constants,
-	CommandInteraction,
+	ChatInputCommandInteraction,
 } from 'discord.js';
+import { ChannelType } from 'discord-api-types/v10';
 import type { APIApplicationCommandInteractionDataOption } from 'discord-api-types/v10';
 
 const client = new Client({ intents: [] });
@@ -60,7 +60,7 @@ export function getTextChannel(guild: Guild, id?: string): TextChannel {
 	// @ts-expect-error -- private constructor
 	return new TextChannel(guild, {
 		id: id ?? SnowflakeUtil.generate(),
-		type: Constants.ChannelTypes.GUILD_TEXT.valueOf(),
+		type: ChannelType.GuildText,
 	}, getClient());
 }
 
@@ -98,10 +98,10 @@ export function getMember(guild: Guild, user: User, roles: Role[], passedId?: st
 	}, guild);
 }
 
-export function getMessage(channel: TextChannel, author: User, mentions: User[], hasImage: boolean, pinned: boolean, timestamp: number | Date, content: string): Message {
+export function getMessage(channel: TextChannel, author: User, mentions: User[], hasImage: boolean, pinned: boolean, timestamp: number | Date, content: string): Message<true> {
 	// @ts-expect-error -- private constructor
 	return new Message(getClient(), {
-		id: SnowflakeUtil.generate(timestamp),
+		id: SnowflakeUtil.generate({ timestamp }),
 		channel_id: channel.id,
 		guild_id: channel.guildId,
 		author: {
@@ -139,13 +139,13 @@ export function getMessage(channel: TextChannel, author: User, mentions: User[],
 	});
 }
 
-export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOption[], resolved: any): CommandInteraction {
+export function getCommandInteraction(channel: TextChannel, author: User, name: string, options: APIApplicationCommandInteractionDataOption[], resolved: any): ChatInputCommandInteraction {
 	// FIXME: type `resolved`. It ought to be APIApplicationCommandInteractionData['resolved']
 	// but TS gets sad if we pass our role objects to this,
 	// yet it seems to work fine. Faulty types?
 
 	// @ts-expect-error -- private constructor
-	const interaction = new CommandInteraction(getClient(), {
+	const interaction = new ChatInputCommandInteraction(getClient(), {
 		id: SnowflakeUtil.generate(),
 		application_id: '',
 		type: 2,

@@ -1,6 +1,6 @@
 import * as thisModule from './scoring';
 
-import type { TextChannel, User, Message, EmbedFieldData } from 'discord.js';
+import type { TextChannel, User, Message, EmbedField } from 'discord.js';
 
 import { gameStateIsFree, gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsInactive } from './game-state';
 import { messageHasImage, getMessageUsers, deleteMessage } from './message';
@@ -280,7 +280,7 @@ export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState
 	}
 
 	// Step through all messages
-	for await (const message of getAllMessagesSince(game.channel, game.statusMessage, true)) {
+	for await (const message of getAllMessagesSince(game.channel, game.statusMessage)) {
 		const newState = await thisModule.handleMessage({ ...game, state }, message, 'recount');
 		if (newState == null) continue;
 		state = newState;
@@ -376,8 +376,9 @@ function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
 /**
  * Get the scores embed field.
  */
-export function getScoresEmbedField(game: Game, format: 'brief' | 'full'): EmbedFieldData {
+export function getScoresEmbedField(game: Game, format: 'brief' | 'full'): EmbedField {
 	return {
+		inline: false,
 		name: format === 'brief' ? "Top scores" : "Scores",
 		value: getScoresMessage(game, format),
 	};
@@ -415,8 +416,9 @@ export function getChangedScores(oldScores: Scores | undefined, newScores: Score
 /**
  * Get the score changes embed field.
  */
-export function getScoreChangesEmbedField(changedScores: ScoreChanges): EmbedFieldData {
+export function getScoreChangesEmbedField(changedScores: ScoreChanges): EmbedField {
 	return {
+		inline: false,
 		name: "Changed scores",
 		value: changedScores.size === 0 ? "None" : [...changedScores.entries()].map(([user, { before, after }]) => `${user}: ${before} → ${after}`).join("\n"),
 	};
