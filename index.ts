@@ -1,11 +1,17 @@
-import { Client, GatewayIntentBits, TextChannel, ActivityType } from 'discord.js';
+// Load configuration
+import dotenv = require('dotenv');
+dotenv.config();
+
+import { createClient as createRedisClient } from 'redis';
+
+import { Client as DiscordClient, GatewayIntentBits, TextChannel, ActivityType } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 
 import commands from './commands';
 import { ProblemCheckingPermissionsError, NoTextChannelError, isAdmin, isAdminOrTagJudge, getValidChannel } from './commands/lib/helpers';
 
-import appState, { loadFromDisk, persistToDisk } from './lib/state';
+import appState, { load, persist, getRedisClient } from './lib/state';
 import { channelIsTextChannel, getGameOfChannel } from './lib/channel';
 import { handleMessage, recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from './lib/scoring';
 import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, gameStateIsInactive, updateGameState } from './lib/game-state';
@@ -15,20 +21,19 @@ import { setsEqual } from './lib/set';
 // Flag for whether we have finished loading any saved state or not
 let finishedRestoring = false;
 
-// Load configuration
-import dotenv = require('dotenv');
-dotenv.config();
-
 // Check for configuration
-for (const varname of ['DISCORD_TOKEN']) {
+for (const varname of ['DISCORD_TOKEN', 'REDISHOST', 'REDISPORT']) {
 	if (!process.env[varname]) {
 		console.error(`${varname} must be set`);
 		process.exit(1);
 	}
 }
 
+// Connect to Redis client
+getRedisClient().connect();
+
 // Set up Discord client
-const client = new Client({
+const discordClient = new DiscordClient({
 	intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMessages,
@@ -37,18 +42,18 @@ const client = new Client({
 });
 
 // Actions to take on login
-client.on('ready', async () => {
-	if (client.user == null) throw new Error("Logged in but client.user is null");
-	if (client.application == null) throw new Error("Logged in but client.application is null");
+discordClient.on('ready', async () => {
+	if (discordClient.user == null) throw new Error("Logged in but discordClient.user is null");
+	if (discordClient.application == null) throw new Error("Logged in but discordClient.application is null");
 
-	console.log(`Logged in as ${client.user.tag}`);
+	console.log(`Logged in as ${discordClient.user.tag}`);
 
 	// Set activity status
-	client.user.setPresence({ status: 'idle' });
+	discordClient.user.setPresence({ status: 'idle' });
 
 	// Load state from disk and hydrate data
 	try {
-		await loadFromDisk(client);
+		await load(discordClient);
 	} catch (error) {
 		if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
 			// No saved state; nothing needs to be done
@@ -62,13 +67,13 @@ client.on('ready', async () => {
 	// Register slash commands
 	const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
 	console.log("Registering slash commands");
-	await rest.put(Routes.applicationCommands(client.application.id), {
+	await rest.put(Routes.applicationCommands(discordClient.application.id), {
 		body: commands.map((command) => command.description),
 	});
 	console.log("...done");
 
 	// Listen for and handle new messages
-	client.on('messageCreate', async (message) => {
+	discordClient.on('messageCreate', async (message) => {
 		// Ignore messages sent by this bot
 		if (message.author === message.client.user) return;
 
@@ -93,7 +98,7 @@ client.on('ready', async () => {
 	});
 
 	// Listen for message edits
-	client.on('messageUpdate', async (oldMessage, newMessage) => {
+	discordClient.on('messageUpdate', async (oldMessage, newMessage) => {
 		// Panic if the old and new channels are different
 		if (oldMessage.channel !== newMessage.channel) {
 			console.error(`Received a messageUpdate event where the old and new messages are in different channels. Ignoring. Old: ${JSON.stringify(oldMessage)}, new: ${JSON.stringify(newMessage)}`);
@@ -170,7 +175,7 @@ client.on('ready', async () => {
 	});
 
 	// Listen for message deletions
-	client.on('messageDelete', async (message) => {
+	discordClient.on('messageDelete', async (message) => {
 		// Ignore messages sent by this bot
 		if (message.author === message.client.user) return;
 
@@ -236,7 +241,7 @@ client.on('ready', async () => {
 	});
 
 	// Listen for bulk deletions
-	client.on('messageDeleteBulk', async (messages) => {
+	discordClient.on('messageDeleteBulk', async (messages) => {
 		const affectedGames = new Set<Game>();
 
 		for (const message of messages.values()) {
@@ -310,7 +315,7 @@ client.on('ready', async () => {
 	});
 
 	// Handle interactions
-	client.on('interactionCreate', async (interaction) => {
+	discordClient.on('interactionCreate', async (interaction) => {
 		// Only handle slash commands
 		if (!interaction.isCommand()) return;
 		if (!interaction.isChatInputCommand()) return;
@@ -398,7 +403,7 @@ client.on('ready', async () => {
 	});
 
 	// Set activity status
-	client.user.setPresence({ activities: [{ name: "tag", type: ActivityType.Watching }], status: 'online' });
+	discordClient.user.setPresence({ activities: [{ name: "tag", type: ActivityType.Watching }], status: 'online' });
 });
 
 /**
@@ -406,20 +411,20 @@ client.on('ready', async () => {
  */
 async function start() {
 	// Log in; this triggers other logic when the ready signal is retrieved
-	await client.login(process.env.DISCORD_TOKEN);
+	await discordClient.login(process.env.DISCORD_TOKEN);
 
 	// Set up graceful shutdown
 	async function shutdown() {
 		console.log("Signal to shut down received.");
 		if (finishedRestoring) {
 			console.log("Persisting state...");
-			await persistToDisk();
+			await persist();
 			console.log("Done");
 		} else {
 			console.log("Not persisting state since we didn't finish restoring.");
 		}
 		console.log("Logging out of Discord");
-		await client.destroy();
+		await discordClient.destroy();
 		console.log("Done");
 		process.exit(0);
 	}

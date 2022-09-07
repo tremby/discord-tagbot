@@ -5,8 +5,8 @@ import { expectInteractionResponse } from '../test/util';
 import { mocked } from 'jest-mock';
 
 jest.mock('../lib/state');
-import gameState, { persistToDisk } from '../lib/state';
-const mockPersistToDisk = mocked(persistToDisk);
+import gameState, { persist } from '../lib/state';
+const mockPersist = mocked(persist);
 
 jest.mock('../lib/game-state');
 import { getStatusEmbedField } from '../lib/game-state';
@@ -65,7 +65,7 @@ describe("init command", () => {
 	it("persists to disk", async () => {
 		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
 		await commandSpec.handler(interaction, channel, null);
-		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+		expect(mockPersist).toHaveBeenCalledTimes(1);
 	});
 
 	it("uses the default configuration", async () => {

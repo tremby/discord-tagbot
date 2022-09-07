@@ -1,14 +1,15 @@
 import * as thisModule from './state';
 
 import type { Role, Client, TextChannel } from 'discord.js';
-import { writeFile, readFile } from 'fs/promises';
+
+import { createClient as createRedisClient } from 'redis';
 
 import { serializeConfig } from './config';
 import { recount } from './scoring';
 import { setTimers } from './timers';
 import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, updateGameStatusMessage } from './game-state';
 
-const STATE_FILE = 'state.json';
+const STATE_KEY = 'state';
 
 const state = {
 	/**
@@ -24,6 +25,23 @@ const state = {
 };
 
 export default state;
+
+// Set up Redis client
+const redisClient = createRedisClient({
+	url: `redis://${process.env.REDISUSER ?? ''}:${process.env.REDISPASSWORD ?? ''}@${process.env.REDISHOST ?? 'localhost'}:${process.env.REDISPORT ?? '6379'}`,
+});
+redisClient.on('error', (error) => console.log("Redis error", error));
+
+// FIXME: awkward hack; see https://github.com/redis/node-redis/issues/1865
+// and related issues
+export type RedisClientType = typeof redisClient;
+
+/**
+ * Get the Redis client
+ */
+export function getRedisClient(): RedisClientType {
+	return redisClient;
+}
 
 /**
  * Serialize game object to something which can be persisted.
@@ -44,26 +62,32 @@ export function serializeGame(game: Game): SerializedGame {
 }
 
 /**
- * Persist state to disk.
+ * Persist state.
  */
-export async function persistToDisk(): Promise<void> {
-	await writeFile(STATE_FILE, JSON.stringify({
+export async function persist(): Promise<void> {
+	await thisModule.getRedisClient().set(STATE_KEY, JSON.stringify({
 		games: [...state.games].map((game) => thisModule.serializeGame(game)),
 	}, null, 2));
 }
 
 /**
- * Load state from disk.
+ * Load state.
  */
-export async function loadFromDisk(client: Client): Promise<void> {
-	console.log("Loading from disk");
+export async function load(discordClient: Client): Promise<void> {
+	console.log("Loading state from storage");
 
-	const str = await readFile(STATE_FILE, { encoding: 'utf-8' });
+	const str = await thisModule.getRedisClient().get(STATE_KEY);
+
+	if (str == null) {
+		console.log("No state found");
+		return;
+	}
+
 	const data = JSON.parse(str);
 
 	state.games = new Set(await Promise.all(data.games.map(async (serializedGame: SerializedGame) => {
 		// Get the channel object
-		const channel = await client.channels.fetch(serializedGame.channelId) as TextChannel;
+		const channel = await discordClient.channels.fetch(serializedGame.channelId) as TextChannel;
 
 		// Recover the game configuration
 		const config: Config = {
@@ -72,7 +96,7 @@ export async function loadFromDisk(client: Client): Promise<void> {
 				(await Promise.all(serializedGame.config.tagJudgeRoleIds.map(async (id) => channel.guild.roles.fetch(id))))
 					.filter((r): r is Role => r != null)
 			),
-			chatChannel: serializedGame.config.chatChannelId ? await client.channels.fetch(serializedGame.config.chatChannelId) as TextChannel : null,
+			chatChannel: serializedGame.config.chatChannelId ? await discordClient.channels.fetch(serializedGame.config.chatChannelId) as TextChannel : null,
 			autoRestart: serializedGame.config.autoRestart,
 			period: serializedGame.config.period,
 			locale: serializedGame.config.locale,
@@ -93,7 +117,7 @@ export async function loadFromDisk(client: Client): Promise<void> {
 
 		// If necessary, get currently-disqualified users
 		if (gameStateIsAwaitingMatch(state) || gameStateIsAwaitingNext(state)) {
-			state.disqualifiedFromRound = new Set(await Promise.all((serializedGame.disqualifiedFromRound ?? []).map((id) => client.users.fetch(id))));
+			state.disqualifiedFromRound = new Set(await Promise.all((serializedGame.disqualifiedFromRound ?? []).map((id) => discordClient.users.fetch(id))));
 		}
 
 		// Put together the final game object
@@ -113,5 +137,5 @@ export async function loadFromDisk(client: Client): Promise<void> {
 		return game;
 	})));
 
-	console.log("Finished loading from disk");
+	console.log("Finished loading from storage");
 }

@@ -3,7 +3,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { updateGameStatusMessage } from '../lib/game-state';
 import { setTimers, clearTimers } from '../lib/timers';
 import { getConfigEmbedFields } from '../lib/config';
-import { persistToDisk } from '../lib/state';
+import { persist } from '../lib/state';
 
 const commandDescription = new SlashCommandBuilder()
 	.setName('tag-lifespan')
@@ -67,7 +67,7 @@ const commandSpec: SlashCommandSpec = {
 				};
 
 				// Save state
-				persistToDisk();
+				persist();
 
 				// Update game state message
 				await updateGameStatusMessage(game);
@@ -102,7 +102,7 @@ const commandSpec: SlashCommandSpec = {
 				};
 
 				// Save state
-				persistToDisk();
+				persist();
 
 				// Update game state message
 				await updateGameStatusMessage(game);
@@ -145,7 +145,7 @@ const commandSpec: SlashCommandSpec = {
 				};
 
 				// Save state
-				persistToDisk();
+				persist();
 
 				// Update game state message
 				await updateGameStatusMessage(game);

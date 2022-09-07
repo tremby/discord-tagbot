@@ -5,8 +5,8 @@ import { expectInteractionResponse } from '../test/util';
 import { mocked } from 'jest-mock';
 
 jest.mock('../lib/state');
-import gameState, { persistToDisk } from '../lib/state';
-const mockPersistToDisk = mocked(persistToDisk);
+import gameState, { persist } from '../lib/state';
+const mockPersist = mocked(persist);
 
 jest.mock('../lib/timers');
 import { clearTimers } from '../lib/timers';
@@ -55,6 +55,6 @@ describe("forget command", () => {
 	it("persists to disk", async () => {
 		const interaction = getCommandInteraction(channel1, user1, 'init', [], {});
 		await commandSpec.handler(interaction, channel1, game1);
-		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+		expect(mockPersist).toHaveBeenCalledTimes(1);
 	});
 });

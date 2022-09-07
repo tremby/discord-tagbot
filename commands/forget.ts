@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { Constants } from 'discord.js';
 
-import appState, { persistToDisk } from '../lib/state';
+import appState, { persist } from '../lib/state';
 import { clearTimers } from '../lib/timers';
 
 const commandSpec: SlashCommandSpec = {
@@ -20,7 +20,7 @@ const commandSpec: SlashCommandSpec = {
 
 		// Unregister game
 		appState.games.delete(game);
-		persistToDisk();
+		persist();
 
 		// Respond to the user
 		await interaction.reply({

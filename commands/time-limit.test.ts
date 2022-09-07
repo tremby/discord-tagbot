@@ -7,8 +7,8 @@ import type { APIApplicationCommandInteractionDataOption } from 'discord-api-typ
 import { mocked } from 'jest-mock';
 
 jest.mock('../lib/state');
-import gameState, { persistToDisk } from '../lib/state';
-const mockPersistToDisk = mocked(persistToDisk);
+import gameState, { persist } from '../lib/state';
+const mockPersist = mocked(persist);
 
 jest.mock('../lib/config');
 import { getConfigEmbedFields } from '../lib/config';
@@ -49,7 +49,7 @@ describe("time-limit command", () => {
 			expectInteractionResponse(interaction, true);
 			expect(game).toHaveProperty('config.nextTagTimeLimit', 42);
 			expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
-			expect(mockPersistToDisk).not.toHaveBeenCalled();
+			expect(mockPersist).not.toHaveBeenCalled();
 		});
 
 		it("rejects negative values and does not change existing config", async () => {
@@ -73,7 +73,7 @@ describe("time-limit command", () => {
 			expectInteractionResponse(interaction, true);
 			expect(game).toHaveProperty('config.nextTagTimeLimit', 42);
 			expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
-			expect(mockPersistToDisk).not.toHaveBeenCalled();
+			expect(mockPersist).not.toHaveBeenCalled();
 		});
 
 		it("can change the time limit from none", async () => {
@@ -223,7 +223,7 @@ describe("time-limit command", () => {
 			] as APIApplicationCommandInteractionDataOption[];
 			const interaction = getCommandInteraction(channel, user1, 'time-limit', options, {});
 			await commandSpec.handler(interaction, channel, game);
-			expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+			expect(mockPersist).toHaveBeenCalledTimes(1);
 		});
 	});
 

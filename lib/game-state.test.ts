@@ -20,8 +20,8 @@ import { toList } from './string';
 const mockToList = mocked(toList);
 
 jest.mock('./state');
-import { persistToDisk } from './state';
-const mockPersistToDisk = mocked(persistToDisk);
+import { persist } from './state';
+const mockPersist = mocked(persist);
 
 const guild = getGuild();
 const channel = getTextChannel(guild);
@@ -368,7 +368,7 @@ describe("start", () => {
 		expect(channel.send).not.toHaveBeenCalled();
 		expect(statusMessage.pin).not.toHaveBeenCalled();
 		expect(chatChannel.send).not.toHaveBeenCalled();
-		expect(mockPersistToDisk).not.toHaveBeenCalled();
+		expect(mockPersist).not.toHaveBeenCalled();
 	});
 
 	it("updates the game state", async () => {
@@ -419,7 +419,7 @@ describe("start", () => {
 	it("persists to disk on success", async () => {
 		const game = { channel, config: {} } as Game;
 		await m.start(game);
-		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+		expect(mockPersist).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -527,7 +527,7 @@ describe("finish", () => {
 		const game = { channel, statusMessage, config: { period, autoRestart: false } } as Game;
 		await m.finish(game, endOfPeriod);
 		expect(m.start).not.toHaveBeenCalled();
-		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+		expect(mockPersist).toHaveBeenCalledTimes(1);
 	});
 
 	it.each([
@@ -537,7 +537,7 @@ describe("finish", () => {
 		const game = { channel, statusMessage, config: { period, autoRestart: true } } as Game;
 		await m.finish(game, endOfPeriod);
 		expect(m.start).not.toHaveBeenCalled();
-		expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+		expect(mockPersist).toHaveBeenCalledTimes(1);
 	});
 
 	it.each([
@@ -547,6 +547,6 @@ describe("finish", () => {
 		await m.finish(game, endOfPeriod);
 		expect(m.start).toHaveBeenCalledTimes(1);
 		expect(m.start).toHaveBeenCalledWith(game);
-		expect(mockPersistToDisk).not.toHaveBeenCalled();
+		expect(mockPersist).not.toHaveBeenCalled();
 	});
 });

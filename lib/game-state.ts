@@ -7,7 +7,7 @@ import { toList } from './string';
 import { clearTimers, setTimers } from './timers';
 import { getFormattedDeadline } from './deadline';
 import { setUnion } from './set';
-import { persistToDisk } from './state';
+import { persist } from './state';
 
 // To ease tests
 import * as thisModule from './game-state';
@@ -137,7 +137,7 @@ export async function start(game: Game): Promise<void> {
 	await game.statusMessage.pin();
 
 	// Save
-	persistToDisk();
+	persist();
 
 	// Announce in chat channel if there is one
 	if (game.config.chatChannel) {
@@ -242,6 +242,6 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 		await thisModule.start(game);
 	} else {
 		// Save; in the other branch start is being run, which will save
-		persistToDisk();
+		persist();
 	}
 }

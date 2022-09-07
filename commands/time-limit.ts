@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { persistToDisk } from '../lib/state';
+import { persist } from '../lib/state';
 import { pluralize } from '../lib/string';
 import { updateGameStatusMessage } from '../lib/game-state';
 import { getConfigEmbedFields } from '../lib/config';
@@ -100,7 +100,7 @@ const commandSpec: SlashCommandSpec = {
 		setTimers(game, game.state);
 
 		// Save the change
-		persistToDisk();
+		persist();
 
 		// Respond to the user
 		await deferralPromise;

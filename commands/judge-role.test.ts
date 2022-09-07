@@ -7,8 +7,8 @@ import type { APIApplicationCommandInteractionDataOption } from 'discord-api-typ
 import { mocked } from 'jest-mock';
 
 jest.mock('../lib/state');
-import gameState, { persistToDisk } from '../lib/state';
-const mockPersistToDisk = mocked(persistToDisk);
+import gameState, { persist } from '../lib/state';
+const mockPersist = mocked(persist);
 
 jest.mock('../lib/role');
 import { isRole } from '../lib/role';
@@ -48,7 +48,7 @@ describe("judge-role command", () => {
 			await commandSpec.handler(interaction, channel, game);
 			expectInteractionResponse(interaction, true);
 			expect(mockError).toHaveBeenCalledTimes(1);
-			expect(mockPersistToDisk).not.toHaveBeenCalled();
+			expect(mockPersist).not.toHaveBeenCalled();
 			expect(game.config.tagJudgeRoles.size).toBe(1);
 		});
 
@@ -74,7 +74,7 @@ describe("judge-role command", () => {
 			});
 			await commandSpec.handler(interaction, channel, game);
 			expectInteractionResponse(interaction, true);
-			expect(mockPersistToDisk).not.toHaveBeenCalled();
+			expect(mockPersist).not.toHaveBeenCalled();
 			expect(game.config.tagJudgeRoles.size).toBe(1);
 		});
 
@@ -99,7 +99,7 @@ describe("judge-role command", () => {
 				roles: { [role1.id]: role1 },
 			});
 			await commandSpec.handler(interaction, channel, game);
-			expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+			expect(mockPersist).toHaveBeenCalledTimes(1);
 		});
 
 		it("registers the role", async () => {
@@ -170,7 +170,7 @@ describe("judge-role command", () => {
 			await commandSpec.handler(interaction, channel, game);
 			expectInteractionResponse(interaction, true);
 			expect(mockError).toHaveBeenCalledTimes(1);
-			expect(mockPersistToDisk).not.toHaveBeenCalled();
+			expect(mockPersist).not.toHaveBeenCalled();
 			expect(game.config.tagJudgeRoles.size).toBe(1);
 		});
 
@@ -196,7 +196,7 @@ describe("judge-role command", () => {
 			});
 			await commandSpec.handler(interaction, channel, game);
 			expectInteractionResponse(interaction, true);
-			expect(mockPersistToDisk).not.toHaveBeenCalled();
+			expect(mockPersist).not.toHaveBeenCalled();
 			expect(game.config.tagJudgeRoles.size).toBe(1);
 		});
 
@@ -221,7 +221,7 @@ describe("judge-role command", () => {
 				roles: { [role1.id]: role1 },
 			});
 			await commandSpec.handler(interaction, channel, game);
-			expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+			expect(mockPersist).toHaveBeenCalledTimes(1);
 		});
 
 		it("unregisters the role", async () => {

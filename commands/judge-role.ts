@@ -1,7 +1,7 @@
 import type { CommandInteraction, Role, TextChannel } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { persistToDisk } from '../lib/state';
+import { persist } from '../lib/state';
 import { isRole } from '../lib/role';
 import { getConfigEmbedFields } from '../lib/config';
 
@@ -70,7 +70,7 @@ const commandSpec: SlashCommandSpec = {
 
 				// Register the role
 				game.config.tagJudgeRoles.add(role);
-				persistToDisk();
+				persist();
 
 				// Respond to user
 				await interaction.reply({
@@ -100,7 +100,7 @@ const commandSpec: SlashCommandSpec = {
 
 				// Unregister the role
 				game.config.tagJudgeRoles.delete(role);
-				persistToDisk();
+				persist();
 
 				// Respond to user
 				await interaction.reply({

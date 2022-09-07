@@ -1,7 +1,7 @@
 import type { CommandInteraction } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import appState, { persistToDisk } from '../lib/state';
+import appState, { persist } from '../lib/state';
 import { getDefaultConfig, getConfigEmbedFields } from '../lib/config';
 import { getStatusEmbedField } from '../lib/game-state';
 
@@ -39,7 +39,7 @@ const commandSpec: SlashCommandSpec = {
 
 		// Register the game
 		appState.games.add(game);
-		persistToDisk();
+		persist();
 
 		// Respond to user
 		await interaction.reply({

@@ -20,8 +20,8 @@ import { getConfigEmbedFields } from '../lib/config';
 const mockGetConfigEmbedFields = mocked(getConfigEmbedFields);
 
 jest.mock('../lib/state');
-import { persistToDisk } from '../lib/state';
-const mockPersistToDisk = mocked(persistToDisk);
+import { persist } from '../lib/state';
+const mockPersist = mocked(persist);
 
 const guild = getGuild();
 const channel = getTextChannel(guild);
@@ -86,7 +86,7 @@ describe("lifespan command", () => {
 			] as APIApplicationCommandInteractionDataOption[];
 			const interaction = getCommandInteraction(channel, user1, 'lifespan', options, {});
 			await commandSpec.handler(interaction, channel, game);
-			expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+			expect(mockPersist).toHaveBeenCalledTimes(1);
 		});
 
 		it("updates the game status message", async () => {
@@ -212,7 +212,7 @@ describe("lifespan command", () => {
 			] as APIApplicationCommandInteractionDataOption[];
 			const interaction = getCommandInteraction(channel, user1, 'lifespan', options, {});
 			await commandSpec.handler(interaction, channel, game);
-			expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+			expect(mockPersist).toHaveBeenCalledTimes(1);
 		});
 
 		it("updates the game status message", async () => {
@@ -295,7 +295,7 @@ describe("lifespan command", () => {
 			] as APIApplicationCommandInteractionDataOption[];
 			const interaction = getCommandInteraction(channel, user1, 'lifespan', options, {});
 			await commandSpec.handler(interaction, channel, game);
-			expect(mockPersistToDisk).toHaveBeenCalledTimes(1);
+			expect(mockPersist).toHaveBeenCalledTimes(1);
 		});
 
 		it("updates the game status message", async () => {

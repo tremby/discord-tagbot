@@ -1,4 +1,5 @@
 import state, * as m from './state';
+import type { RedisClientType } from './state';
 import { getClient, getGuild, getTextChannel, getUser, getRole, getMessage } from '../test/fixtures';
 
 import { mocked } from 'jest-mock';
@@ -6,11 +7,6 @@ import { mocked } from 'jest-mock';
 jest.mock('./config');
 import { serializeConfig } from './config';
 const mockSerializeConfig = mocked(serializeConfig);
-
-jest.mock('fs/promises');
-import { writeFile, readFile } from 'fs/promises';
-const mockWriteFile = mocked(writeFile);
-const mockReadFile = mocked(readFile);
 
 jest.mock('./scoring');
 import { recount } from './scoring';
@@ -25,6 +21,11 @@ import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, updateGameStatusMess
 const mockGameStateIsAwaitingNext = mocked(gameStateIsAwaitingNext);
 const mockGameStateIsAwaitingMatch = mocked(gameStateIsAwaitingMatch);
 const mockUpdateGameStatusMessage = mocked(updateGameStatusMessage);
+
+const mockRedisClient = {
+	set: jest.fn(),
+	get: jest.fn(),
+} as unknown as jest.Mocked<RedisClientType>;
 
 const guild = getGuild();
 const channel1 = getTextChannel(guild);
@@ -144,10 +145,11 @@ describe("serializeGame", () => {
 	});
 });
 
-describe("persistToDisk", () => {
+describe("persist", () => {
 	beforeEach(() => {
 		state.games = new Set([game1, game2]);
 		state.deletedMessageIds = new Set();
+		jest.spyOn(m, 'getRedisClient').mockReturnValue(mockRedisClient);
 	});
 
 	afterAll(() => {
@@ -157,17 +159,17 @@ describe("persistToDisk", () => {
 
 	it("writes the result of serializeGame for each game to disk", async () => {
 		jest.spyOn(m, 'serializeGame').mockImplementation((game) => `game ${game.state.status}` as unknown as SerializedGame);
-		await m.persistToDisk();
-		expect(mockWriteFile).toHaveBeenCalledTimes(1);
-		expect(mockWriteFile).toHaveBeenCalledWith(expect.anything(), expect.any(String));
-		const serialized = mockWriteFile.mock.calls[0][1] as string;
+		await m.persist();
+		expect(mockRedisClient.set).toHaveBeenCalledTimes(1);
+		expect(mockRedisClient.set).toHaveBeenCalledWith(expect.anything(), expect.any(String));
+		const serialized = mockRedisClient.set.mock.calls[0][1] as string;
 		const obj = JSON.parse(serialized);
 		expect(obj).toHaveProperty('games', expect.arrayContaining(['game awaiting-next', 'game awaiting-match']));
 		expect(obj.games).toHaveLength(2);
 	});
 });
 
-describe("loadFromDisk", () => {
+describe("load", () => {
 	const client = getClient();
 
 	beforeEach(() => {
@@ -187,6 +189,7 @@ describe("loadFromDisk", () => {
 			// @ts-expect-error: overloaded function; mocking it properly would be a pain
 			statusMessage
 		);
+		jest.spyOn(m, 'getRedisClient').mockReturnValue(mockRedisClient);
 
 		mockRecount.mockResolvedValue({
 			status: 'awaiting-match',
@@ -203,7 +206,7 @@ describe("loadFromDisk", () => {
 	});
 
 	it("restores a game for each entry in the file", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -227,12 +230,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(state.games.size).toBe(2);
 	});
 
 	it("restores channels", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -246,7 +249,7 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(client.channels.fetch).toHaveBeenCalledWith('channel-1');
 		expect([...state.games][0]).toHaveProperty('channel', channel1);
 	});
@@ -254,7 +257,7 @@ describe("loadFromDisk", () => {
 	it("restores players disqualified for the current round", async () => {
 		mockGameStateIsAwaitingMatch.mockReturnValue(true);
 		mockGameStateIsAwaitingNext.mockReturnValue(false);
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -268,7 +271,7 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(client.users.fetch).toHaveBeenCalledWith('user-1');
 		expect(client.users.fetch).toHaveBeenCalledWith('user-2');
 		expect([...state.games][0]).toHaveProperty('state.disqualifiedFromRound.size', 2);
@@ -279,7 +282,7 @@ describe("loadFromDisk", () => {
 	it("restores lack of players disqualified for the current round", async () => {
 		mockGameStateIsAwaitingMatch.mockReturnValue(true);
 		mockGameStateIsAwaitingNext.mockReturnValue(false);
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -293,13 +296,13 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(client.users.fetch).not.toHaveBeenCalled();
 		expect([...state.games][0]).toHaveProperty('state.disqualifiedFromRound.size', 0);
 	});
 
 	it("restores time limit", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -313,12 +316,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect([...state.games][0]).toHaveProperty('config.nextTagTimeLimit', 3600e3);
 	});
 
 	it("restores a lack of time limit", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -332,12 +335,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect([...state.games][0]).toHaveProperty('config.nextTagTimeLimit', null);
 	});
 
 	it("restores judge roles", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -351,7 +354,7 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(guild.roles.fetch).toHaveBeenCalledWith('role-1');
 		expect(guild.roles.fetch).toHaveBeenCalledWith('role-2');
 		expect([...state.games][0].config.tagJudgeRoles.has(role1)).toBe(true);
@@ -360,7 +363,7 @@ describe("loadFromDisk", () => {
 	});
 
 	it("restores a lack of judge roles", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -374,12 +377,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect([...state.games][0].config.tagJudgeRoles.size).toBe(0);
 	});
 
 	it("restores chat channel", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -393,13 +396,13 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(client.channels.fetch).toHaveBeenCalledWith('channel-3');
 		expect([...state.games][0].config.chatChannel).toBe(channel3);
 	});
 
 	it("restores lack of chat channel", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -413,12 +416,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect([...state.games][0]).toHaveProperty('config.chatChannel', null);
 	});
 
 	it("doesn't cause a recount if the status was inactive", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -431,13 +434,13 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(mockRecount).not.toHaveBeenCalled();
 	});
 
 	it("causes a recount for active statuses", async () => {
 		for (const st of ['free', 'awaiting-next', 'awaiting-match']) {
-			mockReadFile.mockResolvedValue(JSON.stringify({
+			mockRedisClient.get.mockResolvedValue(JSON.stringify({
 				games: [
 					{
 						channelId: 'channel-1',
@@ -451,13 +454,13 @@ describe("loadFromDisk", () => {
 					},
 				],
 			}));
-			await m.loadFromDisk(client);
+			await m.load(client);
 		}
 		expect(mockRecount).toHaveBeenCalledTimes(3);
 	});
 
 	it("correctly sets the status for inactive games", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -470,12 +473,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect([...state.games][0]).toHaveProperty('state', { status: 'inactive' });
 	});
 
 	it("uses the recount's conclusion as state for active games", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -497,12 +500,12 @@ describe("loadFromDisk", () => {
 			timeUpTimer: null,
 		} as GameStateAwaitingNext;
 		mockRecount.mockResolvedValue(stateAwaitingNext);
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect([...state.games][0]).toHaveProperty('state', stateAwaitingNext);
 	});
 
 	it("attempts to find the pinned status message", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -517,14 +520,14 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(channel1.messages.fetch).toHaveBeenCalledTimes(1);
 		expect(channel1.messages.fetch).toHaveBeenCalledWith('abc');
 		expect([...state.games][0]).toHaveProperty('statusMessage', statusMessage);
 	});
 
 	it("starts timers if appropriate", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -538,12 +541,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(mockSetTimers).toHaveBeenCalledTimes(1);
 	});
 
 	it("updates the game status message if the game state was awaiting-next", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -557,12 +560,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
 	});
 
 	it("updates the game status message if the game state was awaiting-match", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -576,12 +579,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
 	});
 
 	it("updates the game status message if the game state was free", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -595,12 +598,12 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(mockUpdateGameStatusMessage).toHaveBeenCalledTimes(1);
 	});
 
 	it("does not update the game status message if the game state was inactive", async () => {
-		mockReadFile.mockResolvedValue(JSON.stringify({
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
 			games: [
 				{
 					channelId: 'channel-1',
@@ -614,7 +617,7 @@ describe("loadFromDisk", () => {
 				},
 			],
 		}));
-		await m.loadFromDisk(client);
+		await m.load(client);
 		expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
 	});
 });
