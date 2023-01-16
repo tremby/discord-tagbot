@@ -18,6 +18,13 @@ import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, gameStateIsInactive,
 import { messageHasImage, getMessageUsers } from './lib/message';
 import { setsEqual } from './lib/set';
 
+const DEBUG = Boolean(process.env.DEBUG);
+function debug(message: string): void {
+	if (!DEBUG) return;
+	console.log(`[debug] ${message}`);
+}
+debug("Debug mode on");
+
 // Flag for whether we have finished loading any saved state or not
 let finishedRestoring = false;
 
@@ -76,17 +83,28 @@ discordClient.on('ready', async () => {
 	// Listen for and handle new messages
 	discordClient.on('messageCreate', async (message) => {
 		// Ignore messages sent by this bot
-		if (message.author === message.client.user) return;
+		if (message.author === message.client.user) {
+			debug(`Message ${message.url} was sent by this bot; ignoring`);
+			return;
+		}
 
 		// Abort if the message isn't in a regular text channel
 		const channel = message.channel;
-		if (!channelIsTextChannel(channel)) return;
+		if (!channelIsTextChannel(channel)) {
+			debug(`Message ${message.url} was not in a normal text channel; ignoring`);
+			return;
+		}
 
 		// Try to find a game associated with this channel
 		const game = getGameOfChannel(channel);
 
 		// Do nothing if the message is in a channel not associated with a game
-		if (game == null) return;
+		if (game == null) {
+			debug(`Message ${message.url} was not in a game channel; ignoring`);
+			return;
+		}
+
+		debug(`Message ${message.url} accepted for processing`);
 
 		// Calculate new state from configuration, old state, and message
 		const newState = await handleMessage(game, message, 'live');
@@ -110,34 +128,56 @@ discordClient.on('ready', async () => {
 		}
 
 		// Ignore messages sent by this bot
-		if (newMessage.author === newMessage.client.user) return;
-		if (oldMessage.author === oldMessage.client.user) return;
+		if (newMessage.author === newMessage.client.user || oldMessage.author === oldMessage.client.user) {
+			debug(`Message edit ${oldMessage.url} -> ${newMessage.url} authored by this bot; ignoring`);
+			return;
+		}
 
 		// Abort if the message isn't in a regular text channel
 		const channel = newMessage.channel;
-		if (!channelIsTextChannel(channel)) return;
+		if (!channelIsTextChannel(channel)) {
+			debug(`Message edit ${oldMessage.url} -> ${newMessage.url} not in a normal text channel; ignoring`);
+			return;
+		}
 
 		// Try to find a game associated with this channel
 		const game = getGameOfChannel(channel);
 
 		// Do nothing if the message is in a channel not associated with a game
-		if (game == null) return;
+		if (game == null) {
+			debug(`Message edit ${oldMessage.url} -> ${newMessage.url} not in a game channel; ignoring`);
+			return;
+		}
 
 		// Do nothing if there was no image before or after
-		if (!messageHasImage(oldMessage) && !messageHasImage(newMessage)) return;
+		if (!messageHasImage(oldMessage) && !messageHasImage(newMessage)) {
+			debug(`Message edit ${oldMessage.url} -> ${newMessage.url} has no image attachment before or after; ignoring`);
+			return;
+		}
 
 		// Do nothing if the game is inactive
-		if (gameStateIsInactive(game.state)) return;
+		if (gameStateIsInactive(game.state)) {
+			debug(`Message edit ${oldMessage.url} -> ${newMessage.url} is in an inactive game channel; ignoring`);
+			return;
+		}
 
 		// Do nothing if the message was posted before the current game started
-		if (game.statusMessage != null && newMessage.id < game.statusMessage.id) return;
+		if (game.statusMessage != null && newMessage.id < game.statusMessage.id) {
+			debug(`Message edit ${oldMessage.url} -> ${newMessage.url} is dated before start of current game; ignoring`);
+			return;
+		}
 
 		// Do nothing if the author and tagged users didn't change
 		// *and also* the presence of an image didn't change
 		if (
 			setsEqual(getMessageUsers(oldMessage), getMessageUsers(newMessage))
 			&& messageHasImage(oldMessage) === messageHasImage(newMessage)
-		) return;
+		) {
+			debug(`Message edit ${oldMessage.url} -> ${newMessage.url} has no pertinent change; ignoring`);
+			return;
+		}
+
+		debug(`Message edit ${oldMessage.url} -> ${newMessage.url} accepted for processing`);
 
 		// Trigger a full recount
 		console.log(`A message from ${newMessage.author} was edited in such a way that image presence or mentions changed; recounting...`);
@@ -178,32 +218,53 @@ discordClient.on('ready', async () => {
 	// Listen for message deletions
 	discordClient.on('messageDelete', async (message) => {
 		// Ignore messages sent by this bot
-		if (message.author === message.client.user) return;
+		if (message.author === message.client.user) {
+			debug(`Message ${message.url} deleted but it was authored by this bot; ignoring`);
+			return;
+		}
 
 		// Ignore if the message is one we just deleted
 		if (appState.deletedMessageIds.has(message.id)) {
+			debug(`Message ${message.url} deleted; this is an action this bot intentionally caused`);
 			appState.deletedMessageIds.delete(message.id);
 			return;
 		}
 
 		// Abort if the message isn't in a regular text channel
 		const channel = message.channel;
-		if (!channelIsTextChannel(channel)) return;
+		if (!channelIsTextChannel(channel)) {
+			debug(`Message ${message.url} deleted but it was not in a normal text channel; ignoring`);
+			return;
+		}
 
 		// Try to find a game associated with this channel
 		const game = getGameOfChannel(channel);
 
 		// Do nothing if the message is in a channel not associated with a game
-		if (game == null) return;
+		if (game == null) {
+			debug(`Message ${message.url} deleted but it was not in a game channel; ignoring`);
+			return;
+		}
 
 		// Do nothing if there was no image
-		if (!messageHasImage(message)) return;
+		if (!messageHasImage(message)) {
+			debug(`Message ${message.url} deleted but it had no image; ignoring`);
+			return;
+		}
 
 		// Do nothing if the game is inactive
-		if (gameStateIsInactive(game.state)) return;
+		if (gameStateIsInactive(game.state)) {
+			debug(`Message ${message.url} deleted but from a channel with an inactive game; ignoring`);
+			return;
+		}
 
 		// Do nothing if the message was posted before the current game started
-		if (game.statusMessage != null && message.id < game.statusMessage.id) return;
+		if (game.statusMessage != null && message.id < game.statusMessage.id) {
+			debug(`Message ${message.url} deleted but it was dated before the current game started; ignoring`);
+			return;
+		}
+
+		debug(`Message ${message.url} deletion accepted for processing`);
 
 		// Trigger a full recount
 		console.log(`A message from ${message.author} which contained an image was deleted; recounting...`);
@@ -245,6 +306,8 @@ discordClient.on('ready', async () => {
 	discordClient.on('messageDeleteBulk', async (messages) => {
 		const affectedGames = new Set<Game>();
 
+		debug("Bulk deletion notification received");
+
 		for (const message of messages.values()) {
 			// Ignore messages sent by this bot
 			if (message.author === message.client.user) continue;
@@ -277,6 +340,8 @@ discordClient.on('ready', async () => {
 			// Add this game to the set of those affected
 			affectedGames.add(game);
 		}
+
+		if (affectedGames.size === 0) debug("None of the deletions affect active games");
 
 		// For each affected game, trigger a full recount and update the game state
 		await Promise.all([...affectedGames].map(async (game) => {
@@ -318,8 +383,14 @@ discordClient.on('ready', async () => {
 	// Handle interactions
 	discordClient.on('interactionCreate', async (interaction) => {
 		// Only handle slash commands
-		if (!interaction.isCommand()) return;
-		if (!interaction.isChatInputCommand()) return;
+		if (!interaction.isCommand()) {
+			debug(`Interaction ${interaction} is not a command; ignoring`);
+			return;
+		}
+		if (!interaction.isChatInputCommand()) {
+			debug(`Interaction ${interaction} is not a chat input command; ignoring`);
+			return;
+		}
 
 		// Look up this command
 		const command = commands.find((command) => command.description.name === interaction.commandName);
@@ -327,6 +398,8 @@ discordClient.on('ready', async () => {
 			console.warn(`Unknown slash command "${interaction.commandName}"; ignoring`);
 			return;
 		}
+
+		debug(`Interaction ${interaction} accepted for processing`);
 
 		// Retrieve the relevant channel
 		let channel: TextChannel;
