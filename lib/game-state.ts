@@ -1,4 +1,4 @@
-import type { MessageOptions, MessageEditOptions, EmbedField, User } from 'discord.js';
+import type { BaseMessageOptions, MessageEditOptions, EmbedField, User } from 'discord.js';
 import { Constants } from 'discord.js';
 
 import { getScoresEmbedField, formatScores } from './scoring';
@@ -57,7 +57,7 @@ export function getStatusEmbedField(game: Game): EmbedField {
 /**
  * Format a game status message.
  */
-export function formatGameStatusMessage(game: Game): MessageOptions & MessageEditOptions {
+export function formatGameStatusMessage(game: Game): BaseMessageOptions & MessageEditOptions {
 	return {
 		embeds: [{
 			title: "Tag game status",

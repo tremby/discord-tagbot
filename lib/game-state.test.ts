@@ -1,5 +1,5 @@
 import * as m from './game-state';
-import type { User, MessageOptions } from 'discord.js';
+import type { User } from 'discord.js';
 import { getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
 import { DiscordAPIError, Constants } from 'discord.js';
