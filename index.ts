@@ -478,6 +478,24 @@ discordClient.on('ready', async () => {
 
 	// Set activity status
 	discordClient.user.setPresence({ activities: [{ name: "tag", type: ActivityType.Watching }], status: 'online' });
+
+	// Logging to aid debugging an issue where the bot will stop receiving
+	// events after having been running a month or so
+	discordClient.on("shardDisconnect", async (event, shardId) => {
+		console.warn(`Received shardDisconnect event, shard ID ${shardId}`, event);
+	});
+	discordClient.on("shardError", async (event, shardId) => {
+		console.error(`Received shardError event, shard ID ${shardId}`, event);
+	});
+	discordClient.on("shardReady", async (shardId, unavailableGuilds) => {
+		console.log(`Received shardReady event, shard ID ${shardId}`, unavailableGuilds);
+	});
+	discordClient.on("shardReconnecting", async (shardId) => {
+		console.log(`Received shardReconnecting event, shard ID ${shardId}`);
+	});
+	discordClient.on("shardResume", async (shardId, replayedEvents) => {
+		console.log(`Received shardResume event, shard ID ${shardId}`, replayedEvents, "replayed events");
+	});
 });
 
 /**
