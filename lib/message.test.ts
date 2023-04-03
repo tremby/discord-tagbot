@@ -15,34 +15,34 @@ const user1 = getUser('user-1');
 const user2 = getUser('user-2');
 const user3 = getUser('user-3');
 
-describe("messageHasImage", () => {
-	function messageWithAttachments(attachments: APIAttachment[]): Message {
-		// @ts-expect-error -- private constructor
-		return new Message(getClient(), {
-			id: SnowflakeUtil.generate({ timestamp: new Date('2020Z')}),
-			channel_id: channel.id,
-			guild_id: channel.guildId,
-			author: {
-				id: user1.id,
-				username: user1.username,
-				avatar: user1.avatar,
-				discriminator: user1.discriminator,
-			},
-			content: "test message",
-			timestamp: null,
-			edited_timestamp: null,
-			tts: false,
-			mention_everyone: false,
-			mentions: [],
-			mention_roles: [],
-			mention_channels: [],
-			attachments,
-			embeds: [],
-			pinned: false,
-			type: 0,
-		});
-	}
+function messageWithAttachments(attachments: APIAttachment[]): Message {
+	// @ts-expect-error -- private constructor
+	return new Message(getClient(), {
+		id: SnowflakeUtil.generate({ timestamp: new Date('2020Z')}),
+		channel_id: channel.id,
+		guild_id: channel.guildId,
+		author: {
+			id: user1.id,
+			username: user1.username,
+			avatar: user1.avatar,
+			discriminator: user1.discriminator,
+		},
+		content: "test message",
+		timestamp: null,
+		edited_timestamp: null,
+		tts: false,
+		mention_everyone: false,
+		mentions: [],
+		mention_roles: [],
+		mention_channels: [],
+		attachments,
+		embeds: [],
+		pinned: false,
+		type: 0,
+	});
+}
 
+describe("messageHasImage", () => {
 	it("returns false for a message with no attachment", () => {
 		expect(m.messageHasImage(messageWithAttachments([]))).toBe(false);
 	});
