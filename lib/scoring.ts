@@ -303,14 +303,43 @@ function usersByScore(scores: Scores): Map<number, User[]> {
 	return byScore;
 }
 
+type Rankable = [number, User[]];
+
+/**
+ * Get a mapping function for formatting rankings.
+ *
+ * See https://en.wikipedia.org/wiki/Ranking#Strategies_for_assigning_rankings
+ */
+export function getRankingMapper(rankingStrategy: RankingStrategy): (rankable: Rankable, index: number, array: Rankable[]) => string {
+	switch (rankingStrategy) {
+		case "standardCompetition": // "1224"
+			return ([score, users], index, array) => {
+				const prevUsersCount = array.slice(0, index).reduce((acc, [_, users]) => acc + users.length, 0);
+				const rank = prevUsersCount + 1;
+				return `${rankPrefix(rank, users.length)} with ${score}: ${toList(users)}`;
+			};
+		case "modifiedCompetition": // "1334"
+			return ([score, users], index, array) => {
+				const prevUsersCount = array.slice(0, index).reduce((acc, [_, users]) => acc + users.length, 0);
+				const rank = prevUsersCount + users.length;
+				return `${rankPrefix(rank, users.length)} with ${score}: ${toList(users)}`;
+			};
+		case "dense": // "1223"
+			return ([score, users], index, array) => {
+				return `${rankPrefix(index + 1, users.length)} with ${score}: ${toList(users)}`;
+			};
+	}
+}
+
 type FormatScoresOptions = {
 	max?: number | null;
+	rankingStrategy?: RankingStrategy;
 };
 
 /**
  * Format a set of scores into a string.
  */
-export function formatScores(scores: Scores, { max = null }: FormatScoresOptions = {}): string {
+export function formatScores(scores: Scores, { max = null, rankingStrategy = "standardCompetition" }: FormatScoresOptions = {}): string {
 	// Get records as array
 	const records = [...scores.entries()];
 
@@ -329,17 +358,13 @@ export function formatScores(scores: Scores, { max = null }: FormatScoresOptions
 	const sortedByScore = new Map([...byScore].sort(([scoreA], [scoreB]) => scoreB - scoreA));
 
 	// Limit those if appropriate
-	let displayable = [...sortedByScore];
+	let displayable: Rankable[] = [...sortedByScore];
 	if (max != null) {
 		displayable = displayable.slice(0, max);
 	}
 
-	// Format
-	return displayable.map(([score, users]: [number, User[]], index) => {
-		const prevUsersCount = displayable.slice(0, index).reduce((acc, [_, users]) => acc + users.length, 0);
-		const rank = prevUsersCount + 1;
-		return `${rankPrefix(rank, users.length)} with ${score}: ${toList(users)}`;
-	}).join("\n");
+	// Apply ranking strategy and format
+	return displayable.map(thisModule.getRankingMapper(rankingStrategy)).join("\n");
 }
 
 /**
@@ -372,9 +397,10 @@ function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
 		return "None";
 	if (game.state.scores == null || game.state.scores.size === 0)
 		return "None";
+	const options: FormatScoresOptions = { rankingStrategy: game.config.rankingStrategy };
 	if (format === 'brief' && usersByScore(game.state.scores).size > 3)
-		return `${thisModule.formatScores(game.state.scores, { max: 3 })}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
-	return thisModule.formatScores(game.state.scores);
+		return `${thisModule.formatScores(game.state.scores, { ...options, max: 3 })}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
+	return thisModule.formatScores(game.state.scores, options);
 }
 
 /**

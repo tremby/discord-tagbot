@@ -98,6 +98,7 @@ function gameWithState(state: GameState, hasChatChannel: boolean = false): Game 
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		},
 		statusMessage: null,
 		state,
@@ -124,6 +125,7 @@ const gameAwaitingMatch: Game = {
 		autoRestart: false,
 		period: null,
 		locale: 'UTC',
+		rankingStrategy: 'standardCompetition',
 	},
 	statusMessage,
 	state: {
@@ -1017,13 +1019,26 @@ describe("formatScores", () => {
 		expect(result2).toEqual(expect.stringContaining("<@100>, <@200>"));
 	});
 
-	it("uses standard competition ranking", () => {
+	it("uses standard competition by default", () => {
+		const mockGetRankingMapper = jest.spyOn(m, 'getRankingMapper').mockReturnValue(() => "");
 		const result = m.formatScores(new Map([
 			[user1, 1],
 			[user2, 2],
 			[user3, 2],
 			[user4, 3],
 		]));
+		expect(m.getRankingMapper).toHaveBeenCalledWith('standardCompetition');
+		expect(m.getRankingMapper).not.toHaveBeenCalledWith('modifiedCompetition');
+		expect(m.getRankingMapper).not.toHaveBeenCalledWith('dense');
+	});
+
+	it("uses standard competition ranking when asked to", () => {
+		const result = m.formatScores(new Map([
+			[user1, 1],
+			[user2, 2],
+			[user3, 2],
+			[user4, 3],
+		]), { rankingStrategy: 'standardCompetition' });
 		const lines = result.split('\n');
 		const score1Line = lines.find((line) => line.includes("with 1:"));
 		const score2Line = lines.find((line) => line.includes("with 2:"));
@@ -1034,6 +1049,44 @@ describe("formatScores", () => {
 		expect(score3Line).toMatch(/🥇 with/);
 		expect(score2Line).toMatch(/🥈 with/);
 		expect(score1Line).toMatch(/\b4th with/);
+	});
+
+	it("uses modified competition ranking when asked to", () => {
+		const result = m.formatScores(new Map([
+			[user1, 1],
+			[user2, 2],
+			[user3, 2],
+			[user4, 3],
+		]), { rankingStrategy: 'modifiedCompetition' });
+		const lines = result.split('\n');
+		const score1Line = lines.find((line) => line.includes("with 1:"));
+		const score2Line = lines.find((line) => line.includes("with 2:"));
+		const score3Line = lines.find((line) => line.includes("with 3:"));
+		expect(score1Line).not.toMatch(/^Tied/);
+		expect(score2Line).toMatch(/^Tied/);
+		expect(score3Line).not.toMatch(/^Tied/);
+		expect(score3Line).toMatch(/🥇 with/);
+		expect(score2Line).toMatch(/🥉 with/);
+		expect(score1Line).toMatch(/\b4th with/);
+	});
+
+	it("uses dense ranking when asked to", () => {
+		const result = m.formatScores(new Map([
+			[user1, 1],
+			[user2, 2],
+			[user3, 2],
+			[user4, 3],
+		]), { rankingStrategy: 'dense' });
+		const lines = result.split('\n');
+		const score1Line = lines.find((line) => line.includes("with 1:"));
+		const score2Line = lines.find((line) => line.includes("with 2:"));
+		const score3Line = lines.find((line) => line.includes("with 3:"));
+		expect(score1Line).not.toMatch(/^Tied/);
+		expect(score2Line).toMatch(/^Tied/);
+		expect(score3Line).not.toMatch(/^Tied/);
+		expect(score3Line).toMatch(/🥇 with/);
+		expect(score2Line).toMatch(/🥈 with/);
+		expect(score1Line).toMatch(/🥉 with/);
 	});
 });
 
@@ -1047,6 +1100,7 @@ describe("getScoresEmbedField", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		},
 		statusMessage,
 		state: {
@@ -1113,12 +1167,25 @@ describe("getScoresEmbedField", () => {
 		expect(m.getScoresEmbedField(noScoresGame, 'full')).not.toHaveProperty('value', expect.stringContaining(statusMessage.url));
 	});
 
+	it("uses the configured ranking strategy option", () => {
+		const reconfiguredGame: Game = {
+			...game,
+			config: {
+				...game.config,
+				rankingStrategy: 'dense',
+			},
+		};
+		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("all the scores");
+		const result = m.getScoresEmbedField(reconfiguredGame, 'full');
+		expect(mockFormatScores).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ rankingStrategy: 'dense' }));
+	});
+
 	it("shows all scores in full mode", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("all the scores");
 		const result = m.getScoresEmbedField(game, 'full');
 		expect(result).toHaveProperty('value', expect.stringContaining("all the scores"));
 		expect(mockFormatScores).toHaveBeenCalledTimes(1);
-		expect(mockFormatScores).toHaveBeenCalledWith(game.state.scores); // And no second argument
+		expect(mockFormatScores).toHaveBeenCalledWith(game.state.scores, expect.not.objectContaining({ max: expect.anything() }));
 	});
 
 	it("shows just the top scores scores in brief mode", () => {

@@ -132,6 +132,7 @@ describe("isAdminOrTagJudge", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			statusMessage: null,
 			state: {
@@ -157,6 +158,7 @@ describe("isAdminOrTagJudge", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			statusMessage: null,
 			state: {

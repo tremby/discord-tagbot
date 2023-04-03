@@ -39,6 +39,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('nextTagTimeLimit', null);
 		});
@@ -51,6 +52,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('nextTagTimeLimit', 42);
 		});
@@ -65,6 +67,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('tagJudgeRoleIds', []);
 		});
@@ -80,6 +83,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('tagJudgeRoleIds', expect.arrayContaining(['role1', 'role2']));
 			expect(serializeConfig(config)).toHaveProperty('tagJudgeRoleIds.length', 2);
@@ -95,6 +99,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('chatChannelId', null);
 		});
@@ -107,6 +112,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('chatChannelId', 'channel-1');
 		});
@@ -121,6 +127,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('autoRestart', false);
 		});
@@ -133,6 +140,7 @@ describe('serializeConfig', () => {
 				autoRestart: true,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('autoRestart', true);
 		});
@@ -147,6 +155,7 @@ describe('serializeConfig', () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('period', null);
 		});
@@ -159,6 +168,7 @@ describe('serializeConfig', () => {
 				autoRestart: true,
 				period: 'month',
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('period', 'month');
 		});
@@ -173,8 +183,24 @@ describe('serializeConfig', () => {
 				autoRestart: true,
 				period: null,
 				locale: 'America/Vancouver',
+				rankingStrategy: 'standardCompetition',
 			};
 			expect(serializeConfig(config)).toHaveProperty('locale', 'America/Vancouver');
+		});
+	});
+
+	describe("ranking strategy", () => {
+		it("reads strings", () => {
+			const config: Config = {
+				nextTagTimeLimit: null,
+				tagJudgeRoles: new Set(),
+				chatChannel: null,
+				autoRestart: true,
+				period: null,
+				locale: 'America/Vancouver',
+				rankingStrategy: 'dense',
+			};
+			expect(serializeConfig(config)).toHaveProperty('rankingStrategy', 'dense');
 		});
 	});
 });
@@ -188,6 +214,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		for (const obj of result) {
 			expect(obj).toHaveProperty('name');
@@ -203,6 +230,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /time limit/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -217,6 +245,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /time limit/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -231,6 +260,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /judge/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -246,6 +276,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /judge/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -261,6 +292,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /chat channel/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -275,6 +307,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /chat channel/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -289,6 +322,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -303,6 +337,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: 'month',
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -317,6 +352,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: true,
 			period: 'month',
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -331,6 +367,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: false,
 			period: 'hour',
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -345,6 +382,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: true,
 			period: 'hour',
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /game lifespan/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -359,6 +397,7 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: true,
 			period: 'month',
 			locale: 'America/Vancouver',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /locale/i.test(field.name));
 		expect(field).not.toBeUndefined();
@@ -373,8 +412,24 @@ describe("getConfigEmbedFields", () => {
 			autoRestart: true,
 			period: null,
 			locale: 'America/Vancouver',
+			rankingStrategy: 'standardCompetition',
 		});
 		const field = result.find((field) => /locale/i.test(field.name));
 		expect(field).toBeUndefined();
+	});
+
+	it("shows the configured ranking strategy", () => {
+		const result = getConfigEmbedFields({
+			nextTagTimeLimit: null,
+			tagJudgeRoles: new Set(),
+			chatChannel: null,
+			autoRestart: true,
+			period: 'month',
+			locale: 'America/Vancouver',
+			rankingStrategy: 'modifiedCompetition',
+		});
+		const field = result.find((field) => /ranking strategy/i.test(field.name));
+		expect(field).not.toBeUndefined();
+		expect(field!.value).toStrictEqual(expect.stringContaining("Modified competition"));
 	});
 });

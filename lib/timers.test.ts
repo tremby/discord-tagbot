@@ -71,6 +71,7 @@ const game: Game = {
 		autoRestart: false,
 		period: null,
 		locale: 'UTC',
+		rankingStrategy: 'standardCompetition',
 	},
 	statusMessage: null,
 	state: stateAwaitingNext,

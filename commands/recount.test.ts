@@ -32,6 +32,7 @@ function getGame(): Game {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		},
 		statusMessage,
 		state: {

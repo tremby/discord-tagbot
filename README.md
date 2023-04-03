@@ -124,6 +124,10 @@ and by tag judges for the game in question.
   Examples: `America/Vancouver`, `Europe/London`, `UTC`.
   [See the list of locales](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
 
+- **`/tag-ranking-strategy set`:** configure the [ranking strategy](https://en.wikipedia.org/wiki/Ranking#Strategies_for_assigning_rankings)
+  used when formatting scoreboards.
+  The default is standard competition ranking.
+
 ### Inactive games
 
 When a channel is first registered via the `/tag-init` command,

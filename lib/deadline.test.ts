@@ -17,6 +17,7 @@ describe("getDeadlineTimestamp", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'free',
@@ -37,6 +38,7 @@ describe("getDeadlineTimestamp", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -60,6 +62,7 @@ describe("getDeadlineTimestamp", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -85,6 +88,7 @@ describe("getFormattedDeadline", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'free',
@@ -105,6 +109,7 @@ describe("getFormattedDeadline", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -128,6 +133,7 @@ describe("getFormattedDeadline", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -151,6 +157,7 @@ describe("getFormattedDeadline", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'awaiting-next',
@@ -174,6 +181,7 @@ describe("getFormattedDeadline", () => {
 				autoRestart: false,
 				period: null,
 				locale: 'UTC',
+				rankingStrategy: 'standardCompetition',
 			},
 			state: {
 				status: 'awaiting-next',

@@ -69,6 +69,7 @@ function gameWithState(state: GameState): Game {
 			autoRestart: false,
 			period: null,
 			locale: 'UTC',
+			rankingStrategy: 'standardCompetition',
 		},
 		statusMessage: null,
 		state,

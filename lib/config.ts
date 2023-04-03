@@ -13,6 +13,7 @@ export function getDefaultConfig(): Config {
 		autoRestart: false,
 		period: null,
 		locale: 'UTC',
+		rankingStrategy: 'standardCompetition',
 	};
 }
 
@@ -27,6 +28,7 @@ export function serializeConfig(config: Config): SerializedConfig {
 		autoRestart: config.autoRestart,
 		period: config.period,
 		locale: config.locale,
+		rankingStrategy: config.rankingStrategy,
 	};
 }
 
@@ -61,6 +63,11 @@ export function getConfigEmbedFields(config: Config): EmbedField[] {
 			value: config.locale,
 			inline: true,
 		},
+		{
+			name: "Ranking strategy",
+			value: getRankingStrategyString(config),
+			inline: true,
+		},
 	].flat();
 }
 
@@ -77,4 +84,18 @@ export function getLifespanString(config: Config): string {
 
 	if (config.autoRestart) return "Restarts at the end of the hour";
 	return "Stops at the end of the hour";
+}
+
+/**
+ * Get a plain English description of the ranking strategy config option.
+ */
+export function getRankingStrategyString(config: Config): string {
+	switch (config.rankingStrategy) {
+		case "standardCompetition":
+			return "Standard competition ranking (nth-best competitor)";
+		case "modifiedCompetition":
+			return "Modified competition ranking";
+		case "dense":
+			return "Dense ranking (nth-best score)";
+	}
 }

@@ -47,6 +47,7 @@ const game1: Game = {
 		autoRestart: false,
 		period: null,
 		locale: 'UTC',
+		rankingStrategy: 'standardCompetition',
 	},
 	statusMessage: null,
 	state: {
@@ -67,6 +68,7 @@ const game2: Game = {
 		autoRestart: false,
 		period: null,
 		locale: 'UTC',
+		rankingStrategy: 'standardCompetition',
 	},
 	statusMessage,
 	state: {
@@ -85,6 +87,7 @@ const game3: Game = {
 		autoRestart: false,
 		period: null,
 		locale: 'UTC',
+		rankingStrategy: 'standardCompetition',
 	},
 	statusMessage,
 	state: {
@@ -418,6 +421,45 @@ describe("load", () => {
 		}));
 		await m.load(client);
 		expect([...state.games][0]).toHaveProperty('config.chatChannel', null);
+	});
+
+	it("restores ranking strategy", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: 'channel-3',
+						rankingStrategy: 'modifiedCompetition',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect([...state.games][0].config.rankingStrategy).toBe('modifiedCompetition');
+	});
+
+	it("sets a default ranking strategy if none was saved (from old version)", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: null,
+						tagJudgeRoleIds: [],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect([...state.games][0].config.rankingStrategy).not.toBeNull();
 	});
 
 	it("doesn't cause a recount if the status was inactive", async () => {

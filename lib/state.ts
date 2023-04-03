@@ -100,6 +100,7 @@ export async function load(discordClient: Client): Promise<void> {
 			autoRestart: serializedGame.config.autoRestart,
 			period: serializedGame.config.period,
 			locale: serializedGame.config.locale,
+			rankingStrategy: serializedGame.config.rankingStrategy ?? 'standardCompetition',
 		};
 
 		// Find the status message

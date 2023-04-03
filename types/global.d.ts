@@ -114,6 +114,14 @@ declare global {
 	type Period = 'hour' | 'month' | null;
 
 	/**
+	 * A ranking strategy.
+	 *
+	 * See https://en.wikipedia.org/wiki/Ranking#Strategies_for_assigning_rankings
+	 */
+
+	type RankingStrategy = 'standardCompetition' | 'modifiedCompetition' | 'dense';
+
+	/**
 	 * Configuration for a particular tag game.
 	 */
 	type Config = {
@@ -147,6 +155,11 @@ declare global {
 		 * Locale in which to interpret the game period.
 		 */
 		locale: string;
+
+		/**
+		 * Ranking strategy to use.
+		 */
+		rankingStrategy: RankingStrategy;
 	}
 
 	/**
@@ -159,6 +172,7 @@ declare global {
 		autoRestart: boolean;
 		period: Period;
 		locale: string;
+		rankingStrategy: RankingStrategy | null;
 	}
 
 	/**
