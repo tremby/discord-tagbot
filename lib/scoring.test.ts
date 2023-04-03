@@ -997,7 +997,7 @@ describe("formatScores", () => {
 			[user2, 2],
 			[user3, 2],
 			[user4, 4],
-		]), 2);
+		]), { max: 2 });
 		const lines = result.split('\n');
 		expect(lines).not.toContainEqual(expect.stringContaining("with 1:"));
 		expect(lines).toContainEqual(expect.stringContaining("with 2:"));
@@ -1126,7 +1126,7 @@ describe("getScoresEmbedField", () => {
 		const result = m.getScoresEmbedField(game, 'brief');
 		expect(result).toHaveProperty('value', expect.stringContaining("the top scores"));
 		expect(mockFormatScores).toHaveBeenCalledTimes(1);
-		expect(mockFormatScores).toHaveBeenCalledWith(game.state.scores, 3);
+		expect(mockFormatScores).toHaveBeenCalledWith(game.state.scores, expect.objectContaining({ max: 3 }));
 	});
 
 	it("gives a link to the full scoreboard if it did not show all the scores", () => {

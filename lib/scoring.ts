@@ -303,10 +303,14 @@ function usersByScore(scores: Scores): Map<number, User[]> {
 	return byScore;
 }
 
+type FormatScoresOptions = {
+	max?: number | null;
+};
+
 /**
  * Format a set of scores into a string.
  */
-export function formatScores(scores: Scores, max: number | null = null): string {
+export function formatScores(scores: Scores, { max = null }: FormatScoresOptions = {}): string {
 	// Get records as array
 	const records = [...scores.entries()];
 
@@ -369,7 +373,7 @@ function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
 	if (game.state.scores == null || game.state.scores.size === 0)
 		return "None";
 	if (format === 'brief' && usersByScore(game.state.scores).size > 3)
-		return `${thisModule.formatScores(game.state.scores, 3)}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
+		return `${thisModule.formatScores(game.state.scores, { max: 3 })}${game.statusMessage == null ? '' : `\nSee [the pinned game status](${game.statusMessage.url}) for the full scoreboard.`}`;
 	return thisModule.formatScores(game.state.scores);
 }
 
