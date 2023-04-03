@@ -11,10 +11,11 @@ import { getAllMessagesSince } from './channel';
 const mockGetAllMessagesSince = mocked(getAllMessagesSince);
 
 jest.mock('./message');
-import { messageHasImage, getMessageUsers, deleteMessage } from './message';
+import { messageHasImage, getMessageUsers, deleteMessage, getMessageImages } from './message';
 const mockMessageHasImage = mocked(messageHasImage);
 const mockGetMessageUsers = mocked(getMessageUsers);
 const mockDeleteMessage = mocked(deleteMessage);
+const mockGetMessageImages = mocked(getMessageImages);
 
 jest.mock('./string');
 import { toList } from './string';
@@ -50,6 +51,7 @@ const matchByUser2FtUser3 = getMessage(channel, user2, [user3], true, false, new
 const matchByUser3FtUser1 = getMessage(channel, user3, [user1], true, false, new Date('2020Z'), "match by user 3 ft user 1");
 const matchByUser3FtUser2 = getMessage(channel, user3, [user2], true, false, new Date('2020Z'), "match by user 3 ft user 2");
 const matchByUser4FtUser2 = getMessage(channel, user4, [user2], true, false, new Date('2020Z'), "match by user 4 ft user 2");
+const doubleMatchByUser1 = getMessage(channel, user1, [], 2, false, new Date('2021Z'), "match by user 1 with two images");
 const statusMessage = getMessage(channel, botUser, [], false, true, new Date('2020Z'), "status");
 const botMessage = getMessage(channel, botUser, [], true, false, new Date('2020Z'), "message from bot");
 const textMessage = getMessage(channel, user1, [], false, false, new Date('2020Z'), "message with no image");
@@ -144,6 +146,7 @@ describe("handleMessage", () => {
 	beforeEach(() => {
 		jest.spyOn(console, 'log').mockImplementation();
 		mockMessageHasImage.mockReturnValue(true);
+		mockGetMessageImages.mockImplementation((message) => [...message.attachments.values()]);
 		mockGetMessageUsers.mockImplementation((message) => new Set([message.author!, ...message.mentions.users.values()]));
 		mockDeleteMessage.mockResolvedValue();
 	});
@@ -290,6 +293,16 @@ describe("handleMessage", () => {
 				...stateAwaitingMatch,
 				tag: tagByUser1,
 			} as GameStateAwaitingMatch), matchByUser2, 'recount');
+			expect(result).toHaveProperty('status', 'awaiting-next');
+			expect(mockSend).not.toHaveBeenCalled();
+		});
+
+		it("accepts multiple images for a tag match and doesn't post a warning", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(textMessage);
+			const result = await m.handleMessage(gameWithState({
+				...stateAwaitingMatch,
+				tag: tagByUser4,
+			} as GameStateAwaitingMatch, true), doubleMatchByUser1, 'recount');
 			expect(result).toHaveProperty('status', 'awaiting-next');
 			expect(mockSend).not.toHaveBeenCalled();
 		});
@@ -592,6 +605,31 @@ describe("handleMessage", () => {
 			expect(result).toHaveProperty('status', 'awaiting-next');
 			expect(mockSendToGame).not.toHaveBeenCalled();
 			expect(mockSendToChat).toHaveBeenCalledTimes(1);
+			expect(mockSendToChat).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.arrayContaining([expect.objectContaining({ title: "New tag match" })])}));
+		});
+
+		it("accepts multiple images for a tag match but warns the user in case they meant to post them separately (in game channel if there is no chat channel)", async () => {
+			const mockSend = jest.spyOn(channel, 'send').mockResolvedValue(textMessage);
+			const result = await m.handleMessage(gameWithState({
+				...stateAwaitingMatch,
+				tag: tagByUser4,
+			} as GameStateAwaitingMatch, false), doubleMatchByUser1, 'live');
+			expect(result).toHaveProperty('status', 'awaiting-next');
+			expect(mockSend).toHaveBeenCalledTimes(1);
+			expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringMatching(/tag match with more than one image/i) }));
+		});
+
+		it("accepts multiple images for a tag match but warns the user in case they meant to post them separately (in chat channel if there is one)", async () => {
+			const mockSendToGame = jest.spyOn(channel, 'send').mockResolvedValue(textMessage);
+			const mockSendToChat = jest.spyOn(chatChannel, 'send').mockResolvedValue(textMessage);
+			const result = await m.handleMessage(gameWithState({
+				...stateAwaitingMatch,
+				tag: tagByUser4,
+			} as GameStateAwaitingMatch, true), doubleMatchByUser1, 'live');
+			expect(result).toHaveProperty('status', 'awaiting-next');
+			expect(mockSendToGame).not.toHaveBeenCalled();
+			expect(mockSendToChat).toHaveBeenCalledTimes(2);
+			expect(mockSendToChat).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringMatching(/tag match with more than one image/i) }));
 		});
 
 		it("allows and handles a followup tag as long as it is posted by or mentions anyone who posted or was mentioned in the match", async () => {

@@ -3,7 +3,7 @@ import * as thisModule from './scoring';
 import type { TextChannel, User, Message, EmbedField } from 'discord.js';
 
 import { gameStateIsFree, gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsInactive } from './game-state';
-import { messageHasImage, getMessageUsers, deleteMessage } from './message';
+import { messageHasImage, getMessageImages, getMessageUsers, deleteMessage } from './message';
 import { pluralize, msToHumanReadable, toList } from './string';
 import { getAllMessagesSince } from './channel';
 import { getFormattedDeadline } from './deadline';
@@ -109,11 +109,11 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 				console.log("  Announcing new tag");
 				game.config.chatChannel.send({
 					embeds: [
-						...[...message.attachments.values()].map((attachment) => ({
+						{
 							title: "New tag",
 							description: `New tag in ${game.channel} by ${toList(authors)}. [See tag post](${message.url})`,
-							thumbnail: { url: attachment.url },
-						})),
+							thumbnail: { url: getMessageImages(message)[0].url },
+						},
 					],
 				});
 			}
@@ -218,15 +218,26 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			// Purposefully not awaiting this
 			game.config.chatChannel.send({
 				embeds: [
-					...[...message.attachments.values()].map((attachment) => ({
+					{
 						title: "New tag match",
 						description: `Tag matched in ${game.channel} by ${toList(authors)}. [See tag match post](${message.url})`,
-						thumbnail: { url: attachment.url },
+						thumbnail: { url: getMessageImages(message)[0].url },
 						fields: [
 							{ ...thisModule.getScoreChangesEmbedField(thisModule.getChangedScores(game.state.scores, newState.scores)), inline: true },
 						],
-					})),
+					},
 				],
+			});
+		}
+
+		// If there was more than one attachment, the user might have intended
+		// to post a match then a new tag. Point it out.
+		if (mode === 'live' && getMessageImages(message).length > 1) {
+			const targetChannel = game.config.chatChannel ?? game.channel;
+			console.log("  Message had more than one interesting attachment; informing user in case it was a mistake");
+			// Purposefully not awaiting this
+			(game.config.chatChannel ?? game.channel).send({
+				content: `${message.author}, you posted a tag match with more than one image ${game.config.chatChannel ? `in ${game.channel} ` : ""}. Did you meant to post a match, then a new tag? If so, they need to be separate messages; delete the message then post the match and new tag separately.`,
 			});
 		}
 

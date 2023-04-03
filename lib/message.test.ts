@@ -165,6 +165,50 @@ describe("messageHasImage", () => {
 	});
 });
 
+describe("getMessageImages", () => {
+	it("returns an empty array for a message with no attachment", () => {
+		expect(m.getMessageImages(messageWithAttachments([]))).toHaveLength(0);
+	});
+
+	it("rejects non-pertinent attachments", () => {
+		expect(m.getMessageImages(messageWithAttachments([
+			{
+				id: SnowflakeUtil.generate().toString(),
+				filename: 'foo.txt',
+				content_type: 'text/plain',
+				size: 3333,
+				url: 'http://example.com/foo.txt',
+				proxy_url: 'http://example.com/foo.txt',
+			},
+		]))).toHaveLength(0);
+	});
+
+	it("accepts jpeg and mp4 attachments", () => {
+		expect(m.getMessageImages(messageWithAttachments([
+			{
+				id: SnowflakeUtil.generate().toString(),
+				filename: 'foo.jpg',
+				content_type: 'image/jpeg',
+				size: 3333,
+				url: 'http://example.com/foo.jpg',
+				proxy_url: 'http://example.com/foo.jpg',
+				width: 2000,
+				height: 1000,
+			},
+			{
+				id: SnowflakeUtil.generate().toString(),
+				filename: 'foo.mp4',
+				content_type: 'video/mp4',
+				size: 3333,
+				url: 'http://example.com/foo.mp4',
+				proxy_url: 'http://example.com/foo.mp4',
+				width: 2000,
+				height: 1000,
+			},
+		]))).toHaveLength(2);
+	});
+});
+
 describe("getMessageUsers", () => {
 	it("includes the message author", () => {
 		const message = getMessage(channel, user1, [], false, false, new Date('2020Z'), "test message");

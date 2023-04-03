@@ -98,7 +98,19 @@ export function getMember(guild: Guild, user: User, roles: Role[], passedId?: st
 	}, guild);
 }
 
-export function getMessage(channel: TextChannel, author: User, mentions: User[], hasImage: boolean, pinned: boolean, timestamp: number | Date, content: string): Message<true> {
+export function getMessage(channel: TextChannel, author: User, mentions: User[], hasImage: boolean | number, pinned: boolean, timestamp: number | Date, content: string): Message<true> {
+	const imageCount = hasImage === true ? 1 : hasImage === false ? 0 : hasImage;
+	const attachments = [];
+	for (let i = 0; i < imageCount; i++) attachments.push({
+		id: SnowflakeUtil.generate(),
+		filename: 'foo.jpg',
+		content_type: 'image/jpeg',
+		size: 3333,
+		url: 'http://placekitten.com/408/287',
+		proxy_url: 'http://placekitten.com/408/287',
+		height: 287,
+		width: 408,
+	});
 	// @ts-expect-error -- private constructor
 	return new Message(getClient(), {
 		id: SnowflakeUtil.generate({ timestamp }),
@@ -123,16 +135,7 @@ export function getMessage(channel: TextChannel, author: User, mentions: User[],
 		})),
 		mention_roles: [],
 		mention_channels: [],
-		attachments: hasImage ? [{
-			id: SnowflakeUtil.generate(),
-			filename: 'foo.jpg',
-			content_type: 'image/jpeg',
-			size: 3333,
-			url: 'http://placekitten.com/408/287',
-			proxy_url: 'http://placekitten.com/408/287',
-			height: 287,
-			width: 408,
-		}] : [],
+		attachments,
 		embeds: [],
 		pinned,
 		type: 0,
