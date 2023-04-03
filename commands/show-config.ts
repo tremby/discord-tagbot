@@ -1,7 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { getConfigEmbedFields } from '../lib/config';
-import { formatScores } from '../lib/scoring';
 
 const commandSpec: SlashCommandSpec = {
 	permissions: null,

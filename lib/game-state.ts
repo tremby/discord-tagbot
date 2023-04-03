@@ -1,7 +1,7 @@
 import type { BaseMessageOptions, MessageEditOptions, EmbedField, User } from 'discord.js';
 import { Constants } from 'discord.js';
 
-import { getScoresEmbedField, formatScores } from './scoring';
+import { getScoresEmbedField } from './scoring';
 import { getMessageUsers } from './message';
 import { toList } from './string';
 import { clearTimers, setTimers } from './timers';
