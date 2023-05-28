@@ -237,7 +237,7 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 			console.log("  Message had more than one interesting attachment; informing user in case it was a mistake");
 			// Purposefully not awaiting this
 			(game.config.chatChannel ?? game.channel).send({
-				content: `${message.author}, you posted a tag match with more than one image ${game.config.chatChannel ? `in ${game.channel} ` : ""}. Did you meant to post a match, then a new tag? If so, they need to be separate messages; delete the message then post the match and new tag separately.`,
+				content: `${message.author}, you posted a tag match with more than one image ${game.config.chatChannel ? `in ${game.channel} ` : ""}. Did you mean to post a match, then a new tag? If so, they need to be separate messages; delete the message then post the match and new tag separately.`,
 			});
 		}
 
