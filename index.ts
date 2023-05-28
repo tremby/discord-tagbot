@@ -13,7 +13,7 @@ import { ProblemCheckingPermissionsError, NoTextChannelError, isAdmin, isAdminOr
 
 import appState, { load, persist, getRedisClient } from './lib/state';
 import { channelIsTextChannel, getGameOfChannel } from './lib/channel';
-import { handleMessage, recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from './lib/scoring';
+import { handleMessage, recount, getChangedScores, getScoreChangesEmbedField } from './lib/scoring';
 import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, gameStateIsInactive, updateGameState } from './lib/game-state';
 import { messageHasImage, getMessageUsers } from './lib/message';
 import { setsEqual } from './lib/set';

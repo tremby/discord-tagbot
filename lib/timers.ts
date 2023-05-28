@@ -2,7 +2,7 @@ import { gameStateIsAwaitingNext, gameStateIsAwaitingMatch, gameStateIsFree, upd
 import { pluralize, toList } from './string';
 import { getMessageUsers, deleteMessage } from './message';
 import { getDeadlineTimestamp, getFormattedDeadline } from './deadline';
-import { recount, getChangedScores, getScoreChangesEmbedField, getScoresEmbedField } from './scoring';
+import { recount, getChangedScores, getScoreChangesEmbedField } from './scoring';
 import { setUnion } from './set';
 
 const REMINDER_INTERVAL_MS = 1e3 * 60 * 5;
