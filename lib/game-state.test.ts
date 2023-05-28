@@ -1,5 +1,5 @@
 import * as m from './game-state';
-import type { User } from 'discord.js';
+import type { User, Embed } from 'discord.js';
 import { getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
 import { DiscordAPIError, Constants } from 'discord.js';
@@ -7,8 +7,8 @@ import { DiscordAPIError, Constants } from 'discord.js';
 import { mocked } from 'jest-mock';
 
 jest.mock('./scoring');
-import { getScoresEmbedField } from './scoring';
-const mockGetScoresEmbedField = mocked(getScoresEmbedField);
+import { getScoresEmbedFields } from './scoring';
+const mockGetScoresEmbedFields = mocked(getScoresEmbedFields);
 
 jest.mock('./timers');
 import { clearTimers, setTimers } from './timers';
@@ -205,6 +205,7 @@ describe("getStatusEmbedField", () => {
 describe("formatGameStatusMessage", () => {
 	beforeEach(() => {
 		jest.spyOn(m, 'getStatusEmbedField').mockReturnValue({ inline: false, name: "mock-name", value: "mock-value" });
+		mockGetScoresEmbedFields.mockReturnValue([]);
 	});
 
 	it("gives a single embed", () => {
@@ -224,13 +225,13 @@ describe("formatGameStatusMessage", () => {
 		expect(response).toHaveProperty('embeds.0.fields', expect.arrayContaining([{ inline: false, name: "mock-name", value: "mock-value" }]));
 	});
 
-	it("has a field for the scores", () => {
-		mockGetScoresEmbedField.mockImplementation((game, type) => ({ inline: false, name: 'n', value: 'v' }));
+	it("has embeds for the scores", () => {
+		mockGetScoresEmbedFields.mockImplementation((game, type) => ([{ inline: false, name: 'n', value: 'v' }, { inline: false, name: 'n2', value: 'v2' }]));
 		const game = gameWithState(stateAwaitingNext);
 		const response = m.formatGameStatusMessage(game);
-		expect(getScoresEmbedField).toHaveBeenCalledTimes(1);
-		expect(getScoresEmbedField).toHaveBeenCalledWith(game, expect.anything());
-		expect(response).toHaveProperty('embeds.0.fields', expect.arrayContaining([mockGetScoresEmbedField.mock.results[0].value]));
+		expect(getScoresEmbedFields).toHaveBeenCalledTimes(1);
+		expect(getScoresEmbedFields).toHaveBeenCalledWith(game, expect.anything());
+		expect(response).toHaveProperty('embeds.0.fields', expect.arrayContaining(mockGetScoresEmbedFields.mock.results[0].value as Embed[]));
 	});
 });
 
@@ -434,6 +435,7 @@ describe("finish", () => {
 		jest.spyOn(resultsMessage, 'pin').mockResolvedValue(resultsMessage);
 		jest.spyOn(statusMessage, 'unpin').mockResolvedValue(statusMessage);
 		jest.spyOn(statusMessage, 'edit').mockResolvedValue(statusMessage);
+		mockGetScoresEmbedFields.mockReturnValue([]);
 	});
 
 	describe.each([

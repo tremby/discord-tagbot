@@ -1128,7 +1128,7 @@ describe("formatScores", () => {
 	});
 });
 
-describe("getScoresEmbedField", () => {
+describe("getScoresEmbedFields", () => {
 	const game: Game = {
 		channel,
 		config: {
@@ -1153,9 +1153,18 @@ describe("getScoresEmbedField", () => {
 		} as GameStateAwaitingMatch,
 	};
 
-	it("has a name based on the format option", () => {
-		expect(m.getScoresEmbedField(game, 'brief')).toHaveProperty('name', "Top scores");
-		expect(m.getScoresEmbedField(game, 'full')).toHaveProperty('name', "Scores");
+	it("has a name attached to the first embed based on the format option", () => {
+		expect(m.getScoresEmbedFields(game, 'brief')[0]).toHaveProperty('name', "Top scores");
+		expect(m.getScoresEmbedFields(game, 'full')[0]).toHaveProperty('name', "Scores");
+	});
+
+	it("has no name attached to successive embeds", () => {
+		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue(new Array(128).fill(true).map((_, i) => `Line ${i + 1}`).join("\n"));
+		const result = m.getScoresEmbedFields({
+			...game,
+			statusMessage: null,
+		}, 'full');
+		expect(result[result.length - 1]).toHaveProperty('name', "");
 	});
 
 	it("notes that there are no scores if the game is inactive", () => {
@@ -1165,8 +1174,8 @@ describe("getScoresEmbedField", () => {
 				...stateInactive,
 			},
 		};
-		expect(m.getScoresEmbedField(noScoresGame, 'brief')).toHaveProperty('value', expect.stringMatching(/none/i));
-		expect(m.getScoresEmbedField(noScoresGame, 'full')).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedFields(noScoresGame, 'brief')[0]).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedFields(noScoresGame, 'full')[0]).toHaveProperty('value', expect.stringMatching(/none/i));
 	});
 
 	it("notes that there are no scores if there is no scores set", () => {
@@ -1177,8 +1186,8 @@ describe("getScoresEmbedField", () => {
 				scores: undefined,
 			},
 		};
-		expect(m.getScoresEmbedField(noScoresGame, 'brief')).toHaveProperty('value', expect.stringMatching(/none/i));
-		expect(m.getScoresEmbedField(noScoresGame, 'full')).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedFields(noScoresGame, 'brief')[0]).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedFields(noScoresGame, 'full')[0]).toHaveProperty('value', expect.stringMatching(/none/i));
 	});
 
 	it("notes that there are no scores if there are none", () => {
@@ -1189,11 +1198,11 @@ describe("getScoresEmbedField", () => {
 				scores: new Map(),
 			},
 		};
-		expect(m.getScoresEmbedField(noScoresGame, 'brief')).toHaveProperty('value', expect.stringMatching(/none/i));
-		expect(m.getScoresEmbedField(noScoresGame, 'full')).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedFields(noScoresGame, 'brief')[0]).toHaveProperty('value', expect.stringMatching(/none/i));
+		expect(m.getScoresEmbedFields(noScoresGame, 'full')[0]).toHaveProperty('value', expect.stringMatching(/none/i));
 	});
 
-	it("does not link to the status message if there are no scores to show", () => {
+	it("does not link to the status message in the last embed if there are no scores to show", () => {
 		const noScoresGame: Game = {
 			...game,
 			state: {
@@ -1201,8 +1210,14 @@ describe("getScoresEmbedField", () => {
 				scores: new Map(),
 			},
 		};
-		expect(m.getScoresEmbedField(noScoresGame, 'brief')).not.toHaveProperty('value', expect.stringContaining(statusMessage.url));
-		expect(m.getScoresEmbedField(noScoresGame, 'full')).not.toHaveProperty('value', expect.stringContaining(statusMessage.url));
+		{
+			const embeds = m.getScoresEmbedFields(noScoresGame, 'brief');
+			expect(embeds[embeds.length - 1]).not.toHaveProperty('value', expect.stringContaining(statusMessage.url));
+		}
+		{
+			const embeds = m.getScoresEmbedFields(noScoresGame, 'full');
+			expect(embeds[embeds.length - 1]).not.toHaveProperty('value', expect.stringContaining(statusMessage.url));
+		}
 	});
 
 	it("uses the configured ranking strategy option", () => {
@@ -1214,36 +1229,36 @@ describe("getScoresEmbedField", () => {
 			},
 		};
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("all the scores");
-		const result = m.getScoresEmbedField(reconfiguredGame, 'full');
+		m.getScoresEmbedFields(reconfiguredGame, 'full');
 		expect(mockFormatScores).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ rankingStrategy: 'dense' }));
 	});
 
 	it("shows all scores in full mode", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("all the scores");
-		const result = m.getScoresEmbedField(game, 'full');
-		expect(result).toHaveProperty('value', expect.stringContaining("all the scores"));
+		const result = m.getScoresEmbedFields(game, 'full');
+		expect(result[0]).toHaveProperty('value', expect.stringContaining("all the scores"));
 		expect(mockFormatScores).toHaveBeenCalledTimes(1);
 		expect(mockFormatScores).toHaveBeenCalledWith(game.state.scores, expect.not.objectContaining({ max: expect.anything() }));
 	});
 
 	it("shows just the top scores scores in brief mode", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("the top scores");
-		const result = m.getScoresEmbedField(game, 'brief');
-		expect(result).toHaveProperty('value', expect.stringContaining("the top scores"));
+		const result = m.getScoresEmbedFields(game, 'brief');
+		expect(result[0]).toHaveProperty('value', expect.stringContaining("the top scores"));
 		expect(mockFormatScores).toHaveBeenCalledTimes(1);
 		expect(mockFormatScores).toHaveBeenCalledWith(game.state.scores, expect.objectContaining({ max: 3 }));
 	});
 
 	it("gives a link to the full scoreboard if it did not show all the scores", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("the top scores");
-		const result = m.getScoresEmbedField(game, 'brief');
-		expect(result).toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
+		const result = m.getScoresEmbedFields(game, 'brief');
+		expect(result[result.length - 1]).toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
 	});
 
 	it("does not give a link to the full scoreboard if it showed all the scores", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("the top scores");
 		{
-			const result = m.getScoresEmbedField({
+			const result = m.getScoresEmbedFields({
 				...game,
 				state: {
 					...game.state,
@@ -1254,10 +1269,10 @@ describe("getScoresEmbedField", () => {
 					]),
 				},
 			}, 'brief');
-			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
+			expect(result[result.length - 1]).not.toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
 		}
 		{
-			const result = m.getScoresEmbedField({
+			const result = m.getScoresEmbedFields({
 				...game,
 				state: {
 					...game.state,
@@ -1269,17 +1284,28 @@ describe("getScoresEmbedField", () => {
 					]),
 				},
 			}, 'brief');
-			expect(result).not.toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
+			expect(result[result.length - 1]).not.toHaveProperty('value', expect.stringContaining(game.statusMessage!.url));
 		}
 	});
 
 	it("shows some string (doesn't crash) if trying to give a link to the status message when unable", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("the top scores");
-		const result = m.getScoresEmbedField({
+		const result = m.getScoresEmbedFields({
 			...game,
 			statusMessage: null,
 		}, 'brief');
-		expect(result).toHaveProperty('value', expect.any(String));
+		expect(result[0]).toHaveProperty('value', expect.any(String));
+	});
+
+	it("splits the scores into multiple embeds if necessary", () => {
+		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue(new Array(128).fill(true).map((_, i) => `Line ${i + 1}`).join("\n"));
+		const result = m.getScoresEmbedFields({
+			...game,
+			statusMessage: null,
+		}, 'full');
+		expect(result.length).toBeGreaterThan(1);
+		expect(result[0]).toHaveProperty('value', expect.stringMatching(/\bLine 1\b/));
+		expect(result[result.length - 1]).toHaveProperty('value', expect.stringMatching(/\bLine 128\b/));
 	});
 });
 

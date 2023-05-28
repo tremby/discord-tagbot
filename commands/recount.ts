@@ -1,7 +1,7 @@
 import type { User } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-import { recount, getScoresEmbedField, getChangedScores, getScoreChangesEmbedField } from '../lib/scoring';
+import { recount, getScoresEmbedFields, getChangedScores, getScoreChangesEmbedField } from '../lib/scoring';
 import { updateGameState, getStatusEmbedField, gameStateIsInactive } from '../lib/game-state';
 import { getConfigEmbedFields } from '../lib/config';
 
@@ -56,7 +56,7 @@ const commandSpec: SlashCommandSpec = {
 					...getConfigEmbedFields(game.config),
 					getStatusEmbedField(game),
 					getScoreChangesEmbedField(changedScores),
-					getScoresEmbedField(game, 'brief'),
+					...getScoresEmbedFields(game, 'brief'),
 				],
 			}],
 		});
@@ -69,7 +69,7 @@ const commandSpec: SlashCommandSpec = {
 					description: `Scores were just recounted in ${game.channel} due to a manual trigger.`,
 					fields: [
 						{ ...getScoreChangesEmbedField(changedScores), inline: true },
-						{ ...getScoresEmbedField(game, 'brief'), inline: true },
+						...(getScoresEmbedFields(game, 'brief').map((embed) => ({ ...embed, inline: true }))),
 					],
 				}],
 			});

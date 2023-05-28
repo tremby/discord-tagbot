@@ -9,6 +9,8 @@ import { getAllMessagesSince } from './channel';
 import { getFormattedDeadline } from './deadline';
 import { setIntersection } from './set';
 
+const EMBED_FIELD_VALUE_MAX_LENGTH = 1024; // https://discordjs.guide/popular-topics/embeds.html#embed-limits
+
 const ordinalRules = new Intl.PluralRules("en", { type: "ordinal" });
 const ordinalSuffixes = {
 	zero: "th",
@@ -417,12 +419,38 @@ function getScoresMessage(game: Game, format: 'brief' | 'full'): string {
 /**
  * Get the scores embed field.
  */
-export function getScoresEmbedField(game: Game, format: 'brief' | 'full'): EmbedField {
-	return {
-		inline: false,
-		name: format === 'brief' ? "Top scores" : "Scores",
-		value: getScoresMessage(game, format),
-	};
+export function getScoresEmbedFields(game: Game, format: 'brief' | 'full'): EmbedField[] {
+	const scoresMessage = getScoresMessage(game, format);
+	if (scoresMessage.length <= EMBED_FIELD_VALUE_MAX_LENGTH) {
+		return [{
+			inline: false,
+			name: format === 'brief' ? "Top scores" : "Scores",
+			value: scoresMessage,
+		}];
+	}
+	return scoresMessage.split("\n").reduce<EmbedField[]>((acc, line) => {
+		if (acc.length === 0) {
+			acc.push({
+				inline: false,
+				name: format === 'brief' ? "Top scores" : "Scores",
+				value: line,
+			});
+			return acc;
+		}
+		if (acc[acc.length - 1].value.length + line.length + 1 <= EMBED_FIELD_VALUE_MAX_LENGTH) {
+			acc[acc.length - 1].value += `\n${line}`;
+			return acc;
+		}
+		acc.push({
+			inline: false,
+			name: "",
+			value: line,
+		});
+		return acc;
+	}, []);
+	// FIXME: if a single line of the formatted scores message is longer than
+	// the embed limit (like if dozens of players have the same score) it'll
+	// still crash
 }
 
 /**

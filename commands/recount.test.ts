@@ -5,10 +5,11 @@ import { expectInteractionResponse } from '../test/util';
 import { mocked } from 'jest-mock';
 
 jest.mock('../lib/scoring');
-import { recount, getChangedScores, getScoreChangesEmbedField } from '../lib/scoring';
+import { recount, getChangedScores, getScoreChangesEmbedField, getScoresEmbedFields } from '../lib/scoring';
 const mockRecount = mocked(recount);
 const mockGetChangedScores = mocked(getChangedScores);
 const mockGetScoreChangesEmbedField = mocked(getScoreChangesEmbedField);
+const mockGetScoresEmbedFields = mocked(getScoresEmbedFields);
 
 jest.mock('../lib/game-state');
 import { updateGameState, gameStateIsInactive } from '../lib/game-state';
@@ -48,6 +49,7 @@ describe("recount command", () => {
 		mockGameStateIsInactive.mockReturnValue(false);
 		mockGetChangedScores.mockReturnValue(new Map());
 		mockRecount.mockImplementation(async (game) => ({ ...game.state } as GameState));
+		mockGetScoresEmbedFields.mockReturnValue([]);
 	});
 
 	it("warns the user it may take time", async () => {

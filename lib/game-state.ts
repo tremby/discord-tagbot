@@ -1,7 +1,7 @@
 import type { BaseMessageOptions, MessageEditOptions, EmbedField, User } from 'discord.js';
 import { Constants } from 'discord.js';
 
-import { getScoresEmbedField } from './scoring';
+import { getScoresEmbedFields } from './scoring';
 import { getMessageUsers } from './message';
 import { toList } from './string';
 import { clearTimers, setTimers } from './timers';
@@ -64,7 +64,7 @@ export function formatGameStatusMessage(game: Game): BaseMessageOptions & Messag
 			description: "The current tag game started here at this message. The status and scoreboard below will be kept updated throughout the game.",
 			fields: [
 				thisModule.getStatusEmbedField(game),
-				getScoresEmbedField(game, 'full'),
+				...getScoresEmbedFields(game, 'full'),
 			],
 		}],
 	};
@@ -174,7 +174,7 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 		embeds: [{
 			title: "Game results",
 			fields: [
-				getScoresEmbedField(game, 'full'),
+				...getScoresEmbedFields(game, 'full'),
 				{
 					name: "Links",
 					value: game.statusMessage != null ? `[Jump to start of game](${game.statusMessage.url})` : '',
@@ -217,7 +217,7 @@ export async function finish(game: Game, endOfPeriod: boolean): Promise<void> {
 				title: "Tag game over",
 				description: `The tag game in ${game.channel} has finished!`,
 				fields: [
-					getScoresEmbedField(game, 'brief'),
+					...getScoresEmbedFields(game, 'brief'),
 					{
 						name: "Links",
 						value: (game.statusMessage != null ? `[Jump to start of game](${game.statusMessage.url})\n` : '') + `[Jump to end of game and full scores](${resultsMessage.url})`,

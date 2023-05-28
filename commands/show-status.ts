@@ -5,7 +5,7 @@ import {
 	getStatusEmbedField,
 	getDisqualifiedPlayersEmbedField,
 } from '../lib/game-state';
-import { getScoresEmbedField } from '../lib/scoring';
+import { getScoresEmbedFields } from '../lib/scoring';
 
 const commandSpec: SlashCommandSpec = {
 	permissions: null,
@@ -25,7 +25,7 @@ const commandSpec: SlashCommandSpec = {
 				description: `This is the current game status in ${channel}.`,
 				fields: [
 					getStatusEmbedField(game),
-					gameStateIsInactive(game.state) ? [] : getScoresEmbedField(game, 'brief'),
+					gameStateIsInactive(game.state) ? [] : getScoresEmbedFields(game, 'brief'),
 					getDisqualifiedPlayersEmbedField(game) ?? [],
 				].flat(),
 			}],
