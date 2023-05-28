@@ -1273,7 +1273,7 @@ describe("getScoresEmbedField", () => {
 		}
 	});
 
-	it("shows some string (doesn't crash) if trying to give a link no the status message when unable", () => {
+	it("shows some string (doesn't crash) if trying to give a link to the status message when unable", () => {
 		const mockFormatScores = jest.spyOn(m, 'formatScores').mockReturnValue("the top scores");
 		const result = m.getScoresEmbedField({
 			...game,
