@@ -52,6 +52,12 @@ If any scores change, it is announced in the chat channel, if one is set.
 The bot is set up and controlled via slash-commands.
 The commands must be run in the channel the game is to take place in.
 
+### Adding the bot to your server
+
+You can [use my instance of the bot on your server](https://discord.com/api/oauth2/authorize?client_id=887427806395498588&permissions=75776&scope=applications.commands%20bot).
+I make no guarantees about its uptime or stability.
+If you care about that, [build and launch your own instance of the bot](#technical-stuff).
+
 ### Registering a game
 
 To register a game, use the `/tag-init` command
@@ -115,6 +121,8 @@ and by tag judges for the game in question.
   If set to a measure of time,
   it will be interpreted according to the configured locale,
   and the game will automatically stop at the end of the period.
+  **This is not yet working;
+  at the the time of writing the bot always acts as if in manual mode.**
 
 - **`/tag-lifespan auto-restart`:** set whether a game configured to run on a period
   will automatically restart immediately after completing.
@@ -200,6 +208,16 @@ For those reasons some disqualification list management commands are available:
 
 Technical stuff
 ---------------
+
+You can build and run the bot yourself.
+
+### Setting up a Discord application
+
+First you'll need to set up your own Discord app;
+see [the Discord developer portal](https://discord.com/developers)
+and set up a new application.
+
+You'll need to enable the "message content" intent on the "bot" page.
 
 ### Install dependencies
 
