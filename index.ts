@@ -4,7 +4,7 @@ dotenv.config();
 
 import { createClient as createRedisClient } from 'redis';
 
-import { Client as DiscordClient, GatewayIntentBits, TextChannel, ActivityType } from 'discord.js';
+import { Client as DiscordClient, GatewayIntentBits, TextChannel, ActivityType, PermissionFlagsBits } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 
@@ -18,6 +18,7 @@ import { handleMessage, recount, getChangedScores, getScoreChangesEmbedField } f
 import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, gameStateIsInactive, updateGameState } from './lib/game-state';
 import { messageHasImage, getMessageUsers } from './lib/message';
 import { setsEqual } from './lib/set';
+import { checkPermissionsAndWarn, checkAllPermissionsAndWarn } from './lib/permissions';
 
 console.log(`discord-tagbot ${version}`);
 
@@ -82,6 +83,9 @@ discordClient.on('ready', async () => {
 		body: commands.map((command) => command.description),
 	});
 	console.log("...done");
+
+	// Check we have all necessary permissions for all guilds
+	checkAllPermissionsAndWarn();
 
 	// Listen for and handle new messages
 	discordClient.on('messageCreate', async (message) => {
@@ -381,6 +385,22 @@ discordClient.on('ready', async () => {
 			}
 		}));
 		console.log("Finished handling bulk deletion");
+	});
+
+	// Listen for updates to roles the bot is a member of
+	discordClient.on('roleUpdate', async (oldRole, role) => {
+		const guild = role.guild;
+		const bot = guild.members.me;
+		if (!bot) return;
+
+		// Do nothing if we're not affected by the changed role
+		if (!bot.roles.cache.has(role.id)) return;
+
+		// Do nothing if the permissions didn't change
+		if (oldRole.permissions.bitfield === role.permissions.bitfield) return;
+
+		debug("Noticed that permissions of a role that affects us changed. Checking if we have all necessary permissions.");
+		const perms = await checkPermissionsAndWarn(guild, "full");
 	});
 
 	// Handle interactions

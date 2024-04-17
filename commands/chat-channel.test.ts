@@ -9,10 +9,34 @@ import { mocked } from 'jest-mock';
 
 jest.mock('../lib/config');
 import { getConfigEmbedFields } from '../lib/config';
+const mockGetConfigEmbedFields = mocked(getConfigEmbedFields);
+
+const configEmbedFields = [
+	{
+		name: "Config field 1",
+		value: "Config value 1",
+		inline: true,
+	},
+	{
+		name: "Config field 2",
+		value: "Config value 2",
+		inline: true,
+	},
+];
 
 jest.mock('./lib/helpers');
 import { getValidChannel, NoTextChannelError } from './lib/helpers';
 const mockGetValidChannel = mocked(getValidChannel);
+
+jest.mock('../lib/permissions');
+import { getPermissionsEmbedField } from '../lib/permissions';
+const mockGetPermissionsEmbedField = mocked(getPermissionsEmbedField);
+
+const permissionsEmbedField = {
+	name: "Permissions",
+	value: "Abcd",
+	inline: true,
+};
 
 const guild = getGuild();
 const gameChannel = getTextChannel(guild);
@@ -24,6 +48,8 @@ describe("chat-channel command", () => {
 	describe("set subcommand", () => {
 		beforeEach(() => {
 			mockGetValidChannel.mockReturnValue(chatChannel);
+			mockGetConfigEmbedFields.mockReturnValue(configEmbedFields);
+			mockGetPermissionsEmbedField.mockResolvedValue(permissionsEmbedField);
 		});
 
 		it("responds with an error and otherwise does nothing if no channel was given", async () => {

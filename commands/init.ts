@@ -4,6 +4,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import appState, { persist } from '../lib/state';
 import { getDefaultConfig, getConfigEmbedFields } from '../lib/config';
 import { getStatusEmbedField } from '../lib/game-state';
+import { getPermissionsEmbedField } from '../lib/permissions';
 
 const commandSpec: SlashCommandSpec = {
 	permissions: 'admin',
@@ -49,6 +50,7 @@ const commandSpec: SlashCommandSpec = {
 				fields: [
 					...getConfigEmbedFields(game.config),
 					getStatusEmbedField(game),
+					await getPermissionsEmbedField(game),
 				].flat(),
 			}],
 			ephemeral: true,

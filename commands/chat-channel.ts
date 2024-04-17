@@ -4,6 +4,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { getValidChannel, NoTextChannelError } from './lib/helpers';
 import { getConfigEmbedFields } from '../lib/config';
+import { getPermissionsEmbedField } from '../lib/permissions';
 
 const commandDescription = new SlashCommandBuilder()
 	.setName('tag-chat-channel')
@@ -74,7 +75,10 @@ const commandSpec: SlashCommandSpec = {
 					embeds: [{
 						title: "Configuration updated",
 						description: `Chat channel for the tag game in ${channel} is updated to ${chatChannel}.`,
-						fields: getConfigEmbedFields(game.config),
+						fields: [
+							...getConfigEmbedFields(game.config),
+							await getPermissionsEmbedField(game),
+						],
 					}],
 					ephemeral: true,
 				});

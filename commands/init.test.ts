@@ -30,6 +30,16 @@ const configEmbedFields = [
 	},
 ];
 
+jest.mock('../lib/permissions');
+import { getPermissionsEmbedField } from '../lib/permissions';
+const mockGetPermissionsEmbedField = mocked(getPermissionsEmbedField);
+
+const permissionsEmbedField = {
+	name: "Permissions",
+	value: "Abcd",
+	inline: true,
+};
+
 const guild = getGuild();
 const channel = getTextChannel(guild);
 const user1 = getUser('user1');
@@ -39,6 +49,7 @@ describe("init command", () => {
 	beforeEach(() => {
 		gameState.games = new Set();
 		mockGetConfigEmbedFields.mockReturnValue(configEmbedFields);
+		mockGetPermissionsEmbedField.mockResolvedValue(permissionsEmbedField);
 	});
 
 	it("replies with an ephemeral error and does nothing else if there is already a game", async () => {

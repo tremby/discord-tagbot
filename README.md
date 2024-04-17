@@ -206,6 +206,9 @@ For those reasons some disqualification list management commands are available:
 
 - **`/tag-show-config`:** show (just to you) the current game configuration.
 
+- **`/tag-show-permissions`:** show (just to you) the status
+  of the various permissions the bot needs.
+
 - **`/tag-about`:** show (just to you) some info about the bot.
 
 Technical stuff
