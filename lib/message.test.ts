@@ -1,5 +1,5 @@
 import * as m from './message';
-import { SnowflakeUtil, Message } from 'discord.js';
+import { DiscordAPIError, RESTJSONErrorCodes, SnowflakeUtil, Message } from 'discord.js';
 import type { APIAttachment } from 'discord-api-types/v10';
 import { getClient, getGuild, getTextChannel, getUser, getMessage } from '../test/fixtures';
 
@@ -245,5 +245,13 @@ describe("deleteMessage", () => {
 		expect(appState.deletedMessageIds.has(message.id)).toBe(false);
 		await m.deleteMessage(message);
 		expect(appState.deletedMessageIds.has(message.id)).toBe(true);
+	});
+
+	it("logs an error and doesn't crash if delete permission was denied", async () => {
+		const mockError = jest.spyOn(console, 'error').mockImplementation();
+		const message = getMessage(channel, user1, [], false, false, new Date('2020Z'), "test message");
+		const spiedDelete = jest.spyOn(message, 'delete').mockRejectedValue(new DiscordAPIError({ message: "", code: 50013 }, 50013, 403, '', '', {}));
+		await m.deleteMessage(message);
+		expect(mockError).toHaveBeenCalledWith(expect.stringMatching(/tried to delete a message but couldn't/i));
 	});
 });

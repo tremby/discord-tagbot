@@ -1,3 +1,4 @@
+import { DiscordAPIError, RESTJSONErrorCodes } from 'discord.js';
 import type { Message, PartialMessage, User, Attachment } from 'discord.js';
 
 import appState from './state';
@@ -42,5 +43,11 @@ export function getMessageUsers(message: Message | PartialMessage): Set<User> {
  */
 export async function deleteMessage(message: Message): Promise<void> {
 	appState.deletedMessageIds.add(message.id);
-	await message.delete();
+	try {
+		await message.delete();
+	} catch (error) {
+		if (!(error instanceof DiscordAPIError)) throw error;
+		if (error.code !== RESTJSONErrorCodes.MissingPermissions) throw error;
+		console.error("Tried to delete a message but couldn't due to lack of permissions.");
+	}
 }
