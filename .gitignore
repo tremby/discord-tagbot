@@ -1,5 +1,7 @@
 /node_modules
 
+/lib/version.ts
+
 /dist
 
 /.env

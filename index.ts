@@ -11,12 +11,15 @@ import { Routes } from 'discord-api-types/v10';
 import commands from './commands';
 import { ProblemCheckingPermissionsError, NoTextChannelError, isAdmin, isAdminOrTagJudge, getValidChannel } from './commands/lib/helpers';
 
+import version from './lib/version';
 import appState, { load, persist, getRedisClient } from './lib/state';
 import { channelIsTextChannel, getGameOfChannel } from './lib/channel';
 import { handleMessage, recount, getChangedScores, getScoreChangesEmbedField } from './lib/scoring';
 import { gameStateIsAwaitingMatch, gameStateIsAwaitingNext, gameStateIsInactive, updateGameState } from './lib/game-state';
 import { messageHasImage, getMessageUsers } from './lib/message';
 import { setsEqual } from './lib/set';
+
+console.log(`discord-tagbot ${version}`);
 
 const DEBUG = Boolean(process.env.DEBUG);
 function debug(message: string): void {

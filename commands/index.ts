@@ -1,3 +1,4 @@
+import about from './about';
 import init from './init';
 import forget from './forget';
 import recount from './recount';
@@ -12,6 +13,7 @@ import rankingStrategy from './ranking-strategy';
 import gameControl from './game-control';
 
 const commands: SlashCommandSpec[] = [
+	about,
 	init,
 	forget,
 	recount,
