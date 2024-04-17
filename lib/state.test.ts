@@ -1,5 +1,6 @@
+import type { RedisClientType } from 'redis';
+
 import state, * as m from './state';
-import type { RedisClientType } from './state';
 import { getClient, getGuild, getTextChannel, getUser, getRole, getMessage } from '../test/fixtures';
 
 import { mocked } from 'jest-mock';
@@ -25,7 +26,7 @@ const mockUpdateGameStatusMessage = mocked(updateGameStatusMessage);
 const mockRedisClient = {
 	set: jest.fn(),
 	get: jest.fn(),
-} as unknown as jest.Mocked<RedisClientType>;
+};
 
 const guild = getGuild();
 const channel1 = getTextChannel(guild);
@@ -152,7 +153,7 @@ describe("persist", () => {
 	beforeEach(() => {
 		state.games = new Set([game1, game2]);
 		state.deletedMessageIds = new Set();
-		jest.spyOn(m, 'getRedisClient').mockReturnValue(mockRedisClient);
+		jest.spyOn(m, 'getRedisClient').mockReturnValue(mockRedisClient as unknown as jest.Mocked<RedisClientType>);
 	});
 
 	afterAll(() => {
@@ -192,7 +193,7 @@ describe("load", () => {
 			// @ts-expect-error: overloaded function; mocking it properly would be a pain
 			statusMessage
 		);
-		jest.spyOn(m, 'getRedisClient').mockReturnValue(mockRedisClient);
+		jest.spyOn(m, 'getRedisClient').mockReturnValue(mockRedisClient as unknown as jest.Mocked<RedisClientType>);
 
 		mockRecount.mockResolvedValue({
 			status: 'awaiting-match',

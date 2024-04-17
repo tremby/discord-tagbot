@@ -2,7 +2,7 @@ import * as thisModule from './state';
 
 import type { Role, Client, TextChannel } from 'discord.js';
 
-import { createClient as createRedisClient } from 'redis';
+import { createClient as createRedisClient, type RedisClientType } from 'redis';
 
 import { serializeConfig } from './config';
 import { recount } from './scoring';
@@ -29,12 +29,8 @@ export default state;
 // Set up Redis client
 const redisClient = createRedisClient({
 	url: `redis://${process.env.REDISUSER ?? ''}:${process.env.REDISPASSWORD ?? ''}@${process.env.REDISHOST ?? 'localhost'}:${process.env.REDISPORT ?? '6379'}`,
-});
+}) as RedisClientType;
 redisClient.on('error', (error) => console.log("Redis error", error));
-
-// FIXME: awkward hack; see https://github.com/redis/node-redis/issues/1865
-// and related issues
-export type RedisClientType = typeof redisClient;
 
 /**
  * Get the Redis client
