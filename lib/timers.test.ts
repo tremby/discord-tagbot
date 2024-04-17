@@ -77,16 +77,17 @@ const game: Game = {
 	state: stateAwaitingNext,
 };
 
+beforeAll(() => {
+	jest.useFakeTimers();
+});
+
+afterAll(() => {
+	jest.useRealTimers();
+});
+
 describe("setTimers", () => {
 	beforeEach(() => {
-		jest.useFakeTimers();
 		mockRecount.mockResolvedValue(stateAwaitingMatch);
-	});
-	afterEach(() => {
-		// FIXME: I don't see why this should be necessary,
-		// but tests seem to fail (setTimeout returns undefined) without this,
-		// for the second test and beyond.
-		jest.useRealTimers();
 	});
 
 	describe("reminder timer", () => {
@@ -672,16 +673,6 @@ describe("setTimers", () => {
 });
 
 describe("clearTimers", () => {
-	beforeEach(() => {
-		jest.useFakeTimers();
-	});
-	afterEach(() => {
-		// FIXME: I don't see why this should be necessary,
-		// but tests seem to fail (setTimeout returns undefined) without this,
-		// for the second test and beyond.
-		jest.useRealTimers();
-	});
-
 	it("clears the reminder timer", async () => {
 		const tmpGame = {
 			...game,
