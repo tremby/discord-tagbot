@@ -1,6 +1,6 @@
 {
   "name": "discord-tagbot",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Discord bot to help with tag games",
   "main": "./index.ts",
   "types": "./index.d.ts",
