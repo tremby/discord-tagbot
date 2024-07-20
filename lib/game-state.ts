@@ -80,7 +80,11 @@ export async function updateGameStatusMessage(game: Game): Promise<void> {
 		console.warn("Wanted to update the game status message but there's no reference to it.");
 		return;
 	}
-	await game.statusMessage.edit(thisModule.formatGameStatusMessage(game));
+	try {
+		await game.statusMessage.edit(thisModule.formatGameStatusMessage(game));
+	} catch (error) {
+		console.error(`Couldn't update status message ${game.statusMessage.id} for game in channel ${game.channel.id}: ${error}`);
+	}
 }
 
 /**

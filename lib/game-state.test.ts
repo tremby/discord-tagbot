@@ -241,12 +241,19 @@ describe("updateGameStatusMessage", () => {
 	beforeEach(() => {
 		jest.spyOn(m, 'formatGameStatusMessage').mockReturnValue({ content: "mock-message" });
 		jest.spyOn(statusMessage, 'edit').mockResolvedValue(statusMessage);
+		jest.spyOn(console, 'error').mockImplementation();
 	});
 
 	it("edits the status message to the new message", async () => {
 		await m.updateGameStatusMessage({ ...game, statusMessage });
 		expect(statusMessage.edit).toHaveBeenCalledTimes(1);
 		expect(statusMessage.edit).toHaveBeenCalledWith({ content: "mock-message" });
+	});
+
+	it("logs an error if the status message can't be updated", async () => {
+		jest.spyOn(statusMessage, 'edit').mockRejectedValue(new Error());
+		await m.updateGameStatusMessage({ ...game, statusMessage });
+		expect(console.error).toHaveBeenCalledTimes(1);
 	});
 });
 
