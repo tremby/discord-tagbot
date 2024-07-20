@@ -38,6 +38,9 @@ const commandSpec: SlashCommandSpec = {
 			state: { status: 'inactive' },
 		};
 
+		// Log the interaction
+		console.log(`Init command run in channel ${channel} on server ${channel.guild.id} by user ${interaction.member?.user.id} (${interaction.member?.user.username})`);
+
 		// Register the game
 		appState.games.add(game);
 		persist();

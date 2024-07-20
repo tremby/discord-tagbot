@@ -48,6 +48,9 @@ const commandSpec: SlashCommandSpec = {
 					return;
 				}
 
+				// Log the interaction
+				console.log(`Game-control start command run in channel ${channel} on server ${channel.guild.id} by user ${interaction.member?.user.id} (${interaction.member?.user.username})`);
+
 				// Inform the user this may take time
 				const deferralPromise = interaction.deferReply({ ephemeral: true });
 
@@ -84,6 +87,9 @@ const commandSpec: SlashCommandSpec = {
 					});
 					return;
 				}
+
+				// Log the interaction
+				console.log(`Game-control finish command run in channel ${channel} on server ${channel.guild.id} by user ${interaction.member?.user.id} (${interaction.member?.user.username})`);
 
 				// Inform the user this may take time
 				const deferralPromise = interaction.deferReply({ ephemeral: true });

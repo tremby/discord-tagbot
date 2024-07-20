@@ -30,6 +30,7 @@ describe("forget command", () => {
 			game1,
 			game2,
 		]);
+		jest.spyOn(console, 'log').mockImplementation();
 	});
 
 	it("gives an ephemeral response on success", async () => {
@@ -56,5 +57,13 @@ describe("forget command", () => {
 		const interaction = getCommandInteraction(channel1, user1, 'init', [], {});
 		await commandSpec.handler(interaction, channel1, game1);
 		expect(mockPersist).toHaveBeenCalledTimes(1);
+	});
+
+	it("logs a message with the channel, server, and user", async () => {
+		const interaction = getCommandInteraction(channel1, user1, 'init', [], {});
+		await commandSpec.handler(interaction, channel1, game1);
+		expect(console.log).toHaveBeenCalledWith(expect.stringContaining(channel1.id.toString()));
+		expect(console.log).toHaveBeenCalledWith(expect.stringContaining(guild.id.toString()));
+		expect(console.log).toHaveBeenCalledWith(expect.stringContaining(user1.id.toString()));
 	});
 });

@@ -50,6 +50,7 @@ describe("init command", () => {
 		gameState.games = new Set();
 		mockGetConfigEmbedFields.mockReturnValue(configEmbedFields);
 		mockGetPermissionsEmbedField.mockResolvedValue(permissionsEmbedField);
+		jest.spyOn(console, 'log').mockImplementation();
 	});
 
 	it("replies with an ephemeral error and does nothing else if there is already a game", async () => {
@@ -83,5 +84,14 @@ describe("init command", () => {
 		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
 		await commandSpec.handler(interaction, channel, null);
 		expect(mockGetDefaultConfig).toHaveBeenCalledTimes(1);
+	});
+
+	it("logs a message with the channel, server, and user", async () => {
+		const interaction = getCommandInteraction(channel, user1, 'init', [], {});
+		await commandSpec.handler(interaction, channel, null);
+		expect(console.log).toHaveBeenCalledTimes(1);
+		expect(console.log).toHaveBeenCalledWith(expect.stringContaining(channel.id.toString()));
+		expect(console.log).toHaveBeenCalledWith(expect.stringContaining(guild.id.toString()));
+		expect(console.log).toHaveBeenCalledWith(expect.stringContaining(user1.id.toString()));
 	});
 });

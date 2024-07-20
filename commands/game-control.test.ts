@@ -23,6 +23,10 @@ const channel = getTextChannel(guild);
 const user1 = getUser('user1');
 
 describe("game-control command", () => {
+	beforeEach(() => {
+		jest.spyOn(console, 'log').mockImplementation();
+	});
+
 	describe("start subcommand", () => {
 		it("aborts if the game is already running", async () => {
 			mockGameStateIsInactive.mockReturnValue(false);
@@ -68,6 +72,24 @@ describe("game-control command", () => {
 			const interaction = getCommandInteraction(channel, user1, 'game-control', options, {});
 			await commandSpec.handler(interaction, channel, game);
 			expectInteractionResponse(interaction, true);
+		});
+
+		it("logs a message with the subcommand, channel, server, and user", async () => {
+			mockGameStateIsInactive.mockReturnValue(true);
+			const game = {} as Game;
+			const options = [
+				{
+					type: ApplicationCommandOptionType.Subcommand,
+					name: 'start',
+				},
+			] as APIApplicationCommandInteractionDataOption[];
+			const interaction = getCommandInteraction(channel, user1, 'game-control', options, {});
+			await commandSpec.handler(interaction, channel, game);
+			expect(console.log).toHaveBeenCalledTimes(1);
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining("start"));
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining(channel.id.toString()));
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining(guild.id.toString()));
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining(user1.id.toString()));
 		});
 	});
 
@@ -160,6 +182,24 @@ describe("game-control command", () => {
 					}),
 				]),
 			}));
+		});
+
+		it("logs a message with the subcommand, channel, server, and user", async () => {
+			mockGameStateIsInactive.mockReturnValue(false);
+			const game = {} as Game;
+			const options = [
+				{
+					type: ApplicationCommandOptionType.Subcommand,
+					name: 'finish',
+				},
+			] as APIApplicationCommandInteractionDataOption[];
+			const interaction = getCommandInteraction(channel, user1, 'game-control', options, {});
+			await commandSpec.handler(interaction, channel, game);
+			expect(console.log).toHaveBeenCalledTimes(1);
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining("finish"));
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining(channel.id.toString()));
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining(guild.id.toString()));
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining(user1.id.toString()));
 		});
 	});
 });

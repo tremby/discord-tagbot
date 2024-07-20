@@ -18,6 +18,9 @@ const commandSpec: SlashCommandSpec = {
 		// Stop any timers
 		clearTimers(game);
 
+		// Log the interaction
+		console.log(`Forget command run in channel ${channel} on server ${channel.guild.id} by user ${interaction.member?.user.id} (${interaction.member?.user.username})`);
+
 		// Unregister game
 		appState.games.delete(game);
 		persist();
