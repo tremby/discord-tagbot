@@ -254,6 +254,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 				{
 					channelId: 'channel-2',
@@ -264,6 +265,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -283,6 +285,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -305,6 +308,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -330,6 +334,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -350,6 +355,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -369,6 +375,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -388,6 +395,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -411,6 +419,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -430,6 +439,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -450,6 +460,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -470,6 +481,7 @@ describe("load", () => {
 						chatChannelId: 'channel-3',
 						rankingStrategy: 'modifiedCompetition',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -489,6 +501,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -527,6 +540,7 @@ describe("load", () => {
 							tagJudgeRoleIds: [],
 							chatChannelId: null,
 						},
+						statusMessageId: 'abc',
 					},
 				],
 			}));
@@ -565,6 +579,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -614,6 +629,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -633,6 +649,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -652,6 +669,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -671,6 +689,7 @@ describe("load", () => {
 						tagJudgeRoleIds: [],
 						chatChannelId: null,
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -709,6 +728,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 				{
 					channelId: 'channel-1',
@@ -719,6 +739,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -739,6 +760,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 				{
 					channelId: 'channel-1',
@@ -749,6 +771,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -769,6 +792,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['null-role', 'role-1'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -790,6 +814,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['bad-role', 'role-1'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -811,6 +836,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'null-channel',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -832,6 +858,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'bad-channel',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -855,6 +882,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));
@@ -877,6 +905,7 @@ describe("load", () => {
 						tagJudgeRoleIds: ['role-1', 'role-2'],
 						chatChannelId: 'channel-3',
 					},
+					statusMessageId: 'abc',
 				},
 			],
 		}));

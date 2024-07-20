@@ -869,6 +869,7 @@ describe("handleMessage", () => {
 describe("recount", () => {
 	beforeEach(() => {
 		jest.spyOn(console, 'log').mockImplementation();
+		jest.spyOn(console, 'error').mockImplementation();
 	});
 
 	it("starts with a free state", async () => {
@@ -966,6 +967,13 @@ describe("recount", () => {
 			.mockResolvedValueOnce(states[7])
 			.mockResolvedValue(null);
 		expect(await m.recount(game)).toBe(states[7]);
+	});
+
+	it("logs an error and returns the inactive state if there is no start of game reference", async () => {
+		const game = { ...gameAwaitingMatch, statusMessage: null };
+		mockGetAllMessagesSince.mockImplementation(yieldNothing);
+		const result = await m.recount(game);
+		expect(result.status).toBe('inactive');
 	});
 });
 

@@ -135,12 +135,12 @@ export async function load(discordClient: Client): Promise<void> {
 			try {
 				const message = await channel.messages.fetch(messageId);
 				if (message == null) {
-					console.warn(`${errorPreamble}the status message (${messageId}) couldn't be retrieved (received null)`);
+					console.error(`${errorPreamble}the status message (${messageId}) couldn't be retrieved (received null)`);
 					return null;
 				}
 				return message;
 			} catch (error) {
-				console.warn(`${errorPreamble}there was an error fetching the status message (${messageId}): ${error}`);
+				console.error(`${errorPreamble}there was an error fetching the status message (${messageId}): ${error}`);
 				return null;
 			}
 		};

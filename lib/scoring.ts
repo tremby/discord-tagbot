@@ -281,7 +281,10 @@ export async function handleMessage(game: Game, message: Message, mode: 'recount
 export async function recount(game: PartialBy<Game, 'state'>): Promise<GameState> {
 	// Can't do this if we have no start of game reference
 	if (game.statusMessage == null) {
-		throw new Error("Tried to recount but we have no reference to the start of the game.");
+		console.error("Tried to recount but we have no reference to the start of the game. Forcing game to inactive state.");
+		return {
+			status: 'inactive',
+		};
 	}
 
 	console.log("Started recalculating");
