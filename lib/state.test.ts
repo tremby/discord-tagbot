@@ -181,18 +181,51 @@ describe("load", () => {
 		state.deletedMessageIds = new Set();
 
 		jest.spyOn(console, 'log').mockImplementation();
-		jest.spyOn(client.channels, 'fetch').mockImplementation(async (id) => id === 'channel-1' ? channel1 : id === 'channel-2' ? channel2 : channel3);
-		jest.spyOn(client.users, 'fetch').mockImplementation(async (id) => id === 'user-1' ? user1 : user2);
+		jest.spyOn(console, 'warn').mockImplementation();
+		jest.spyOn(console, 'error').mockImplementation();
+		jest.spyOn(client.channels, 'fetch').mockImplementation(async (id) => {
+			switch (id) {
+				case 'null-channel': return null;
+				case 'bad-channel': throw new Error();
+				case 'channel-1': return channel1;
+				case 'channel-2': return channel2;
+				default: return channel3;
+			}
+		});
+		// @ts-ignore: apparently it can never return null, different from other similar methods; let's force it
+		jest.spyOn(client.users, 'fetch').mockImplementation(async (id) => {
+			switch (id) {
+				case 'null-user': return null;
+				case 'bad-user': throw new Error();
+				case 'user-1': return user1;
+				default: return user2;
+			}
+		});
 		// @ts-ignore: bug in types? this method is certainly allowed to return single roles
-		jest.spyOn(guild.roles, 'fetch').mockImplementation(async (id) => id === 'role-1' ? role1 : role2);
-		jest.spyOn(channel1.messages, 'fetch').mockResolvedValue(
-			// @ts-expect-error: overloaded function; mocking it properly would be a pain
-			statusMessage
-		);
-		jest.spyOn(channel2.messages, 'fetch').mockResolvedValue(
-			// @ts-expect-error: overloaded function; mocking it properly would be a pain
-			statusMessage
-		);
+		jest.spyOn(guild.roles, 'fetch').mockImplementation(async (id: string) => {
+			switch (id) {
+				case 'null-role': return null;
+				case 'bad-role': throw new Error();
+				case 'role-1': return role1;
+				default: return role2;
+			}
+		});
+		// @ts-expect-error: overloaded function; mocking it properly would be a pain
+		jest.spyOn(channel1.messages, 'fetch').mockImplementation(async (id) => {
+			switch (id) {
+				case 'null-message': return null;
+				case 'bad-message': throw new Error();
+				default: return statusMessage;
+			}
+		});
+		// @ts-expect-error: overloaded function; mocking it properly would be a pain
+		jest.spyOn(channel2.messages, 'fetch').mockImplementation(async (id) => {
+			switch (id) {
+				case 'null-message': return null;
+				case 'bad-message': throw new Error();
+				default: return statusMessage;
+			}
+		});
 		jest.spyOn(m, 'getRedisClient').mockReturnValue(mockRedisClient as unknown as jest.Mocked<RedisClientType>);
 
 		mockRecount.mockResolvedValue({
@@ -662,5 +695,193 @@ describe("load", () => {
 		}));
 		await m.load(client);
 		expect(mockUpdateGameStatusMessage).not.toHaveBeenCalled();
+	});
+
+	it("drops a game and logs an error if the game channel cannot be loaded (null returned)", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'null-channel',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect(state.games.size).toBe(1);
+		expect(console.error).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a game and logs an error if the game channel cannot be loaded (error thrown)", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'bad-channel',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect(state.games.size).toBe(1);
+		expect(console.error).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a tag judge role and logs a warning if the role cannot be loaded (null returned)", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['null-role', 'role-1'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect(state.games.size).toBe(1);
+		expect([...state.games][0].config.tagJudgeRoles.size).toBe(1);
+		expect(console.warn).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a tag judge role and logs a warning if the role cannot be loaded (error thrown)", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['bad-role', 'role-1'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect(state.games.size).toBe(1);
+		expect([...state.games][0].config.tagJudgeRoles.size).toBe(1);
+		expect(console.warn).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a chat channel and logs a warning if the chat channel cannot be loaded (null returned)", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'null-channel',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect(state.games.size).toBe(1);
+		expect([...state.games][0].config.chatChannel).toBeNull();
+		expect(console.warn).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a chat channel and logs a warning if the chat channel cannot be loaded (error thrown)", async () => {
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['user-1', 'user-2'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'bad-channel',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect(state.games.size).toBe(1);
+		expect([...state.games][0].config.chatChannel).toBeNull();
+		expect(console.warn).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a disqualified player and logs a warning if the user cannot be loaded (null returned)", async () => {
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGameStateIsAwaitingNext.mockReturnValue(false);
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['null-user', 'user-1'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect([...state.games][0]).toHaveProperty('state.disqualifiedFromRound.size', 1);
+		expect(console.warn).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a disqualified player and logs a warning if the user cannot be loaded (error thrown)", async () => {
+		mockGameStateIsAwaitingMatch.mockReturnValue(true);
+		mockGameStateIsAwaitingNext.mockReturnValue(false);
+		mockRedisClient.get.mockResolvedValue(JSON.stringify({
+			games: [
+				{
+					channelId: 'channel-1',
+					status: 'awaiting-next',
+					disqualifiedFromRound: ['bad-user', 'user-1'],
+					config: {
+						nextTagTimeLimit: 3600e3,
+						tagJudgeRoleIds: ['role-1', 'role-2'],
+						chatChannelId: 'channel-3',
+					},
+				},
+			],
+		}));
+		await m.load(client);
+		expect([...state.games][0]).toHaveProperty('state.disqualifiedFromRound.size', 1);
+		expect(console.warn).toHaveBeenCalledTimes(1);
 	});
 });

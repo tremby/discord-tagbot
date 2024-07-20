@@ -26,6 +26,8 @@ const state = {
 
 export default state;
 
+const notNull = <T>(item: T | null | undefined): item is T => item != null;
+
 // Set up Redis client
 const redisClient = createRedisClient({
 	url: `redis://${process.env.REDISUSER ?? ''}:${process.env.REDISPASSWORD ?? ''}@${process.env.REDISHOST ?? 'localhost'}:${process.env.REDISPORT ?? '6379'}`,
@@ -81,18 +83,47 @@ export async function load(discordClient: Client): Promise<void> {
 
 	const data = JSON.parse(str);
 
-	state.games = new Set(await Promise.all(data.games.map(async (serializedGame: SerializedGame) => {
+	const games = await Promise.all(data.games.map(async (serializedGame: SerializedGame, i: number) => {
+		const errorPreamble = `When trying to recover game index ${i} (game channel ${serializedGame.channelId}), `;
+
 		// Get the channel object
-		const channel = await discordClient.channels.fetch(serializedGame.channelId) as TextChannel;
+		const getChannel = async (channelId: string, designation: "game" | "chat") => {
+			const logger = designation === "game" ? console.error : console.warn;
+			try {
+				const channel = (await discordClient.channels.fetch(channelId)) as TextChannel | null;
+				if (channel == null) {
+					logger(`${errorPreamble}the ${designation} channel (${channelId}) couldn't be retrieved (received null)`);
+					return null;
+				}
+				return channel;
+			} catch (error) {
+				logger(`${errorPreamble}there was an error fetching the ${designation} channel (${channelId}): ${error}`);
+				return null;
+			}
+		};
+		const channel = await getChannel(serializedGame.channelId, "game");
+		if (channel == null) return null;
 
 		// Recover the game configuration
+		const getRole = async (roleId: string) => {
+			try {
+				const role = await channel.guild.roles.fetch(roleId);
+				if (role == null) {
+					console.warn(`${errorPreamble}role ${roleId} couldn't be retrieved (received null)`);
+					return null;
+				}
+				return role;
+			} catch (error) {
+				console.warn(`${errorPreamble}there was an error fetching role ${roleId}: ${error}`);
+				return null;
+			}
+		};
 		const config: Config = {
 			nextTagTimeLimit: serializedGame.config.nextTagTimeLimit,
 			tagJudgeRoles: new Set(
-				(await Promise.all(serializedGame.config.tagJudgeRoleIds.map(async (id) => channel.guild.roles.fetch(id))))
-					.filter((r): r is Role => r != null)
+				(await Promise.all(serializedGame.config.tagJudgeRoleIds.map(getRole))).filter(notNull)
 			),
-			chatChannel: serializedGame.config.chatChannelId ? await discordClient.channels.fetch(serializedGame.config.chatChannelId) as TextChannel : null,
+			chatChannel: serializedGame.config.chatChannelId ? await getChannel(serializedGame.config.chatChannelId, "chat") : null,
 			autoRestart: serializedGame.config.autoRestart,
 			period: serializedGame.config.period,
 			locale: serializedGame.config.locale,
@@ -100,7 +131,20 @@ export async function load(discordClient: Client): Promise<void> {
 		};
 
 		// Find the status message
-		const statusMessage = serializedGame.statusMessageId ? await channel.messages.fetch(serializedGame.statusMessageId) : null;
+		const getMessage = async (messageId: string) => {
+			try {
+				const message = await channel.messages.fetch(messageId);
+				if (message == null) {
+					console.warn(`${errorPreamble}the status message (${messageId}) couldn't be retrieved (received null)`);
+					return null;
+				}
+				return message;
+			} catch (error) {
+				console.warn(`${errorPreamble}there was an error fetching the status message (${messageId}): ${error}`);
+				return null;
+			}
+		};
+		const statusMessage = serializedGame.statusMessageId ? await getMessage(serializedGame.statusMessageId) : null;
 
 		// Set up a partial game state object
 		const partialGame = {
@@ -113,8 +157,21 @@ export async function load(discordClient: Client): Promise<void> {
 		const state: GameState = serializedGame.status === 'inactive' ? { status: 'inactive' } : await recount(partialGame);
 
 		// If necessary, get currently-disqualified users
+		const getUser = async (userId: string) => {
+			try {
+				const user = await discordClient.users.fetch(userId);
+				if (user == null) {
+					console.warn(`${errorPreamble}disqualified user ${userId} couldn't be retrieved (received null)`);
+					return null;
+				}
+				return user;
+			} catch (error) {
+				console.warn(`${errorPreamble}there was an error fetching disqualified user ${userId}: ${error}`);
+				return null;
+			}
+		};
 		if (gameStateIsAwaitingMatch(state) || gameStateIsAwaitingNext(state)) {
-			state.disqualifiedFromRound = new Set(await Promise.all((serializedGame.disqualifiedFromRound ?? []).map((id) => discordClient.users.fetch(id))));
+			state.disqualifiedFromRound = new Set((await Promise.all((serializedGame.disqualifiedFromRound ?? []).map((id) => getUser(id)))).filter(notNull));
 		}
 
 		// Put together the final game object
@@ -132,7 +189,10 @@ export async function load(discordClient: Client): Promise<void> {
 		setTimers(game, state);
 
 		return game;
-	})));
+	}));
+
+	// Include any remaining games in our set of active games
+	state.games = new Set(games.filter(notNull));
 
 	console.log("Finished loading from storage");
 }
