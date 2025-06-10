@@ -31,5 +31,5 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
       - run: npm ci
-      - run: npm prebuild
+      - run: npm run prebuild
       - run: npm test
