@@ -13,7 +13,7 @@
   "author": "Bart Nagel <bart@tremby.net>",
   "license": "MIT",
   "engines": {
-    "node": "^20"
+    "node": "^18"
   },
   "dependencies": {
     "@discordjs/rest": "^1.1.0",
