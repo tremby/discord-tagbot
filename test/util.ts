@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import type { CommandInteraction } from 'discord.js';
+import { MessageFlags, type CommandInteraction, type InteractionReplyOptions } from 'discord.js';
 
 export function expectAnyOf(...tests: (() => void)[]): void {
 	try {
@@ -23,28 +23,33 @@ export async function flushPromises(): Promise<unknown> {
 
 export function expectInteractionResponse(interaction: CommandInteraction, ephemeral: boolean): void {
 	expectAnyOf(() => {
-		expect(interaction.reply).toHaveBeenCalledTimes(1);
+		const fn = interaction.reply as jest.MockedFunction<typeof interaction.reply>;
+		expect(fn).toHaveBeenCalledTimes(1);
 		if (ephemeral) {
-			expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+			expect(fn).toHaveBeenCalledWith(expect.objectContaining({ flags: expect.any(Number) }));
+			expect((fn.mock.calls[fn.mock.calls.length - 1][0] as any).flags & MessageFlags.Ephemeral).toBeTruthy();
 		} else {
 			expectAnyOf(() => {
-				expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: false }));
+				expect(fn).toHaveBeenCalledWith(expect.objectContaining({ flags: expect.any(Number) }));
+				expect((fn.mock.calls[fn.mock.calls.length - 1][0] as any).flags & MessageFlags.Ephemeral).toBeFalsy();
 			}, () => {
 				const fn = interaction.reply as jest.MockedFunction<typeof interaction.reply>;
-				expect(fn.mock.calls[fn.mock.calls.length - 1]).not.toHaveProperty('ephemeral');
+				expect(fn.mock.calls[fn.mock.calls.length - 1][0]).not.toHaveProperty('flags');
 			});
 		}
 		expect(interaction.editReply).not.toHaveBeenCalled();
 	}, () => {
-		expect(interaction.deferReply).toHaveBeenCalledTimes(1);
+		const fn = interaction.deferReply as jest.MockedFunction<typeof interaction.deferReply>;
+		expect(fn).toHaveBeenCalledTimes(1);
 		if (ephemeral) {
-			expect(interaction.deferReply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+			expect(fn).toHaveBeenCalledWith(expect.objectContaining({ flags: expect.any(Number) }));
+			expect((fn.mock.calls[fn.mock.calls.length - 1][0] as any).flags & MessageFlags.Ephemeral).toBeTruthy();
 		} else {
 			expectAnyOf(() => {
-				expect(interaction.deferReply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: false }));
+				expect(fn).toHaveBeenCalledWith(expect.objectContaining({ flags: expect.any(Number) }));
+				expect((fn.mock.calls[fn.mock.calls.length - 1][0] as any).flags & MessageFlags.Ephemeral).toBeFalsy();
 			}, () => {
-				const fn = interaction.deferReply as jest.MockedFunction<typeof interaction.deferReply>;
-				expect(fn.mock.calls[fn.mock.calls.length - 1]).not.toHaveProperty('ephemeral');
+				expect(fn.mock.calls[fn.mock.calls.length - 1][0]).not.toHaveProperty('flags');
 			});
 		}
 		expect(interaction.editReply).toHaveBeenCalledTimes(1);

@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import type { User } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -26,13 +27,13 @@ const commandSpec: SlashCommandSpec = {
 						getStatusEmbedField(game),
 					],
 				}],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
 
 		// Inform the user that this could take time
-		const deferralPromise = interaction.deferReply({ ephemeral: true });
+		const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		// Hold on to the old scores
 		const oldScores = game.state.scores;

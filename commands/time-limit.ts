@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { persist } from '../lib/state';
@@ -47,7 +48,7 @@ const commandSpec: SlashCommandSpec = {
 							description: "Time limit was not specified.",
 							fields: getConfigEmbedFields(game.config),
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -59,7 +60,7 @@ const commandSpec: SlashCommandSpec = {
 							description: "Time limit must be positive.",
 							fields: getConfigEmbedFields(game.config),
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -77,13 +78,13 @@ const commandSpec: SlashCommandSpec = {
 						description: "Unknown subcommand; expected `set` or `clear`.",
 						fields: getConfigEmbedFields(game.config),
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 		}
 
 		// Inform the user this may take time
-		const deferralPromise = interaction.deferReply({ ephemeral: true });
+		const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		// Update configuration
 		const newTimeLimitInMs = newTimeLimitInMinutes * 60 * 1e3;

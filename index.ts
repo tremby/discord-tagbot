@@ -4,7 +4,7 @@ dotenv.config();
 
 import { createClient as createRedisClient } from 'redis';
 
-import { Client as DiscordClient, GatewayIntentBits, TextChannel, ActivityType, PermissionFlagsBits } from 'discord.js';
+import { Client as DiscordClient, GatewayIntentBits, TextChannel, ActivityType, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 
@@ -435,7 +435,7 @@ discordClient.on('ready', async () => {
 					title: "Error",
 					description: error.message,
 				}],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -450,7 +450,7 @@ discordClient.on('ready', async () => {
 					title: "Error",
 					description: `The channel ${channel} doesn't have a tag game associated.`,
 				}],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -465,7 +465,7 @@ discordClient.on('ready', async () => {
 								title: "Error",
 								description: "This can only be done by a server admin or a tag judge for this game.",
 							}],
-							ephemeral: true,
+							flags: MessageFlags.Ephemeral,
 						});
 						return;
 					}
@@ -477,7 +477,7 @@ discordClient.on('ready', async () => {
 								title: "Error",
 								description: "This can only be done by a server admin.",
 							}],
-							ephemeral: true,
+							flags: MessageFlags.Ephemeral,
 						});
 						return;
 					}
@@ -490,7 +490,7 @@ discordClient.on('ready', async () => {
 					title: "Error",
 					description: error.message,
 				}],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}

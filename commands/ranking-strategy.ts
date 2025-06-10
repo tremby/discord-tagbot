@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { updateGameStatusMessage } from '../lib/game-state';
@@ -44,7 +45,7 @@ const commandSpec: SlashCommandSpec = {
 		switch (interaction.options.getSubcommand()) {
 			case 'set': {
 				// Inform the user this may take time
-				const deferralPromise = interaction.deferReply({ ephemeral: true });
+				const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				// Get the specified strategy
 				const rankingStrategy = interaction.options.getString('strategy');
@@ -55,7 +56,7 @@ const commandSpec: SlashCommandSpec = {
 							title: "Error",
 							description: "Strategy was not specified.",
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -66,7 +67,7 @@ const commandSpec: SlashCommandSpec = {
 							title: "Error",
 							description: "Unknown strategy.",
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}

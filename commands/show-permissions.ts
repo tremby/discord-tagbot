@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { getPermissionsEmbedField } from '../lib/permissions';
@@ -19,7 +20,7 @@ const commandSpec: SlashCommandSpec = {
 					await getPermissionsEmbedField(channel.guild),
 				],
 			}],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 	},
 };

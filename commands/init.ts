@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import type { CommandInteraction } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -25,7 +26,7 @@ const commandSpec: SlashCommandSpec = {
 						getStatusEmbedField(existingGame),
 					],
 				}],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -56,7 +57,7 @@ const commandSpec: SlashCommandSpec = {
 					await getPermissionsEmbedField(game),
 				].flat(),
 			}],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 	},
 };

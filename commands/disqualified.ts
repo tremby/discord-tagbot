@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import type { CommandInteraction, Role, TextChannel } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -55,7 +56,7 @@ const commandSpec: SlashCommandSpec = {
 					description: `Only games in the states of awaiting next tag or awaiting match can have lists of disqualified users. The game in ${channel} is not in either of these states.`,
 					fields: [getStatusEmbedField(game)],
 				}],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -71,7 +72,7 @@ const commandSpec: SlashCommandSpec = {
 							title: "Error",
 							description: `Couldn't find user ${user}.`,
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -85,7 +86,7 @@ const commandSpec: SlashCommandSpec = {
 							description: `${user} is already disqualified from the current round in ${channel}.`,
 							fields: field ? [field] : [],
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -101,7 +102,7 @@ const commandSpec: SlashCommandSpec = {
 						description: `${user} added to the list of players disqualified from the current round in ${channel}.`,
 						fields: field ? [field] : [],
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -117,7 +118,7 @@ const commandSpec: SlashCommandSpec = {
 							title: "Error",
 							description: `Couldn't find user ${user}.`,
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -132,7 +133,7 @@ const commandSpec: SlashCommandSpec = {
 							description: `${user} is not disqualified from the current round in ${channel}.`,
 							fields: field ? [field] : [],
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -147,7 +148,7 @@ const commandSpec: SlashCommandSpec = {
 						description: `${user} removed from the list of players disqualified from the current round in ${channel}.`,
 						fields: field ? [field] : [],
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -164,7 +165,7 @@ const commandSpec: SlashCommandSpec = {
 							description: `No users are disqualified from the current round in ${channel}.`,
 							fields: field ? [field] : [],
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -179,7 +180,7 @@ const commandSpec: SlashCommandSpec = {
 						description: `All players removed from the list of players disqualified from the current round in ${channel}.`,
 						fields: field ? [field] : [],
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;

@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { getConfigEmbedFields } from '../lib/config';
@@ -20,7 +21,7 @@ const commandSpec: SlashCommandSpec = {
 				description: `This is the current configuration for tag game in ${channel}.`,
 				fields: getConfigEmbedFields(game.config),
 			}],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 	},
 };

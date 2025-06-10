@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import {
@@ -43,7 +44,7 @@ const commandSpec: SlashCommandSpec = {
 								getStatusEmbedField(game),
 							],
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -52,7 +53,7 @@ const commandSpec: SlashCommandSpec = {
 				console.log(`Game-control start command run in channel ${channel} on server ${channel.guild.id} by user ${interaction.member?.user.id} (${interaction.member?.user.username})`);
 
 				// Inform the user this may take time
-				const deferralPromise = interaction.deferReply({ ephemeral: true });
+				const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				// Start the game
 				await start(game);
@@ -83,7 +84,7 @@ const commandSpec: SlashCommandSpec = {
 								getStatusEmbedField(game),
 							],
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -92,7 +93,7 @@ const commandSpec: SlashCommandSpec = {
 				console.log(`Game-control finish command run in channel ${channel} on server ${channel.guild.id} by user ${interaction.member?.user.id} (${interaction.member?.user.username})`);
 
 				// Inform the user this may take time
-				const deferralPromise = interaction.deferReply({ ephemeral: true });
+				const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				// Finish the game, and possibly start the next one
 				await finish(game, false);

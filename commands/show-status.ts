@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import {
@@ -29,7 +30,7 @@ const commandSpec: SlashCommandSpec = {
 					getDisqualifiedPlayersEmbedField(game) ?? [],
 				].flat(),
 			}],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 	},
 };

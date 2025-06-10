@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import { updateGameStatusMessage } from '../lib/game-state';
@@ -54,7 +55,7 @@ const commandSpec: SlashCommandSpec = {
 		switch (interaction.options.getSubcommand()) {
 			case 'period': {
 				// Inform the user this may take time
-				const deferralPromise = interaction.deferReply({ ephemeral: true });
+				const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				// Get the specified period
 				const rawPeriod = interaction.options.getString('period') as 'manual' | 'hour' | 'month';
@@ -90,7 +91,7 @@ const commandSpec: SlashCommandSpec = {
 
 			case 'auto-restart': {
 				// Inform the user this may take time
-				const deferralPromise = interaction.deferReply({ ephemeral: true });
+				const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				// Get the specified setting
 				const autoRestart = interaction.options.getBoolean('auto-restart') ?? false;
@@ -122,7 +123,7 @@ const commandSpec: SlashCommandSpec = {
 
 			case 'locale':
 				// Inform the user this may take time
-				const deferralPromise = interaction.deferReply({ ephemeral: true });
+				const deferralPromise = interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				// Get the specified setting
 				const locale = interaction.options.getString('locale');
@@ -133,7 +134,7 @@ const commandSpec: SlashCommandSpec = {
 							title: "Error",
 							description: "Locale was not specified.",
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}

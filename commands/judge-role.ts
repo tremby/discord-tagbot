@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import type { CommandInteraction, Role, TextChannel } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -48,7 +49,7 @@ const commandSpec: SlashCommandSpec = {
 					title: "Error",
 					description: "Something went wrong when resolving the specified role.",
 				}],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -63,7 +64,7 @@ const commandSpec: SlashCommandSpec = {
 							description: `The role ${role} is already on the judge list for the tag game in ${channel}.`,
 							fields: getConfigEmbedFields(game.config),
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -79,7 +80,7 @@ const commandSpec: SlashCommandSpec = {
 						description: `Role ${role} added to judge list for the tag game in ${channel}.`,
 						fields: getConfigEmbedFields(game.config),
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -93,7 +94,7 @@ const commandSpec: SlashCommandSpec = {
 							description: `The role ${role} was not on the judge list for the tag game in ${channel}.`,
 							fields: getConfigEmbedFields(game.config),
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -109,7 +110,7 @@ const commandSpec: SlashCommandSpec = {
 						description: `Role ${role} removed from judge list for the tag game in ${channel}.`,
 						fields: getConfigEmbedFields(game.config),
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;

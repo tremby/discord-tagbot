@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { Constants } from 'discord.js';
+import { Constants, MessageFlags } from 'discord.js';
 
 import appState, { persist } from '../lib/state';
 import { clearTimers } from '../lib/timers';
@@ -31,7 +31,7 @@ const commandSpec: SlashCommandSpec = {
 				title: "Game unregistered",
 				description: `The channel ${channel} is no longer being tracked as a tag game. You may or may not wish to tidy up any posts made by the bot.`,
 			}],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 	},
 };

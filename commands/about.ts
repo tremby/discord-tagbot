@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { resolve } from 'path';
 import { readFile } from 'fs/promises';
@@ -35,7 +36,7 @@ const commandSpec: SlashCommandSpec = {
 					},
 				],
 			}],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 	},
 };

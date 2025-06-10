@@ -1,4 +1,4 @@
-import { InteractionType } from 'discord.js';
+import { InteractionType, MessageFlags } from 'discord.js';
 import type { TextChannel } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -48,7 +48,7 @@ const commandSpec: SlashCommandSpec = {
 							description: error.message,
 							fields: getConfigEmbedFields(game.config),
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -59,7 +59,7 @@ const commandSpec: SlashCommandSpec = {
 							description: `The chat channel cannot be set to the same channel as the game channel.`,
 							fields: getConfigEmbedFields(game.config),
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -80,7 +80,7 @@ const commandSpec: SlashCommandSpec = {
 							await getPermissionsEmbedField(game),
 						],
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -95,7 +95,7 @@ const commandSpec: SlashCommandSpec = {
 							description: `There was no chat channel associated with the tag game in ${channel}.`,
 							fields: getConfigEmbedFields(game.config),
 						}],
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -113,7 +113,7 @@ const commandSpec: SlashCommandSpec = {
 						description: `Chat channel for the tag game in ${channel} has been disassociated.`,
 						fields: getConfigEmbedFields(game.config),
 					}],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
