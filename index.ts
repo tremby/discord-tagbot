@@ -504,21 +504,27 @@ discordClient.on('ready', async () => {
 
 	// Logging to aid debugging an issue where the bot will stop receiving
 	// events after having been running a month or so
-	discordClient.on("shardDisconnect", async (event, shardId) => {
+	discordClient.on("debug", (info) => {
+		console.log(`Received debug event: ${info}`);
+	});
+	discordClient.on("shardDisconnect", (event, shardId) => {
 		console.warn(`Received shardDisconnect event, shard ID ${shardId}`, event);
 	});
-	discordClient.on("shardError", async (event, shardId) => {
+	discordClient.on("shardError", (event, shardId) => {
 		console.error(`Received shardError event, shard ID ${shardId}`, event);
 	});
-	discordClient.on("shardReady", async (shardId, unavailableGuilds) => {
+	discordClient.on("shardReady", (shardId, unavailableGuilds) => {
 		console.log(`Received shardReady event, shard ID ${shardId}`, unavailableGuilds);
 	});
-	discordClient.on("shardReconnecting", async (shardId) => {
+	discordClient.on("shardReconnecting", (shardId) => {
 		console.log(`Received shardReconnecting event, shard ID ${shardId}`);
 	});
-	discordClient.on("shardResume", async (shardId, replayedEvents) => {
+	discordClient.on("shardResume", (shardId, replayedEvents) => {
 		console.log(`Received shardResume event, shard ID ${shardId}`, replayedEvents, "replayed events");
 	});
+	setInterval(() => {
+		console.log(`Websocket ping: ${discordClient.ws.ping}ms`);
+	}, 60e3);
 });
 
 /**
