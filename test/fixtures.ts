@@ -174,6 +174,7 @@ export function getCommandInteraction(channel: TextChannel, author: User, name: 
 			options,
 			resolved,
 		},
+		entitlements: [],
 	});
 
 	interaction.reply = jest.fn();

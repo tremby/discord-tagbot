@@ -211,7 +211,7 @@ describe("load", () => {
 			}
 		});
 		// @ts-expect-error: overloaded function; mocking it properly would be a pain
-		jest.spyOn(channel1.messages, 'fetch').mockImplementation(async (id) => {
+		jest.spyOn(channel1.messages, 'fetch').mockImplementation(async (id: any) => {
 			switch (id) {
 				case 'null-message': return null;
 				case 'bad-message': throw new Error();
@@ -219,7 +219,7 @@ describe("load", () => {
 			}
 		});
 		// @ts-expect-error: overloaded function; mocking it properly would be a pain
-		jest.spyOn(channel2.messages, 'fetch').mockImplementation(async (id) => {
+		jest.spyOn(channel2.messages, 'fetch').mockImplementation(async (id: any) => {
 			switch (id) {
 				case 'null-message': return null;
 				case 'bad-message': throw new Error();

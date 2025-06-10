@@ -189,6 +189,7 @@ describe("getValidChannel", () => {
 			avatar: user1.avatar,
 			discriminator: user1.discriminator,
 		},
+		entitlements: [],
 	});
 
 	describe("with a given option name", () => {
